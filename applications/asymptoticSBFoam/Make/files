@@ -1,0 +1,3 @@
+asymptoticSBFoam.C
+
+EXE = $(FOAM_APPBIN)/asymptoticSBFoam
