@@ -16,6 +16,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "simpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -30,13 +31,16 @@ int main(int argc, char *argv[])
 
     Info<< "\nCalculating temperature distribution\n" << endl;
 
-    while (runTime.loop())
+    simpleControl simple(mesh);
+
+    while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         solve (
             fvm::laplacian (sqrt(T), T)
         );
+
     	runTime.write();
     }
 
