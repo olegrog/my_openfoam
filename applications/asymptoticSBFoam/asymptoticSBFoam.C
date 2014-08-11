@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.0                                 |
+|  \\    /   O peration     | Version:  2.3.0                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
 	surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA/T) & mesh.Sf());
         adjustPhi(phiHbyA, U, p);
-	fvOptions.relativeFlux(phiHbyA);
+	fvOptions.makeRelative(phiHbyA);
 
 	while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(
