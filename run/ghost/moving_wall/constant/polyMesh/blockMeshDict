@@ -41,37 +41,37 @@ boundary
 (
     wall
     {
-    	type wall;
-    	faces
-	(
+        type wall;
+        faces
+        (
             (1 5 4 0)
-	);
+        );
     }
     symmetry
     {
         type symmetryPlane;
         faces
         (
-	    (3 7 6 2)
+            (3 7 6 2)
         );
     }
     left
     {
-	type cyclic;
-	neighbourPatch right;
+        type cyclic;
+        neighbourPatch right;
         faces
         (
             (0 4 7 3)
-	);
+        );
     }
     right
     {
-	type cyclic;
-	neighbourPatch left;
+        type cyclic;
+        neighbourPatch left;
         faces
         (
             (2 6 5 1)
-	);
+        );
     }
     frontAndBack
     {

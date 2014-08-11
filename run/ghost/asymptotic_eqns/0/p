@@ -17,23 +17,29 @@ FoamFile
 
 dimensions      [0 2 -2 -1 0 0 0];
 
-internalField	uniform 1;
+internalField   uniform 1;
 
 boundaryField
 {
-    diffusionWall
+    bottom
     {
-	type            zeroGradient;
+        type zeroGradient;
     }
-
-    symmetryWalls
+    top
     {
-        type            symmetryPlane;
+        type symmetryPlane;
     }
-
+    left
+    {
+        type symmetryPlane;
+    }
+    right
+    {
+        type symmetryPlane;
+    }
     frontAndBack
     {
-        type            empty;
+        type empty;
     }
 }
 

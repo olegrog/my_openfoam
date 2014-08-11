@@ -21,8 +21,8 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-08;
-        relTol          0.01;
+        tolerance       1e-07;
+        relTol          0;
     }
 
     T
@@ -37,7 +37,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-08;
+        tolerance       1e-05;
         relTol          0.01;
     }
 }
@@ -48,8 +48,8 @@ SIMPLE
 
     residualControl
     {
-        p               1e-5;
-        U               1e-6;
+        p               1e-4;
+        U               1e-5;
     }
 }
 

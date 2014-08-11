@@ -10,10 +10,10 @@ K1 = -0.6463
 u = -K1*np.sqrt(T)*dTdx
 
 def print_T(arr):
-	print '\n'.join(['%f' % arr[i] for i in xrange(len(arr))])
+    print '\n'.join(['%f' % arr[i] for i in xrange(len(arr))])
 
 def print_u(arr):
-	print '\n'.join(['(%f 0 0)' % arr[i] for i in xrange(len(arr))])
+    print '\n'.join(['(%f 0 0)' % arr[i] for i in xrange(len(arr))])
 
 print_T(T)
 # print '\n'

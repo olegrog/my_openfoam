@@ -21,10 +21,10 @@ internalField   uniform 1;
 
 boundaryField
 {
-    diffusionWall
+    bottom
     {
-        type            fixedValue;
-        value           nonuniform List<scalar> 
+        type fixedValue;
+        value nonuniform List<scalar> 
 50
 (
 0.500247
@@ -79,15 +79,21 @@ boundaryField
 1.49975
 );
     }
-
-    symmetryWalls
+    top
     {
-        type            symmetryPlane;
+        type symmetryPlane;
     }
-
+    left
+    {
+        type symmetryPlane;
+    }
+    right
+    {
+        type symmetryPlane;
+    }
     frontAndBack
     {
-        type            empty;
+        type empty;
     }
 }
 

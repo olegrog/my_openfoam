@@ -39,22 +39,36 @@ edges
 
 boundary
 (
-    diffusionWall
+    bottom
     {
-    	type wall;
-    	faces
-	(
+        type wall;
+        faces
+        (
             (1 5 4 0)
-	);
+        );
     }
-    symmetryWalls
+    top
+    {
+        type symmetryPlane;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    left
     {
         type symmetryPlane;
         faces
         (
             (0 4 7 3)
+        );
+    }
+    right
+    {
+        type symmetryPlane;
+        faces
+        (
             (2 6 5 1)
-	    (3 7 6 2)
         );
     }
     frontAndBack

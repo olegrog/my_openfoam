@@ -1,4 +1,4 @@
-value           nonuniform List<scalar>
+value nonuniform List<scalar>
 100
 (
 0.500247

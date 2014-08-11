@@ -23,24 +23,24 @@ boundaryField
 {
     wall
     {
-        type            fixedValue;
-	#include "int.T"
+        type fixedValue;
+        #include "int.T"
     }
     symmetry
     {
-        type            symmetryPlane;
+        type symmetryPlane;
     }
     left
     {
-    	type 		cyclic;
+        type cyclic;
     }
     right
     {
-    	type 		cyclic;
+        type cyclic;
     }
     frontAndBack
     {
-        type            empty;
+        type empty;
     }
 }
 
