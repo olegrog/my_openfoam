@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cd ${0%/*} || exit 1
+make
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+application=`getApplication`
+runApplication decomposePar
+runParallel $application
+runApplication reconstructPar
+
