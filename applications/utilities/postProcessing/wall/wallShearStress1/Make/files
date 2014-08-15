@@ -1,0 +1,3 @@
+wallShearStress1.C
+
+EXE = $(FOAM_APPBIN)/wallShearStress1

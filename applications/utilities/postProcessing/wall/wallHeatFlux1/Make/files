@@ -1,0 +1,3 @@
+wallHeatFlux1.C
+
+EXE = $(FOAM_APPBIN)/wallHeatFlux1
