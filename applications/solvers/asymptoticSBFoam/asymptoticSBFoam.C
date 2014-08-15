@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
         DT = fvc::grad(T);
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U)
-            - fvm::laplacian(g1*sqrt(T)/2, U) ==
-              g1 * fvc::div(sqrt(T)*dev2(::T(DU)))
+            - fvm::laplacian(g1 * sqrt(T)/2, U) ==
+              g1/2 * fvc::div(sqrt(T) * dev2(::T(DU)))
             + g7/T * (sqr(DT) & (U/g2/sqrt(T) - DT/4))
         );
         UEqn().relax();
