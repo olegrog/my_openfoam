@@ -21,7 +21,7 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-08;
+        tolerance       1e-07;
         relTol          0.01;
     }
 
@@ -37,7 +37,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-08;
+        tolerance       1e-06;
         relTol          0.01;
     }
 }
@@ -45,11 +45,12 @@ solvers
 SIMPLE
 {
     nNonOrthogonalCorrectors 0;
-
+    pRefCell            0;
+    pRefValue           0;
     residualControl
     {
-        p               1e-5;
-        U               1e-6;
+        p               1e-4;
+        U               1e-5;
     }
 }
 

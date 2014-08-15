@@ -29,7 +29,7 @@ divSchemes
 {
     default         none;
     div(phi,U)      bounded Gauss linearUpwindV grad(U);
-    div((sqrt(T)*dev(symm(grad(U))))) Gauss linear;
+    div((sqrt(T)*dev2(T(grad(U))))) Gauss linear;
 }
 
 laplacianSchemes

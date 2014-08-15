@@ -28,8 +28,8 @@ gradSchemes
 divSchemes
 {
     default         none;
-    div(phi,U)      bounded Gauss linearUpwindV grad(U);
-    div((sqrt(T)*dev(symm(grad(U))))) Gauss linear;
+    div(phi,U)      bounded Gauss limitedCubicV 1;
+    div((sqrt(T)*dev2(T(grad(U))))) Gauss linear;
 }
 
 laplacianSchemes

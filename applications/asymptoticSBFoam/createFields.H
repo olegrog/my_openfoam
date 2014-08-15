@@ -43,9 +43,9 @@
     surfaceScalarField phi
     (
         IOobject
-     	(
-	    "phi",
-	    runTime.timeName(),
+        (
+            "phi",
+            runTime.timeName(),
             mesh,
             IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
@@ -53,6 +53,9 @@
         linearInterpolate(U/T) & mesh.Sf()
     );
 
+    label pRefCell = 0;
+    scalar pRefValue = 0.0;
+    setRefCell(p, simple.dict(), pRefCell, pRefValue);
 
     Info<< "Reading transportProperties\n" << endl;
     IOdictionary transportProperties
