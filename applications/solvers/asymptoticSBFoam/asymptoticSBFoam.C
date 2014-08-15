@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
         UEqn.clear();
 
         surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA/T) & mesh.Sf());
-        bool closedVolume = adjustPhi(phiHbyA, U, p);
+        adjustPhi(phiHbyA, U, p);
 
         while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(

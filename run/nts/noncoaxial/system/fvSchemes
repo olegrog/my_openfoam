@@ -22,13 +22,13 @@ ddtSchemes
 
 gradSchemes
 {
-    default         Gauss linear;
+    default         leastSquares;
 }
 
 divSchemes
 {
     default         none;
-    div(phi,U)      bounded Gauss linearUpwindV grad(U);
+    div(phi,U)      bounded Gauss MUSCL;
     div((sqrt(T)*dev2(T(grad(U))))) Gauss linear;
 }
 
