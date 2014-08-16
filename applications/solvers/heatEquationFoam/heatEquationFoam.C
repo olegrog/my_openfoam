@@ -37,11 +37,17 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        solve (
-            fvm::laplacian (sqrt(T), T)
-        );
+        while (simple.correctNonOrthogonal())
+        {
+            solve
+            (
+                fvm::laplacian(sqrt(T), T)
+            );
+        }
 
-    	runTime.write();
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
     }
 
     Info<< "End\n" << endl;
