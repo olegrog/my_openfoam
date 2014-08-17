@@ -36,18 +36,28 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         #include "createFields.H"
 
-        const surfaceVectorField shearStress
-        (
-            symm(dev(fvc::interpolate
-            (
-                - g1 * 2 * sqrt(T) * fvc::grad(U)
-                + g7 * fvc::grad(T) * fvc::grad(T)
-                + g3 * T * fvc::grad(fvc::grad(T))
+        const surfaceVectorField shearStress1(
+            twoSymm(dev(fvc::interpolate(
+                -g1 * sqrt(T) * fvc::grad(U)
             ))) & mesh.Sf()
         );
 
-        const surfaceVectorField::GeometricBoundaryField& patchShearStress =
-            shearStress.boundaryField();
+        const surfaceVectorField shearStress2(
+            dev(fvc::interpolate(
+                g7 * fvc::grad(T) * fvc::grad(T)
+            )) & mesh.Sf()
+        );
+
+        // the second derivative of T is asymmetric due to interpolation
+        const surfaceVectorField shearStress3(
+            symm(dev(fvc::interpolate(
+                g3 * T * fvc::grad(fvc::grad(T))
+            ))) & mesh.Sf()
+        );
+
+        const surfaceVectorField shearStress(
+            shearStress1 + shearStress2 + shearStress3
+        );
 
         Info<< "\nThe force acting on" << endl;
         forAll(shearStress.boundaryField(), patchi)
@@ -56,32 +66,85 @@ int main(int argc, char *argv[])
             {
                 Info<< mesh.boundary()[patchi].name()
                     << " "
-                    << gSum(patchShearStress[patchi])
+                    << gSum(shearStress.boundaryField()[patchi])
+                    << " consisted of "
+                    << gSum(shearStress1.boundaryField()[patchi])
+                    << gSum(shearStress2.boundaryField()[patchi])
+                    << gSum(shearStress3.boundaryField()[patchi])
                     << endl;
             }
         }
         Info<< endl;
 
+        dimensionedVector zeroShearStress(
+            "wallShearStress",
+            shearStress.dimensions(),
+            vector::zero
+        );
+
+        volVectorField wallShearStress1
+        (
+            IOobject(
+                "wallShearStress1",
+                runTime.timeName(),
+                mesh
+            ),
+            mesh,
+            zeroShearStress
+        );
+        volVectorField wallShearStress2
+        (
+            IOobject(
+                "wallShearStress2",
+                runTime.timeName(),
+                mesh
+            ),
+            mesh,
+            zeroShearStress
+        );
+        volVectorField wallShearStress3
+        (
+            IOobject(
+                "wallShearStress3",
+                runTime.timeName(),
+                mesh
+            ),
+            mesh,
+            zeroShearStress
+        );
         volVectorField wallShearStress
         (
-            IOobject
-            (
+            IOobject(
                 "wallShearStress",
                 runTime.timeName(),
                 mesh
             ),
             mesh,
-            dimensionedVector(
-                "wallShearStress",
-                shearStress.dimensions(),
-                vector::zero
-            )
+            zeroShearStress
         );
 
+        forAll(wallShearStress1.boundaryField(), patchi)
+        {
+            wallShearStress1.boundaryField()[patchi] =
+                - shearStress1.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
+        }
+        wallShearStress1.write();
+        forAll(wallShearStress2.boundaryField(), patchi)
+        {
+            wallShearStress2.boundaryField()[patchi] =
+                - shearStress2.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
+        }
+        wallShearStress2.write();
+        forAll(wallShearStress3.boundaryField(), patchi)
+        {
+            wallShearStress3.boundaryField()[patchi] =
+                - shearStress3.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
+        }
+        wallShearStress3.write();
         forAll(wallShearStress.boundaryField(), patchi)
         {
             wallShearStress.boundaryField()[patchi] =
-                - patchShearStress[patchi] / mesh.magSf().boundaryField()[patchi];
+                - shearStress.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
         }
         wallShearStress.write();
     }

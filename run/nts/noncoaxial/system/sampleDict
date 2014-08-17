@@ -37,4 +37,7 @@ fields
 (
     wallHeatFlux
     wallShearStress
+    wallShearStress1
+    wallShearStress2
+    wallShearStress3
 );
