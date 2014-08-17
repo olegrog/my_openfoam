@@ -1,0 +1,15 @@
+#!/bin/sh
+
+cd ${0%/*} || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+application=`getApplication`
+
+make
+
+runApplication decomposePar
+runParallel $application 4
+runApplication reconstructPar
+
+runApplication wallHeatFlux1
+runApplication wallShearStress1
+

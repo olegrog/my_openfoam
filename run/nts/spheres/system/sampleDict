@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.0                                 |
+|  \\    /   O peration     | Version:  2.3.x                                 |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,14 +10,31 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "constant";
-    object      transportProperties;
+    location    "system";
+    object      sampleDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-gamma1           gamma1  [ 0 2 -1 -1.5 0 0 0 ] 1.270042427;
-gamma2           gamma2  [ 0 2 -1 -1.5 0 0 0 ] 1.922284066;
-gamma3           gamma3  [ 0 4 -2   -3 0 0 0 ] 1.947906335;
-gamma7           gamma7  [ 0 4 -2   -3 0 0 0 ] 1.758705;
+interpolationScheme cellPoint;
 
-// ************************************************************************* //
+setFormat           gnuplot;
+surfaceFormat       raw;
+
+surfaces
+(
+    interpolatedInner
+    {
+        type        patch;
+        patches
+        (
+            inner
+        );
+        interpolate false;
+    }
+);
+
+fields
+(
+    wallHeatFlux
+    wallShearStress
+);

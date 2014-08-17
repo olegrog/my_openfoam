@@ -32,12 +32,12 @@ boundaryField
     outer
     {
         type            fixedValue;
-	value		uniform 2;
+        value           uniform 5;
     }
     inner
     {
         type            fixedValue;
-	value		uniform 1;
+        value           uniform 1;
     }
 }
 
