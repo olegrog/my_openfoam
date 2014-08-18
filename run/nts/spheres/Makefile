@@ -7,10 +7,10 @@ $(BOUNDARY).gmsh: $(BOUNDARY)
 	./updatePolyMesh.sh
 
 constant/polyMesh/boundary: $(PROJECT).msh
-	gmshToFoam $(PROJECT).msh
+	. $(WM_PROJECT_DIR)/bin/tools/RunFunctions && runApplication gmshToFoam $(PROJECT).msh
 
 $(PROJECT).msh: $(PROJECT).geo
-	gmsh -3 $(PROJECT).geo
+	gmsh -3 $(PROJECT).geo > log.gmsh 2>&1
 
 clean:
 	. $(WM_PROJECT_DIR)/bin/tools/CleanFunctions && cleanCase

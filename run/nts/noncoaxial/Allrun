@@ -12,4 +12,5 @@ runApplication reconstructPar
 
 runApplication wallHeatFlux1
 runApplication wallShearStress1
+runApplication sample
 
