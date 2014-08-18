@@ -42,17 +42,17 @@ int main(int argc, char *argv[])
             ))) & mesh.Sf()
         );
 
-        const surfaceVectorField shearStress2(
-            dev(fvc::interpolate(
-                g7 * fvc::grad(T) * fvc::grad(T)
-            )) & mesh.Sf()
-        );
-
         // the second derivative of T is asymmetric due to interpolation
-        const surfaceVectorField shearStress3(
+        const surfaceVectorField shearStress2(
             symm(dev(fvc::interpolate(
                 g3 * T * fvc::grad(fvc::grad(T))
             ))) & mesh.Sf()
+        );
+
+        const surfaceVectorField shearStress3(
+            dev(fvc::interpolate(
+                g7 * fvc::grad(T) * fvc::grad(T)
+            )) & mesh.Sf()
         );
 
         const surfaceVectorField shearStress(
