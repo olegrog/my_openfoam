@@ -19,6 +19,30 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+void writeWallField(
+    const std::string name,
+    const surfaceVectorField& field,
+    const Foam::fvMesh& mesh,
+    const Foam::Time& runTime
+)
+{
+    dimensionedVector zeroField(
+        "zeroForce",
+        field.dimensions(),
+        vector::zero
+    );
+    volVectorField wallField(
+        IOobject("wall" + name, runTime.timeName(), mesh),
+        mesh,
+        zeroField
+    );
+    forAll(wallField.boundaryField(), patchi) {
+        wallField.boundaryField()[patchi] =
+            - field.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
+    }
+    wallField.write();
+}
+
 int main(int argc, char *argv[])
 {
     timeSelector::addOptions();
@@ -36,6 +60,22 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         #include "createFields.H"
 
+        const surfaceVectorField pressure0(
+            fvc::interpolate(p) * mesh.Sf()
+        );
+
+        const surfaceVectorField pressure3(
+            fvc::interpolate(
+                -2. / 3 * g3 * fvc::laplacian(T, T)
+            ) * mesh.Sf()
+        );
+
+        const surfaceVectorField pressure7(
+            fvc::interpolate(
+                g7 / 6 * magSqr(fvc::grad(T))
+            ) * mesh.Sf()
+        );
+
         const surfaceVectorField shearStress1(
             twoSymm(dev(fvc::interpolate(
                 -g1 * sqrt(T) * fvc::grad(U)
@@ -43,110 +83,50 @@ int main(int argc, char *argv[])
         );
 
         // the second derivative of T is asymmetric due to interpolation
-        const surfaceVectorField shearStress2(
+        const surfaceVectorField shearStress3(
             symm(dev(fvc::interpolate(
                 g3 * T * fvc::grad(fvc::grad(T))
             ))) & mesh.Sf()
         );
 
-        const surfaceVectorField shearStress3(
+        const surfaceVectorField shearStress7(
             dev(fvc::interpolate(
                 g7 * fvc::grad(T) * fvc::grad(T)
             )) & mesh.Sf()
         );
 
-        const surfaceVectorField shearStress(
-            shearStress1 + shearStress2 + shearStress3
+        const surfaceVectorField force(
+            pressure0 + pressure3 + pressure7 +
+            shearStress1 + shearStress3 + shearStress7
         );
 
         Info<< "\nThe force acting on" << endl;
-        forAll(shearStress.boundaryField(), patchi)
+        forAll(force.boundaryField(), patchi)
         {
             if (isA<wallFvPatch>(mesh.boundary()[patchi]))
             {
                 Info<< mesh.boundary()[patchi].name()
-                    << " "
-                    << gSum(shearStress.boundaryField()[patchi])
-                    << " consisted of "
-                    << gSum(shearStress1.boundaryField()[patchi])
-                    << gSum(shearStress2.boundaryField()[patchi])
-                    << gSum(shearStress3.boundaryField()[patchi])
+                    << " " << gSum(force.boundaryField()[patchi])
+                    << " consisted of shear stresses:\n"
+                    << "gamma_1 " << gSum(shearStress1.boundaryField()[patchi])
+                    << ", gamma_3 " << gSum(shearStress3.boundaryField()[patchi])
+                    << ", gamma_7 " << gSum(shearStress7.boundaryField()[patchi])
+                    << " and hydrostatic pressures:\n"
+                    << "p^dag " << gSum(pressure0.boundaryField()[patchi])
+                    << ", gamma_3 " << gSum(pressure3.boundaryField()[patchi])
+                    << ", gamma_7 " << gSum(pressure7.boundaryField()[patchi])
                     << endl;
             }
         }
         Info<< endl;
 
-        dimensionedVector zeroShearStress(
-            "wallShearStress",
-            shearStress.dimensions(),
-            vector::zero
-        );
-
-        volVectorField wallShearStress1
-        (
-            IOobject(
-                "wallShearStress1",
-                runTime.timeName(),
-                mesh
-            ),
-            mesh,
-            zeroShearStress
-        );
-        volVectorField wallShearStress2
-        (
-            IOobject(
-                "wallShearStress2",
-                runTime.timeName(),
-                mesh
-            ),
-            mesh,
-            zeroShearStress
-        );
-        volVectorField wallShearStress3
-        (
-            IOobject(
-                "wallShearStress3",
-                runTime.timeName(),
-                mesh
-            ),
-            mesh,
-            zeroShearStress
-        );
-        volVectorField wallShearStress
-        (
-            IOobject(
-                "wallShearStress",
-                runTime.timeName(),
-                mesh
-            ),
-            mesh,
-            zeroShearStress
-        );
-
-        forAll(wallShearStress1.boundaryField(), patchi)
-        {
-            wallShearStress1.boundaryField()[patchi] =
-                - shearStress1.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
-        }
-        wallShearStress1.write();
-        forAll(wallShearStress2.boundaryField(), patchi)
-        {
-            wallShearStress2.boundaryField()[patchi] =
-                - shearStress2.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
-        }
-        wallShearStress2.write();
-        forAll(wallShearStress3.boundaryField(), patchi)
-        {
-            wallShearStress3.boundaryField()[patchi] =
-                - shearStress3.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
-        }
-        wallShearStress3.write();
-        forAll(wallShearStress.boundaryField(), patchi)
-        {
-            wallShearStress.boundaryField()[patchi] =
-                - shearStress.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
-        }
-        wallShearStress.write();
+        writeWallField("Pressure0", pressure0, mesh, runTime);
+        writeWallField("Pressure3", pressure3, mesh, runTime);
+        writeWallField("Pressure7", pressure7, mesh, runTime);
+        writeWallField("ShearStress1", shearStress1, mesh, runTime);
+        writeWallField("ShearStress3", shearStress3, mesh, runTime);
+        writeWallField("ShearStress7", shearStress7, mesh, runTime);
+        writeWallField("Force", force, mesh, runTime);
     }
 
     Info<< "End" << endl;
