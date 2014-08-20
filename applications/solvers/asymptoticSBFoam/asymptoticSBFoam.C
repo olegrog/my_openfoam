@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian((g2/2)*sqrt(T), T) == tr(fvc::grad(U))
+            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == tr(fvc::grad(U))
         );
         TEqn.solve();
 
@@ -50,25 +50,25 @@ int main(int argc, char *argv[])
         /** velocity predictor */
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U)
-            - fvm::laplacian(g1 * sqrt(T)/2, U) ==
-              g1/2 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
-            + g7/T * (sqr(fvc::grad(T)) & (U/g2/sqrt(T) - fvc::grad(T)/4))
+            - fvm::laplacian(0.5 * gamma1 * sqrt(T), U) ==
+              0.5 * gamma1 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
+            + gamma7 / T * (sqr(fvc::grad(T)) & (U / gamma2 / sqrt(T) - 0.25 * fvc::grad(T)))
         );
         UEqn().relax();
-        solve(UEqn() == -fvc::grad(p));
+        solve(UEqn() == -0.5 * fvc::grad(p));
 
         /** pressure corrector */
         volScalarField rAU(1./UEqn().A());
         volVectorField HbyA("HbyA", U);
-        HbyA = rAU*UEqn().H();
+        HbyA = rAU * UEqn().H();
         UEqn.clear();
 
-        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA/T) & mesh.Sf());
+        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T) & mesh.Sf());
         adjustPhi(phiHbyA, U, p);
 
         while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(
-                fvm::laplacian(rAU/T, p) == fvc::div(phiHbyA)
+                fvm::laplacian(0.5 * rAU / T, p) == fvc::div(phiHbyA)
             );
             pEqn.setReference(pRefCell, pRefValue);
             pEqn.solve();
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
         p.relax();
 
         /** velocity corrector */
-        U = HbyA - rAU*fvc::grad(p);
+        U = HbyA - 0.5 * rAU * fvc::grad(p);
         U.correctBoundaryConditions();
 
         runTime.write();

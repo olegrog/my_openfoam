@@ -50,7 +50,7 @@
             IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
-        linearInterpolate(U/T) & mesh.Sf()
+        linearInterpolate(U / T) & mesh.Sf()
     );
 
     label pRefCell = 0;
@@ -71,19 +71,19 @@
     );
 
     Info<< "Reading gamma1\n" << endl;
-    dimensionedScalar g1
+    dimensionedScalar gamma1
     (
         transportProperties.lookup("gamma1")
     );
 
     Info<< "Reading gamma2\n" << endl;
-    dimensionedScalar g2
+    dimensionedScalar gamma2
     (
         transportProperties.lookup("gamma2")
     );
 
     Info<< "Reading gamma7\n" << endl;
-    dimensionedScalar g7
+    dimensionedScalar gamma7
     (
         transportProperties.lookup("gamma7")
     );
