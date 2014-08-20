@@ -38,24 +38,21 @@ int main(int argc, char *argv[])
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
-        volVectorField DT = fvc::grad(T);
-        volTensorField DU = fvc::grad(U);
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian((g2/2)*sqrt(T), T) == tr(DU)
+            fvm::laplacian((g2/2)*sqrt(T), T) == tr(fvc::grad(U))
         );
         TEqn.solve();
 
         /** SIMPLE algorithm for solving pressure-velocity equations */
         
         /** velocity predictor */
-        DT = fvc::grad(T);
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U)
             - fvm::laplacian(g1 * sqrt(T)/2, U) ==
-              g1/2 * fvc::div(sqrt(T) * dev2(::T(DU)))
-            + g7/T * (sqr(DT) & (U/g2/sqrt(T) - DT/4))
+              g1/2 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
+            + g7/T * (sqr(fvc::grad(T)) & (U/g2/sqrt(T) - fvc::grad(T)/4))
         );
         UEqn().relax();
         solve(UEqn() == -fvc::grad(p));
