@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == tr(fvc::grad(U))
+            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == fvm::div(phi, T)
         );
         TEqn.solve();
 
