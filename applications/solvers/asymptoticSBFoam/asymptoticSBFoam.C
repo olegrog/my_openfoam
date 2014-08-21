@@ -19,6 +19,7 @@ Description
 
 #include "fvCFD.H"
 #include "simpleControl.H"
+#include "fixedFluxPressureFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,6 +66,14 @@ int main(int argc, char *argv[])
 
         surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T) & mesh.Sf());
         adjustPhi(phiHbyA, U, p);
+
+        // Update the fixedFluxPressure BCs to ensure flux consistency
+        setSnGrad<fixedFluxPressureFvPatchScalarField>
+        (
+            p.boundaryField(),
+            phiHbyA.boundaryField() * T.boundaryField()
+            / (mesh.magSf().boundaryField() * rAU.boundaryField())
+        );
 
         while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(
