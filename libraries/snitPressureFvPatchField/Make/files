@@ -1,0 +1,3 @@
+snitPressureFvPatchField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsnitPressureFvPatchField
