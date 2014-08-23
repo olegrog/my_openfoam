@@ -92,6 +92,9 @@ int main(int argc, char *argv[])
         U = HbyA - 0.5 * rAU * fvc::grad(p);
         U.correctBoundaryConditions();
 
+        // Pressure is defined up to a constant factor,
+        // we adjust it to maintain the initial domainIntegrate
+        p += (initialPressure - fvc::domainIntegrate(p)) / totalVolume;
         runTime.write();
     }
 

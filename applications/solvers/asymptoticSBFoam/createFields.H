@@ -56,6 +56,8 @@
     label pRefCell = 0;
     scalar pRefValue = 0.0;
     setRefCell(p, simple.dict(), pRefCell, pRefValue);
+    dimensionedScalar initialPressure = fvc::domainIntegrate(p);
+    dimensionedScalar totalVolume = sum(mesh.V());
 
     Info<< "Reading transportProperties\n" << endl;
     IOdictionary transportProperties
