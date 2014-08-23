@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         TEqn.solve();
 
         /** SIMPLE algorithm for solving pressure-velocity equations */
-        
+
         /** velocity predictor */
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U)
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             fvScalarMatrix pEqn(
                 fvm::laplacian(0.5 * rAU / T, p) == fvc::div(phiHbyA)
             );
-            pEqn.setReference(pRefCell, pRefValue);
+            pEqn.setReference(pRefCell, getRefCellValue(p, pRefCell));
             pEqn.solve();
             if (simple.finalNonOrthogonalIter()) {
                 phi = phiHbyA - pEqn.flux();
