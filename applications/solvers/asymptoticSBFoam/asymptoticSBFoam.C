@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == fvm::div(phi, T)
+            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == fvc::div(phi, T)
         );
         TEqn.solve();
 
@@ -53,48 +53,61 @@ int main(int argc, char *argv[])
               fvm::div(phi, U)
             - fvm::laplacian(0.5 * gamma1 * sqrt(T), U) ==
               0.5 * gamma1 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
-            + gamma7 / T * (sqr(fvc::grad(T)) & (U / gamma2 / sqrt(T) - 0.25 * fvc::grad(T)))
+            + gamma7 / T * (sqr(fvc::grad(T)) & (U / gamma2 / sqrt(T)))
         );
         UEqn().relax();
-        solve(UEqn() == -0.5 * fvc::grad(p));
+        solve(UEqn() ==
+            fvc::reconstruct((
+                - fvc::snGrad(p)
+                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T)) / T) * fvc::snGrad(T)
+            ) * mesh.magSf())
+        );
 
         /** pressure corrector */
         volScalarField rAU(1./UEqn().A());
+        surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T));
         volVectorField HbyA("HbyA", U);
         HbyA = rAU * UEqn().H();
         UEqn.clear();
 
         surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T) & mesh.Sf());
         adjustPhi(phiHbyA, U, p);
+        surfaceScalarField phif(
+            - 0.25 * gamma7 * rAUbyT
+            * fvc::interpolate(magSqr(fvc::grad(T)) / T)
+            * fvc::snGrad(T) * mesh.magSf()
+        );
+        phiHbyA += phif;
 
         // Update the fixedFluxPressure BCs to ensure flux consistency
         setSnGrad<fixedFluxPressureFvPatchScalarField>
         (
             p.boundaryField(),
-            phiHbyA.boundaryField() * T.boundaryField()
-            / (mesh.magSf().boundaryField() * rAU.boundaryField())
+            phiHbyA.boundaryField()
+            / (mesh.magSf().boundaryField() * rAUbyT.boundaryField())
         );
 
         while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(
-                fvm::laplacian(0.5 * rAU / T, p) == fvc::div(phiHbyA)
+                fvm::laplacian(rAUbyT, p) == fvc::div(phiHbyA)
             );
             pEqn.setReference(pRefCell, getRefCellValue(p, pRefCell));
             pEqn.solve();
             if (simple.finalNonOrthogonalIter()) {
+                // Calculate the conservative fluxes
                 phi = phiHbyA - pEqn.flux();
+                p.relax();
+                /** velocity corrector */
+                U = HbyA + rAU * fvc::reconstruct((phif - pEqn.flux()) / rAUbyT);
+                U.correctBoundaryConditions();
             }
         }
         #include "continuityErrs.H"
-        p.relax();
-
-        /** velocity corrector */
-        U = HbyA - 0.5 * rAU * fvc::grad(p);
-        U.correctBoundaryConditions();
 
         // Pressure is defined up to a constant factor,
         // we adjust it to maintain the initial domainIntegrate
         p += (initialPressure - fvc::domainIntegrate(p)) / totalVolume;
+
         runTime.write();
     }
 

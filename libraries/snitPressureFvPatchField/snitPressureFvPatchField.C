@@ -88,7 +88,7 @@ void snitPressureFvPatchField::updateCoeffs()
     const fvPatchField<scalar>& T =
         patch().lookupPatchField<volScalarField, scalar>("T");
 
-    gradient() = -0.5 * gamma7 / T * pow3(T.snGrad());
+    gradient() = -0.25 * gamma7 / T * pow3(T.snGrad());
     fixedGradientFvPatchScalarField::updateCoeffs();
 }
 
