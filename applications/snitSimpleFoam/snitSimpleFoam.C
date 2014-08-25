@@ -6,7 +6,7 @@
 |    \\/     M anipulation  |                                                 |
 -------------------------------------------------------------------------------
 Application
-    asymptoticSBFoam
+    snitSimpleFoam
 
 Description
     Solves fluid-dynamic-type equations derived from the asymptotic Sone-Bobylev

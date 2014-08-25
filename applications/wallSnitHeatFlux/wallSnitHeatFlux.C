@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 Application
-    wallHeatFlux1
+    wallSnitHeatFlux
 
 Description
     Calculates and writes the heat flux for all patches as the boundary field

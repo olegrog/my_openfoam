@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 Application
-    wallShearStress1
+    wallSnitForces
 
 Description
     Calculates and reports wall shear stress for all patches, for the
