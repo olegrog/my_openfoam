@@ -10,7 +10,7 @@ runApplication decomposePar
 runParallel $application 4
 runApplication reconstructPar
 
-runApplication wallHeatFlux1
-runApplication wallShearStress1
+runApplication wallSnitHeatFlux
+runApplication wallSnitForces
 runApplication sample
 

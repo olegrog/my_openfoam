@@ -36,8 +36,11 @@ surfaces
 fields
 (
     wallHeatFlux
-    wallShearStress
+    wallForce
+    wallPressure0
+    wallPressure3
+    wallPressure7
     wallShearStress1
-    wallShearStress2
     wallShearStress3
+    wallShearStress7
 );
