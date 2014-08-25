@@ -51,6 +51,11 @@ IOdictionary transportProperties
 
 dimensionedScalar g1
 (
+    transportProperties.lookup("gamma1")
+);
+
+dimensionedScalar g2
+(
     transportProperties.lookup("gamma2")
 );
 

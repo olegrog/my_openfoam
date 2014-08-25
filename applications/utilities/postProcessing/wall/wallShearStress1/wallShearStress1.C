@@ -60,41 +60,54 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         #include "createFields.H"
 
-        const surfaceVectorField pressure0(
-            fvc::interpolate(p) * mesh.Sf()
-        );
+        const volVectorField DT(fvc::grad(T));
+        const volTensorField DDT(fvc::grad(fvc::grad(T)));
 
+        const surfaceVectorField pressure0(
+            fvc::interpolate(2 * p) * mesh.Sf()
+        );
+        // we avoid laplacian scheme for benefit of more precise gradient one
         const surfaceVectorField pressure3(
             fvc::interpolate(
-                -2. / 3 * g3 * fvc::laplacian(T, T)
+                //-2 * g3 / 3 * fvc::laplacian(T, T)
+                - g3 / 3 * (
+                    magSqr(DT)
+        //            magSqr(DT) + 4 * (U & DT) / (g2 * sqrt(T))
+                )
             ) * mesh.Sf()
         );
-
         const surfaceVectorField pressure7(
             fvc::interpolate(
-                g7 / 6 * magSqr(fvc::grad(T))
+                g7 / 6 * magSqr(DT)
             ) * mesh.Sf()
         );
-
         const surfaceVectorField shearStress1(
+            //- g1 * (mesh.Sf() & fvc::interpolate(sqrt(T) * fvc::grad(U)))
+            - g1 * fvc::interpolate(sqrt(T)) * fvc::snGrad(U) * mesh.magSf()
+            /*
             twoSymm(dev(fvc::interpolate(
                 -g1 * sqrt(T) * fvc::grad(U)
             ))) & mesh.Sf()
+            */
         );
-
         // the second derivative of T is asymmetric due to interpolation
+        dimensionedScalar R("R", dimLength, 1);
         const surfaceVectorField shearStress3(
+            g3 * fvc::snGrad(T) * (fvc::interpolate(T) / R - fvc::snGrad(T) / 3) * mesh.Sf()
+            /*
             symm(dev(fvc::interpolate(
-                g3 * T * fvc::grad(fvc::grad(T))
+                g3 * T * DDT
             ))) & mesh.Sf()
+            */
         );
-
         const surfaceVectorField shearStress7(
-            dev(fvc::interpolate(
-                g7 * fvc::grad(T) * fvc::grad(T)
-            )) & mesh.Sf()
+            2 * g7 / 3 * sqr(fvc::snGrad(T)) * mesh.Sf()
+            /*
+            fvc::interpolate(
+                2 * g7 / 3 * magSqr(DT)
+            ) * mesh.Sf()
+            */
         );
-
         const surfaceVectorField force(
             pressure0 + pressure3 + pressure7 +
             shearStress1 + shearStress3 + shearStress7
@@ -107,15 +120,15 @@ int main(int argc, char *argv[])
             {
                 Info<< mesh.boundary()[patchi].name()
                     << " " << gSum(force.boundaryField()[patchi])
-                    << " consisted of shear stresses:\n"
+                    << " consisted of\n\tshear stresses: "
                     << "gamma_1 " << gSum(shearStress1.boundaryField()[patchi])
                     << ", gamma_3 " << gSum(shearStress3.boundaryField()[patchi])
                     << ", gamma_7 " << gSum(shearStress7.boundaryField()[patchi])
-                    << " and hydrostatic pressures:\n"
+                    << ",\n\tand pressures: "
                     << "p^dag " << gSum(pressure0.boundaryField()[patchi])
                     << ", gamma_3 " << gSum(pressure3.boundaryField()[patchi])
                     << ", gamma_7 " << gSum(pressure7.boundaryField()[patchi])
-                    << endl;
+                    << ".\n";
             }
         }
         Info<< endl;
@@ -127,6 +140,10 @@ int main(int argc, char *argv[])
         writeWallField("ShearStress3", shearStress3, mesh, runTime);
         writeWallField("ShearStress7", shearStress7, mesh, runTime);
         writeWallField("Force", force, mesh, runTime);
+
+        volVectorField DP = fvc::grad(p);
+        DP.write();
+        DT.write();
     }
 
     Info<< "End" << endl;
