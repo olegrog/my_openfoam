@@ -39,7 +39,11 @@ boundaryField
         type            fixedValue;
         value           uniform (0 0 0);
     }
-    symmetry
+    bottom
+    {
+        type            symmetryPlane;
+    }
+    left
     {
         type            symmetryPlane;
     }

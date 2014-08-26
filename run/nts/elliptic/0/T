@@ -32,14 +32,18 @@ boundaryField
     outer
     {
         type            fixedValue;
-	value		uniform 5;
+        value           uniform 5;
     }
     inner
     {
         type            fixedValue;
-	value		uniform 1;
+        value           uniform 1;
     }
-    symmetry
+    bottom
+    {
+        type            symmetryPlane;
+    }
+    left
     {
         type            symmetryPlane;
     }

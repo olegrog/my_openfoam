@@ -22,14 +22,14 @@ ddtSchemes
 
 gradSchemes
 {
-    default	    Gauss linear;
+    default         fourth;
 }
 
 divSchemes
 {
-    default	    none;
-    div(phi,U)      bounded Gauss linearUpwindV grad(U);
-    div((sqrt(T)*dev(symm(grad(U))))) Gauss linear;
+    default         Gauss linear;
+    div(phi,U)      bounded Gauss MUSCL;
+    div(phi,T)      bounded Gauss MUSCL;
 }
 
 laplacianSchemes

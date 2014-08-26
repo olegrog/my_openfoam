@@ -17,7 +17,7 @@ FoamFile
 
 dimensions      [0 2 -2 -1 0 0 0];
 
-internalField   uniform 1;
+internalField   uniform 0;
 
 boundaryField
 {
@@ -31,13 +31,19 @@ boundaryField
     }
     outer
     {
-        type            zeroGradient;
+        type            fixedFluxPressure;
+        gradient        0;
     }
     inner
     {
-        type            zeroGradient;
+        type            fixedFluxPressure;
+        gradient        0;
     }
-    symmetry
+    bottom
+    {
+        type            symmetryPlane;
+    }
+    left
     {
         type            symmetryPlane;
     }
