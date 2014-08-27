@@ -16,4 +16,5 @@ clean:
 	. $(WM_PROJECT_DIR)/bin/tools/CleanFunctions && cleanCase
 	rm -f 0/wall* 0/grad*
 	rm -f $(PROJECT).msh 
-	rm -rf constant/polyMesh constant/*.obj
+	rm -rf constant/polyMesh
+	rm {coupled,final}*.obj
