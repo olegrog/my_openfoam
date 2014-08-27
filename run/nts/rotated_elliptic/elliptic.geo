@@ -1,7 +1,7 @@
 a0 = .3;
 b0 = .7;
 a1 = 1.5;
-// 0 <= phi < Pi
+// 0 <= phi <= Pi/2
 phi = 0.1 * Pi;
 
 thick = 0.05;
@@ -11,22 +11,18 @@ inner = 0.2 * fine;
 outer = 0.05 * fine;
 
 /***** inner ellipsis *****/
-t = Atan2(a0*Sin(phi), b0*Cos(phi));
-l = Sqrt(a0*Cos(t)*a0*Cos(t) + b0*Sin(t)*b0*Sin(t));
 t = Atan2(b0*Sin(phi), a0*Cos(phi));
 L = Sqrt(b0*Cos(t)*b0*Cos(t) + a0*Sin(t)*a0*Sin(t));
 Point(1) = {0, 0, 0};
 Point(2) = {0, L, 0};
 Point(3) = {b0*Sin(phi), b0*Cos(phi), 0};
-Point(4) = {l, 0, 0};
+Point(4) = {a0*Cos(phi), -a0*Sin(phi), 0};
 Point(5) = {0, -L, 0};
 If (phi != 0)
     Ellipse(1) = {2, 1, 3, 3};
 EndIf
+Ellipse(2) = {3, 1, 3, 4};
 If (phi != 0.5 * Pi)
-    Ellipse(2) = {3, 1, 3, 4};
-EndIf
-If (phi != Pi)
     Ellipse(3) = {4, 1, 3, 5};
 EndIf
 
