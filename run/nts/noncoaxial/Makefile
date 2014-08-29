@@ -1,4 +1,4 @@
-PROJECT=noncoaxial
+PROJECT=noncoaxial-transfinite
 BOUNDARY=constant/polyMesh/boundary
 
 all: $(BOUNDARY).gmsh
