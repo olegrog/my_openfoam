@@ -12,9 +12,13 @@ constant/polyMesh/boundary: $(PROJECT).msh
 $(PROJECT).msh: $(PROJECT).geo
 	gmsh -3 $(PROJECT).geo > log.gmsh 2>&1
 
+curvature: $(BOUNDARY)
+	makeFaMesh
+	checkSurfaceCurvature
+
 clean:
 	. $(WM_PROJECT_DIR)/bin/tools/CleanFunctions && cleanCase
 	rm -f 0/wall* 0/grad*
 	rm -f $(PROJECT).msh 
 	rm -rf constant/polyMesh
-	rm {coupled,final}*.obj
+	rm *.obj
