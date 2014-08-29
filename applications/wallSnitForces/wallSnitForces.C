@@ -47,34 +47,9 @@ int main(int argc, char *argv[])
 {
     timeSelector::addOptions();
     #include "addRegionOption.H"
-    argList::addBoolOption(
-        "planar",
-        "consider all boundary as planar"
-    );
-
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createNamedMesh.H"
-
-    volScalarField curvature = args.optionFound("planar")
-        ? volScalarField(
-            IOobject(
-                "curvature",
-                runTime.timeName(),
-                mesh
-            ),
-            mesh,
-            dimensionedScalar("0", dimless/dimLength, 0)
-        )
-        : volScalarField(
-            IOobject(
-                "curvature",
-                runTime.timeName(),
-                mesh,
-                IOobject::MUST_READ
-            ),
-            mesh
-        );
 
     instantList timeDirs = timeSelector::select0(runTime, args);
     forAll(timeDirs, timeI)
@@ -84,9 +59,6 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         #include "createFields.H"
 
-        const volVectorField DT(fvc::grad(T));
-        const volTensorField DDT(fvc::grad(fvc::grad(T)));
-
         const surfaceVectorField pressure0(
             fvc::interpolate(2 * p) * mesh.Sf()
         );
@@ -94,42 +66,43 @@ int main(int argc, char *argv[])
         const surfaceVectorField pressure3(
             fvc::interpolate(
                 //-2 * g3 / 3 * fvc::laplacian(T, T)
+                /**/
                 - g3 / 3 * (
-                    magSqr(DT)
-        //            magSqr(DT) + 4 * (U & DT) / (g2 * sqrt(T))
+                    magSqr(fvc::grad(T)) + 4 * (U & fvc::grad(T)) / (g2 * sqrt(T))
                 )
+                /**/
             ) * mesh.Sf()
         );
         const surfaceVectorField pressure7(
             fvc::interpolate(
-                g7 / 6 * magSqr(DT)
+                g7 / 6 * magSqr(fvc::grad(T))
             ) * mesh.Sf()
         );
         const surfaceVectorField shearStress1(
             //- g1 * (mesh.Sf() & fvc::interpolate(sqrt(T) * fvc::grad(U)))
-            - g1 * fvc::interpolate(sqrt(T)) * fvc::snGrad(U) * mesh.magSf()
-            /*
+            //- g1 * fvc::interpolate(sqrt(T)) * fvc::snGrad(U) * mesh.magSf()
+            /**/
             twoSymm(dev(fvc::interpolate(
                 -g1 * sqrt(T) * fvc::grad(U)
             ))) & mesh.Sf()
-            */
+            /**/
         );
-        // the second derivative of T is asymmetric due to interpolation
         const surfaceVectorField shearStress3(
-            g3 * fvc::snGrad(T) * (fvc::interpolate(T * curvature) - fvc::snGrad(T) / 3) * mesh.Sf()
-            /*
+            //g3 * fvc::snGrad(T) * (fvc::interpolate(T * curvature) - fvc::snGrad(T) / 3) * mesh.Sf()
+            /**/
+            // the second derivative of T can be asymmetric due to interpolation
             symm(dev(fvc::interpolate(
-                g3 * T * DDT
+                g3 * T * fvc::grad(fvc::grad(T))
             ))) & mesh.Sf()
-            */
+            /**/
         );
         const surfaceVectorField shearStress7(
-            2 * g7 / 3 * sqr(fvc::snGrad(T)) * mesh.Sf()
-            /*
-            fvc::interpolate(
-                2 * g7 / 3 * magSqr(DT)
-            ) * mesh.Sf()
-            */
+            //2 * g7 / 3 * sqr(fvc::snGrad(T)) * mesh.Sf()
+            /**/
+            dev(fvc::interpolate(
+                g7 * sqr(fvc::grad(T))
+            )) & mesh.Sf()
+            /**/
         );
         const surfaceVectorField force(
             pressure0 + pressure3 + pressure7 +
@@ -164,7 +137,8 @@ int main(int argc, char *argv[])
         writeWallField("ShearStress7", shearStress7, mesh, runTime);
         writeWallField("Force", force, mesh, runTime);
 
-        volVectorField DP = fvc::grad(p);
+        const volVectorField DP(fvc::grad(p));
+        const volVectorField DT(fvc::grad(T));
         DP.write();
         DT.write();
     }
