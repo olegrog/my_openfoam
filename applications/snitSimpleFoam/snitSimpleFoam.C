@@ -109,6 +109,10 @@ int main(int argc, char *argv[])
         p += (initialPressure - fvc::domainIntegrate(p)) / totalVolume;
 
         runTime.write();
+
+        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+            << nl << endl;
     }
 
     Info<< "End\n" << endl;
