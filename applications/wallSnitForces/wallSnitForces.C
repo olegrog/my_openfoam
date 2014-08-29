@@ -9,8 +9,8 @@ Application
     wallSnitForces
 
 Description
-    Calculates and reports wall shear stress for all patches, for the
-    specified times.
+    Calculates and reports the forces acting on the wall for all patches and
+    the specific times.
 
 \*---------------------------------------------------------------------------*/
 
@@ -46,13 +46,37 @@ void writeWallField(
 int main(int argc, char *argv[])
 {
     timeSelector::addOptions();
-
     #include "addRegionOption.H"
+    argList::addBoolOption(
+        "planar",
+        "consider all boundary as planar"
+    );
+
     #include "setRootCase.H"
     #include "createTime.H"
-    instantList timeDirs = timeSelector::select0(runTime, args);
     #include "createNamedMesh.H"
 
+    volScalarField curvature = args.optionFound("planar")
+        ? volScalarField(
+            IOobject(
+                "curvature",
+                runTime.timeName(),
+                mesh
+            ),
+            mesh,
+            dimensionedScalar("0", dimless/dimLength, 0)
+        )
+        : volScalarField(
+            IOobject(
+                "curvature",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ
+            ),
+            mesh
+        );
+
+    instantList timeDirs = timeSelector::select0(runTime, args);
     forAll(timeDirs, timeI)
     {
         runTime.setTime(timeDirs[timeI], timeI);
@@ -91,9 +115,8 @@ int main(int argc, char *argv[])
             */
         );
         // the second derivative of T is asymmetric due to interpolation
-        dimensionedScalar R("R", dimLength, 1);
         const surfaceVectorField shearStress3(
-            g3 * fvc::snGrad(T) * (fvc::interpolate(T) / R - fvc::snGrad(T) / 3) * mesh.Sf()
+            g3 * fvc::snGrad(T) * (fvc::interpolate(T * curvature) - fvc::snGrad(T) / 3) * mesh.Sf()
             /*
             symm(dev(fvc::interpolate(
                 g3 * T * DDT
