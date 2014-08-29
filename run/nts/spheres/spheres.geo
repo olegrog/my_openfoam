@@ -3,7 +3,7 @@ d=.5;
 
 thick = 0.05;
 fine = 0.2;
-alpha=Pi/50;
+alpha = Pi/50;
 
 inner = 0.2 * fine;
 outer = 0.05 * fine;
@@ -57,4 +57,3 @@ Physical Surface("front") = {36};
 Physical Surface("back") = {14};
 Physical Surface("outer") = {35, 24};
 Physical Surface("inner") = {28, 31};
-Coherence;

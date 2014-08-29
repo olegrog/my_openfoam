@@ -1,4 +1,4 @@
-PROJECT=spheres
+PROJECT=spheres-transfinite
 BOUNDARY=constant/polyMesh/boundary
 
 all: $(BOUNDARY).gmsh
