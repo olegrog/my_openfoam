@@ -37,6 +37,7 @@ fields
 (
     wallHeatFlux
     wallForce
+    wallMoment
     wallPressure0
     wallPressure3
     wallPressure7

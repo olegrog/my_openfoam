@@ -4,7 +4,7 @@ a1 = 1.5;
 // 0 < betta < Pi/2
 betta = 0.1 * Pi;
 
-fine = 0.1;
+fine = 0.05;
 
 /***** inner ellipsis *****/
 t = Atan2(b0*Sin(betta), a0*Cos(betta));

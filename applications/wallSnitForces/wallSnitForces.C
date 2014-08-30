@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
             pressure0 + pressure3 + pressure7 +
             shearStress1 + shearStress3 + shearStress7
         );
+        const surfaceVectorField moment(
+            mesh.Cf() ^ force
+        );
 
         Info<< "\nThe force acting on" << endl;
         forAll(force.boundaryField(), patchi)
@@ -124,7 +127,9 @@ int main(int argc, char *argv[])
                     << "p^dag " << gSum(pressure0.boundaryField()[patchi])
                     << ", gamma_3 " << gSum(pressure3.boundaryField()[patchi])
                     << ", gamma_7 " << gSum(pressure7.boundaryField()[patchi])
-                    << ".\n";
+                    << ".\n\tmoment of force relative to origin: "
+                    << gSum(moment.boundaryField()[patchi])
+                    << endl;
             }
         }
         Info<< endl;
@@ -136,6 +141,7 @@ int main(int argc, char *argv[])
         writeWallField("ShearStress3", shearStress3, mesh, runTime);
         writeWallField("ShearStress7", shearStress7, mesh, runTime);
         writeWallField("Force", force, mesh, runTime);
+        writeWallField("Moment", moment, mesh, runTime);
 
         const volVectorField DP(fvc::grad(p));
         const volVectorField DT(fvc::grad(T));
