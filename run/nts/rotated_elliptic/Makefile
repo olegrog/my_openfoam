@@ -1,4 +1,4 @@
-PROJECT=elliptic
+PROJECT=elliptic-transfinite
 BOUNDARY=constant/polyMesh/boundary
 
 all: $(BOUNDARY).gmsh
@@ -21,4 +21,4 @@ clean:
 	rm -f 0/wall* 0/grad*
 	rm -f $(PROJECT).msh 
 	rm -rf constant/polyMesh
-	rm *.obj
+	rm -f *.obj

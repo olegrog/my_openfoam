@@ -6,7 +6,7 @@ for c in $*; do
     (
         echo "Simulate for $c"
         cd ../$c
-        sed -i~ "5s/1/$c/" elliptic.geo
+        sed -i~ "5s/1/$c/" elliptic-transfinite.geo
         ./Allrun
     )
 done
