@@ -38,7 +38,7 @@ void writeWallField(
     );
     forAll(wallField.boundaryField(), patchi) {
         wallField.boundaryField()[patchi] =
-            - field.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
+            field.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
     }
     wallField.write();
 }
@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         #include "createFields.H"
 
+        // NB: mesh.Sf() is a normal, pointed out of the gas on the boundary
         const surfaceVectorField pressure0(
             fvc::interpolate(2 * p) * mesh.Sf()
         );
