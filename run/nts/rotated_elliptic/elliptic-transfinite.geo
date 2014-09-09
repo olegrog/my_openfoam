@@ -1,26 +1,26 @@
 a0 = .3;
 b0 = .7;
 a1 = 1.5;
-// 0 < betta < Pi/2
-betta = 0.1 * Pi;
+// 0 < beta < Pi/2
+beta = 0.1 * Pi;
 
 fine = 0.05;
 
 /***** inner ellipsis *****/
-t = Atan2(b0*Sin(betta), a0*Cos(betta));
+t = Atan2(b0*Sin(beta), a0*Cos(beta));
 L = Sqrt(b0*Cos(t)*b0*Cos(t) + a0*Sin(t)*a0*Sin(t));
 Point(1) = {0, 0, 0};
 Point(2) = {0, L, 0};
-Point(3) = {b0*Sin(betta), b0*Cos(betta), 0};
-Point(4) = {a0*Cos(betta), -a0*Sin(betta), 0};
+Point(3) = {b0*Sin(beta), b0*Cos(beta), 0};
+Point(4) = {a0*Cos(beta), -a0*Sin(beta), 0};
 Point(5) = {0, -L, 0};
 Ellipse(1) = {2, 1, 3, 3};
 Ellipse(2) = {3, 1, 3, 4};
 Ellipse(3) = {4, 1, 3, 5};
 
 /***** outer ellipsis *****/
-u = Pi - Atan2(a1*Cos(betta), -Sin(betta));
-v = Atan2(a1*Sin(betta), Cos(betta));
+u = Pi - Atan2(a1*Cos(beta), -Sin(beta));
+v = Atan2(a1*Sin(beta), Cos(beta));
 Point(6) = {0, 1, 0};
 Point(7) = {a1*Cos(u), Sin(u), 0};
 Point(8) = {a1, 0, 0};
@@ -45,7 +45,6 @@ L = N;                  // radial mesh
 outer = Exp(Log(a1*(M*(Pi/2-v)) / ((N-M)*(Pi/2-u))) / N);
 N1 = Round(Log(1-u/(u+v)*(1-Exp(N*Log(outer))))/Log(outer));
 inner = Exp(Log(b0/a0)/N);
-Printf("%g %g %g", N, N1, outer);
 radial = Exp(Log(1/a0) / (L - 1));
 
 Transfinite Line {1} = M + 1 Using Progression 1/inner;
