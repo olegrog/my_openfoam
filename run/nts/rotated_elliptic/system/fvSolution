@@ -29,7 +29,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-11;
+        tolerance       1e-10;
         relTol          0.1;
     }
 
@@ -49,9 +49,9 @@ SIMPLE
     pRefValue           0;
     residualControl
     {
-        p               1e-6;
+        p               1e-5;
         U               1e-6;
-        T               1e-10;
+        T               1e-9;
     }
 }
 
