@@ -92,17 +92,30 @@ int main(int argc, char *argv[])
             //g3 * fvc::snGrad(T) * (fvc::interpolate(T * curvature) - fvc::snGrad(T) / 3) * mesh.Sf()
             /**/
             // the second derivative of T can be asymmetric due to interpolation
+            /*
             symm(dev(fvc::interpolate(
                 g3 * T * fvc::grad(fvc::grad(T))
             ))) & mesh.Sf()
+            */
+            /*
+            fvc::interpolate(
+                -2 *g3* T * fvc::grad(fvc::grad(T))
+            ) & mesh.Sf()
+            */
+            -2*g3*fvc::interpolate(T*fvc::div(magSqr(mesh.Sf()), fvc::grad(T)))
             /**/
         );
         const surfaceVectorField shearStress7(
             //2 * g7 / 3 * sqr(fvc::snGrad(T)) * mesh.Sf()
             /**/
+            /*
             dev(fvc::interpolate(
                 g7 * sqr(fvc::grad(T))
             )) & mesh.Sf()
+            */
+            fvc::interpolate(
+                g3*magSqr(fvc::grad(T))
+            ) * mesh.Sf()
             /**/
         );
         const surfaceVectorField force(
