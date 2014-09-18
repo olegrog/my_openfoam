@@ -5,6 +5,7 @@ a1 = 1.5;
 beta = 0.1 * Pi;
 
 fine = 0.05;
+alpha = 5;
 
 /***** inner ellipsis *****/
 t = Atan2(b0*Sin(beta), a0*Cos(beta));
@@ -45,7 +46,7 @@ L = N;                  // radial mesh
 outer = Exp(Log(a1*(M*(Pi/2-v)) / ((N-M)*(Pi/2-u))) / N);
 N1 = Round(Log(1-u/(u+v)*(1-Exp(N*Log(outer))))/Log(outer));
 inner = Exp(Log(b0/a0)/N);
-radial = Exp(Log(1/a0) / (L - 1));
+radial = 1 / (3*alpha - 2);
 
 Transfinite Line {1} = M + 1 Using Progression 1/inner;
 Transfinite Line {2} = N + 1 Using Progression inner;
@@ -54,7 +55,7 @@ Transfinite Line {4} = M + 1;
 Transfinite Line {5} = N1 + 1 Using Progression outer;
 Transfinite Line {6} = N - N1 + 1 Using Progression outer;
 Transfinite Line {7} = N - M + 1;
-Transfinite Line {10, 11} = L + 1 Using Progression radial;
+Transfinite Line {10, 11} = L + 1 Using Bump radial;
 Transfinite Surface {8} = {2, 6, 10, 5};
 Recombine Surface{8};
 

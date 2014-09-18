@@ -2,12 +2,13 @@ R=2;
 d=.5;
 
 fine = 0.05;
+alpha = 5;
 
 phi = Asin(d/R);
 N = 5 / fine;       // circular mesh
 M = N;              // radial mesh
 circular = Exp(Log((Pi/2 + phi) / (Pi/2 - phi)) / N);
-radial = Exp(Log(R) / (M - 1));
+radial = 1 / (3*alpha - 2);
 
 Point(1) = {0, 0, 0};
 Point(2) = {R, 0, 0};
@@ -27,7 +28,7 @@ Plane Surface(14) = {13};
 
 Transfinite Line {2} = 2*N + 1;
 Transfinite Line {1} = 2*N + 1 Using Progression circular;
-Transfinite Line {-3, -4} = M + 1 Using Progression radial;
+Transfinite Line {-3, -4} = M + 1 Using Bump radial;
 Transfinite Surface {14} = {3, 13, 12, 2};
 Recombine Surface{14};
 
