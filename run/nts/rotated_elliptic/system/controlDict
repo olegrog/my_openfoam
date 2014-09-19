@@ -45,5 +45,19 @@ timePrecision   6;
 
 runTimeModifiable true;
 
+functions
+{
+    minMax
+    {
+        type            fieldMinMax;
+        functionObjectLibs ("libfieldFunctionObjects.so");
+        enabled         true;
+        log             false;
+        fields
+        (
+            U
+        );
+    }
+}
 
 // ************************************************************************* //
