@@ -45,8 +45,8 @@ M = Round(2*t*N/Pi);
 L = N;                  // radial mesh
 outer = Exp(Log(a1*(M*(Pi/2-v)) / ((N-M)*(Pi/2-u))) / N);
 N1 = Round(Log(1-u/(u+v)*(1-Exp(N*Log(outer))))/Log(outer));
-inner = Exp(Log(b0/a0)/N);
-radial = 1 / (3*alpha - 2);
+inner = Exp(Log(a1*b0/a0)/N);
+radial = 1 / (5*alpha - 4);
 
 Transfinite Line {1} = M + 1 Using Progression 1/inner;
 Transfinite Line {2} = N + 1 Using Progression inner;
