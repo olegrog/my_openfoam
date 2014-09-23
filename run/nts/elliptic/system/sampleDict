@@ -37,10 +37,7 @@ fields
 (
     wallHeatFlux
     wallForce
-    wallPressure0
-    wallPressure3
-    wallPressure7
-    wallShearStress1
-    wallShearStress3
-    wallShearStress7
+    wallHydrostaticForce
+    wallViscousForce
+    wallThermalForce
 );
