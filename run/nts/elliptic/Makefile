@@ -15,5 +15,5 @@ $(PROJECT).msh: $(PROJECT).geo
 clean:
 	. $(WM_PROJECT_DIR)/bin/tools/CleanFunctions && cleanCase
 	rm -f 0/wall* 0/grad*
-	rm $(PROJECT).msh
+	rm -f $(PROJECT).msh
 	rm -rf constant/polyMesh
