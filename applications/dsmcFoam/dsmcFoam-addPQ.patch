@@ -1,0 +1,225 @@
+diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
+index 3c70abb..953d9c7 100644
+--- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
++++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
+@@ -424,6 +424,20 @@ void Foam::DsmcCloud<ParcelType>::resetFields()
+         dimensionSet(1, -2, -1, 0, 0),
+         vector::zero
+     );
++
++    shearStress_ = dimensionedTensor
++    (
++        "zero",
++        dimensionSet(1, -1, -2, 0, 0),
++        tensor::zero
++    );
++
++    heatFlux_ = dimensionedVector
++    (
++        "zero",
++        dimensionSet(1, 0, -3, 0, 0),
++        vector::zero
++    );
+ }
+ 
+ 
+@@ -444,6 +458,9 @@ void Foam::DsmcCloud<ParcelType>::calculateFields()
+ 
+     vectorField& momentum = momentum_.internalField();
+ 
++    tensorField& shearStress = shearStress_.internalField();
++    vectorField& heatFlux = heatFlux_.internalField();
++
+     forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
+     {
+         const ParcelType& p = iter();
+@@ -462,6 +479,9 @@ void Foam::DsmcCloud<ParcelType>::calculateFields()
+         iDof[cellI] += constProps(p.typeId()).internalDegreesOfFreedom();
+ 
+         momentum[cellI] += constProps(p.typeId()).mass()*p.U();
++
++        shearStress[cellI] += constProps(p.typeId()).mass()*p.U()*p.U();
++        heatFlux[cellI] += 0.5*constProps(p.typeId()).mass()*p.U()*magSqr(p.U());
+     }
+ 
+     rhoN *= nParticle_/mesh().cellVolumes();
+@@ -483,6 +503,14 @@ void Foam::DsmcCloud<ParcelType>::calculateFields()
+ 
+     momentum *= nParticle_/mesh().cellVolumes();
+     momentum_.correctBoundaryConditions();
++
++    shearStress *= nParticle_/mesh().cellVolumes();
++    shearStress -= 3*momentum*momentum/rhoM;
++    shearStress_.correctBoundaryConditions();
++
++    heatFlux *= nParticle_/mesh().cellVolumes();
++    heatFlux -= (momentum*(1.5*linearKE+2*magSqr(momentum)/rhoM) + (shearStress & momentum))/rhoM;
++    heatFlux_.correctBoundaryConditions();
+ }
+ 
+ 
+@@ -665,6 +693,30 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
+         ),
+         mesh_
+     ),
++    shearStress_
++    (
++        IOobject
++        (
++            "shearStress",
++            mesh_.time().timeName(),
++            mesh_,
++            IOobject::MUST_READ,
++            IOobject::AUTO_WRITE
++        ),
++        mesh_
++    ),
++    heatFlux_
++    (
++        IOobject
++        (
++            "heatFlux",
++            mesh_.time().timeName(),
++            mesh_,
++            IOobject::MUST_READ,
++            IOobject::AUTO_WRITE
++        ),
++        mesh_
++    ),
+     constProps_(),
+     rndGen_(label(149382906) + 7183*Pstream::myProcNo()),
+     boundaryT_
+@@ -908,6 +960,42 @@ Foam::DsmcCloud<ParcelType>::DsmcCloud
+             vector::zero
+         )
+     ),
++    shearStress_
++    (
++        IOobject
++        (
++            this->name() + "shearStress_",
++            mesh_.time().timeName(),
++            mesh_,
++            IOobject::NO_READ,
++            IOobject::NO_WRITE
++        ),
++        mesh_,
++        dimensionedVector
++        (
++            "zero",
++            dimensionSet(1, -1, -2, 0, 0),
++            tensor::zero
++        )
++    ),
++    heatFlux_
++    (
++        IOobject
++        (
++            this->name() + "heatflux_",
++            mesh_.time().timeName(),
++            mesh_,
++            IOobject::NO_READ,
++            IOobject::NO_WRITE
++        ),
++        mesh_,
++        dimensionedVector
++        (
++            "zero",
++            dimensionSet(1, 0, -3, 0, 0),
++            vector::zero
++        )
++    ),
+     constProps_(),
+     rndGen_(label(971501) + 1526*Pstream::myProcNo()),
+     boundaryT_
+diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
+index 423bd87..6dbda73 100644
+--- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
++++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
+@@ -130,6 +130,12 @@ class DsmcCloud
+         //- Momentum density field
+         volVectorField momentum_;
+ 
++        //- Shear stress field
++        volTensorField shearStress_;
++
++        //- Heat-flux vector field
++        volVectorField heatFlux_;
++
+         //- Parcel constant properties - one for each type
+         List<typename ParcelType::constantProperties> constProps_;
+ 
+@@ -296,6 +302,12 @@ public:
+                 //- Return non-const momentum density boundary field reference
+                 inline volVectorField::GeometricBoundaryField& momentumBF();
+ 
++                //- Return non-const shear stress boundary field reference
++                inline volTensorField::GeometricBoundaryField& shearStressBF();
++
++                //- Return non-const heat-flux vector boundary field reference
++                inline volVectorField::GeometricBoundaryField& heatFluxBF();
++
+ 
+             // References to the macroscopic fields
+ 
+@@ -333,6 +345,12 @@ public:
+                 //- Return the momentum density field
+                 inline const volVectorField& momentum() const;
+ 
++                //- Return the shear stress field
++                inline const volTensorField& shearStress() const;
++
++                //- Return the heat-flux vector field
++                inline const volVectorField& heatFlux() const;
++
+ 
+             // Kinetic theory helper functions
+ 
+diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
+index 0dad870..1d22c3a 100644
+--- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
++++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
+@@ -189,6 +189,22 @@ Foam::DsmcCloud<ParcelType>::momentumBF()
+ 
+ 
+ template<class ParcelType>
++inline Foam::volTensorField::GeometricBoundaryField&
++Foam::DsmcCloud<ParcelType>::shearStressBF()
++{
++    return shearStress_.boundaryField();
++}
++
++
++template<class ParcelType>
++inline Foam::volVectorField::GeometricBoundaryField&
++Foam::DsmcCloud<ParcelType>::heatFluxBF()
++{
++    return heatFlux_.boundaryField();
++}
++
++
++template<class ParcelType>
+ inline const Foam::volScalarField&
+ Foam::DsmcCloud<ParcelType>::boundaryT() const
+ {
+@@ -477,6 +493,20 @@ inline const Foam::volVectorField& Foam::DsmcCloud<ParcelType>::momentum() const
+ 
+ 
+ template<class ParcelType>
++inline const Foam::volTensorField& Foam::DsmcCloud<ParcelType>::shearStress() const
++{
++    return shearStress_;
++}
++
++
++template<class ParcelType>
++inline const Foam::volVectorField& Foam::DsmcCloud<ParcelType>::heatFlux() const
++{
++    return heatFlux_;
++}
++
++
++template<class ParcelType>
+ inline void Foam::DsmcCloud<ParcelType>::clear()
+ {
+     return IDLList<ParcelType>::clear();
