@@ -1,0 +1,12 @@
+#!/bin/bash
+
+dir=$(pwd)
+cd $WM_PROJECT_DIR
+if test -d .git; then
+    git apply -v "$dir"/dsmcFoam-addPQ.patch
+else
+    patch -p1 < "$dir"/dsmcFoam-addPQ.patch
+fi
+
+wmake $FOAM_SRC/lagrangian/dsmc
+wmake $FOAM_SOLVERS/discreteMethods/dsmc/dsmcFoam
