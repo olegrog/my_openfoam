@@ -53,7 +53,7 @@ index 3c70abb..953d9c7 100644
 +    shearStress_.correctBoundaryConditions();
 +
 +    heatFlux *= nParticle_/mesh().cellVolumes();
-+    heatFlux -= (momentum*(1.5*linearKE+2*magSqr(momentum)/rhoM) + (shearStress & momentum))/rhoM;
++    heatFlux -= (momentum*(linearKE+2*magSqr(momentum)/rhoM) + (shearStress & momentum))/rhoM;
 +    heatFlux_.correctBoundaryConditions();
  }
  
