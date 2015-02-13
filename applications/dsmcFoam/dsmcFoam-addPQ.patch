@@ -1,5 +1,5 @@
 diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
-index 3c70abb..953d9c7 100644
+index 3c70abb..a62657c 100644
 --- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
 +++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
 @@ -424,6 +424,20 @@ void Foam::DsmcCloud<ParcelType>::resetFields()
@@ -27,7 +27,7 @@ index 3c70abb..953d9c7 100644
  
      vectorField& momentum = momentum_.internalField();
  
-+    tensorField& shearStress = shearStress_.internalField();
++    symmTensorField& shearStress = shearStress_.internalField();
 +    vectorField& heatFlux = heatFlux_.internalField();
 +
      forAllConstIter(typename DsmcCloud<ParcelType>, *this, iter)
@@ -49,11 +49,11 @@ index 3c70abb..953d9c7 100644
      momentum_.correctBoundaryConditions();
 +
 +    shearStress *= nParticle_/mesh().cellVolumes();
-+    shearStress -= 3*momentum*momentum/rhoM;
++    shearStress -= momentum*momentum/rhoM;
 +    shearStress_.correctBoundaryConditions();
 +
 +    heatFlux *= nParticle_/mesh().cellVolumes();
-+    heatFlux -= (momentum*(linearKE+2*magSqr(momentum)/rhoM) + (shearStress & momentum))/rhoM;
++    heatFlux -= (momentum*linearKE + (shearStress & momentum))/rhoM;
 +    heatFlux_.correctBoundaryConditions();
  }
  
@@ -133,7 +133,7 @@ index 3c70abb..953d9c7 100644
      rndGen_(label(971501) + 1526*Pstream::myProcNo()),
      boundaryT_
 diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
-index 423bd87..6dbda73 100644
+index 423bd87..2f1ba6e 100644
 --- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
 +++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.H
 @@ -130,6 +130,12 @@ class DsmcCloud
@@ -141,7 +141,7 @@ index 423bd87..6dbda73 100644
          volVectorField momentum_;
  
 +        //- Shear stress field
-+        volTensorField shearStress_;
++        volSymmTensorField shearStress_;
 +
 +        //- Heat-flux vector field
 +        volVectorField heatFlux_;
@@ -154,7 +154,7 @@ index 423bd87..6dbda73 100644
                  inline volVectorField::GeometricBoundaryField& momentumBF();
  
 +                //- Return non-const shear stress boundary field reference
-+                inline volTensorField::GeometricBoundaryField& shearStressBF();
++                inline volSymmTensorField::GeometricBoundaryField& shearStressBF();
 +
 +                //- Return non-const heat-flux vector boundary field reference
 +                inline volVectorField::GeometricBoundaryField& heatFluxBF();
@@ -167,7 +167,7 @@ index 423bd87..6dbda73 100644
                  inline const volVectorField& momentum() const;
  
 +                //- Return the shear stress field
-+                inline const volTensorField& shearStress() const;
++                inline const volSymmTensorField& shearStress() const;
 +
 +                //- Return the heat-flux vector field
 +                inline const volVectorField& heatFlux() const;
@@ -176,14 +176,14 @@ index 423bd87..6dbda73 100644
              // Kinetic theory helper functions
  
 diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
-index 0dad870..1d22c3a 100644
+index 0dad870..98808bb 100644
 --- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
 +++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloudI.H
 @@ -189,6 +189,22 @@ Foam::DsmcCloud<ParcelType>::momentumBF()
  
  
  template<class ParcelType>
-+inline Foam::volTensorField::GeometricBoundaryField&
++inline Foam::volSymmTensorField::GeometricBoundaryField&
 +Foam::DsmcCloud<ParcelType>::shearStressBF()
 +{
 +    return shearStress_.boundaryField();
@@ -206,7 +206,7 @@ index 0dad870..1d22c3a 100644
  
  
  template<class ParcelType>
-+inline const Foam::volTensorField& Foam::DsmcCloud<ParcelType>::shearStress() const
++inline const Foam::volSymmTensorField& Foam::DsmcCloud<ParcelType>::shearStress() const
 +{
 +    return shearStress_;
 +}
