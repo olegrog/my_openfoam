@@ -1,5 +1,5 @@
 diff --git a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
-index 3c70abb..a62657c 100644
+index 3c70abb..65b5597 100644
 --- a/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
 +++ b/src/lagrangian/dsmc/clouds/Templates/DsmcCloud/DsmcCloud.C
 @@ -424,6 +424,20 @@ void Foam::DsmcCloud<ParcelType>::resetFields()
@@ -7,11 +7,11 @@ index 3c70abb..a62657c 100644
          vector::zero
      );
 +
-+    shearStress_ = dimensionedTensor
++    shearStress_ = dimensionedSymmTensor
 +    (
 +        "zero",
 +        dimensionSet(1, -1, -2, 0, 0),
-+        tensor::zero
++        symmTensor::zero
 +    );
 +
 +    heatFlux_ = dimensionedVector
@@ -38,7 +38,7 @@ index 3c70abb..a62657c 100644
  
          momentum[cellI] += constProps(p.typeId()).mass()*p.U();
 +
-+        shearStress[cellI] += constProps(p.typeId()).mass()*p.U()*p.U();
++        shearStress[cellI] += constProps(p.typeId()).mass()*sqr(p.U());
 +        heatFlux[cellI] += 0.5*constProps(p.typeId()).mass()*p.U()*magSqr(p.U());
      }
  
@@ -49,7 +49,7 @@ index 3c70abb..a62657c 100644
      momentum_.correctBoundaryConditions();
 +
 +    shearStress *= nParticle_/mesh().cellVolumes();
-+    shearStress -= momentum*momentum/rhoM;
++    shearStress -= sqr(momentum)/rhoM;
 +    shearStress_.correctBoundaryConditions();
 +
 +    heatFlux *= nParticle_/mesh().cellVolumes();
