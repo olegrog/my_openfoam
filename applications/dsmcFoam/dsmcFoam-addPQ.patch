@@ -104,11 +104,11 @@ index 3c70abb..65b5597 100644
 +            IOobject::NO_WRITE
 +        ),
 +        mesh_,
-+        dimensionedVector
++        dimensionedSymmTensor
 +        (
 +            "zero",
 +            dimensionSet(1, -1, -2, 0, 0),
-+            tensor::zero
++            symmTensor::zero
 +        )
 +    ),
 +    heatFlux_
