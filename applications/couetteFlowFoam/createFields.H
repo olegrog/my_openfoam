@@ -26,6 +26,48 @@
         mesh
     );
 
+    Info<< "Reading field T1\n" << endl;
+    volScalarField T1
+    (
+        IOobject
+        (
+            "T1",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field U1\n" << endl;
+    volScalarField U1
+    (
+        IOobject
+        (
+            "U1",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field p0\n" << endl;
+    volScalarField p0
+    (
+        IOobject
+        (
+            "p0",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
     Info<< "Reading transportProperties\n" << endl;
     IOdictionary transportProperties
     (
@@ -85,6 +127,24 @@
     dimensionedScalar gamma10
     (
         transportProperties.lookup("gamma10")
+    );
+
+    Info<< "Reading k0\n" << endl;
+    dimensionedScalar k0
+    (
+        transportProperties.lookup("k0")
+    );
+
+    Info<< "Reading d1\n" << endl;
+    dimensionedScalar d1
+    (
+        transportProperties.lookup("d1")
+    );
+
+    Info<< "Reading kn\n" << endl;
+    dimensionedScalar kn
+    (
+        transportProperties.lookup("kn")
     );
 
     volSymmTensorField p1

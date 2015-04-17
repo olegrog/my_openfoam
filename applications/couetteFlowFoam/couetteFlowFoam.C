@@ -14,9 +14,34 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "wallFvPatch.H"
 #include "simpleControl.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+void writeWallDerivativeField(
+    const std::string name,
+    const volScalarField& field,
+    const Foam::fvMesh& mesh,
+    const Foam::Time& runTime
+)
+{
+    dimensionedScalar zeroField(
+        "zero",
+        field.dimensions(),
+        0
+    );
+    volScalarField wallField(
+        IOobject("wallD" + name, runTime.timeName(), mesh),
+        mesh,
+        zeroField
+    );
+    const surfaceScalarField derivative = fvc::snGrad(field);
+    forAll(wallField.boundaryField(), patchi) {
+        wallField.boundaryField()[patchi] = derivative.boundaryField()[patchi];
+    }
+    wallField.write();
+}
 
 int main(int argc, char *argv[])
 {
@@ -34,20 +59,33 @@ int main(int argc, char *argv[])
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
-
+        // find U0
         solve
         (
             fvm::laplacian(pow(T0,s), U0)
         );
-
+        // find T0
         solve
         (
-            fvm::laplacian(1.25*gamma2*pow(T0,s), T0) + gamma1*pow(T0,s)*magSqr(fvc::grad(U0))
+            gamma1*pow(T0,s)*magSqr(fvc::grad(U0)) + 1.25*gamma2*fvm::laplacian(pow(T0,s), T0)
+        );
+        // find U1
+        solve
+        (
+            fvm::laplacian(pow(T0,s), U1) + fvc::laplacian(s*pow(T0,s-1)*T1, U0)
+        );
+        // find T1
+        solve
+        (
+            gamma1*( fvc::grad(U0) && (2*pow(T0,s)*fvc::grad(U1) + s*pow(T0,s-1)*T1*fvc::grad(U0)) )
+            + 1.25*gamma2*( fvm::laplacian(pow(T0,s), T1) + fvc::laplacian(s*pow(T0,s-1)*T1, T0) )
         );
 
-        volVectorField p_xy = -gamma1*pow(T0,s)*fvc::grad(U0);
+        p0 = sum(mesh.V()) / fvc::domainIntegrate(1/T0);
+
+        volVectorField p_xy1 = -gamma1*pow(T0,s)*fvc::grad(U0);
         p1 = p1 * 0;
-        p1.internalField().replace(symmTensor::XY, p_xy.internalField().component(vector::Y));
+        p1.internalField().replace(symmTensor::XY, p_xy1.internalField().component(vector::Y));
         p1.internalField().replace(symmTensor::XX, 1);
         p1.internalField().replace(symmTensor::YY, 1);
         p1.internalField().replace(symmTensor::ZZ, 1);
@@ -59,17 +97,19 @@ int main(int argc, char *argv[])
         volScalarField DT2 = magSqr(fvc::grad(T0));
         volScalarField DU2 = magSqr(fvc::grad(U0));
 
-        volScalarField p_xx = (2*(gamma8+gamma9)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3;
-        volScalarField p_yy = 2*((gamma8-2*gamma9)*T0*DU2 + gamma3*T0*DDT + gamma7*DT2) / 3;
-        volScalarField p_zz = (2*(gamma9-2*gamma8)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3;
-        volScalarField q_x = 0.5*gamma3 * sqr(T0) * DDU + 4*gamma10*T0*( fvc::grad(T0) & fvc::grad(U0) );
+        volVectorField p_xy2 = -gamma1*( pow(T0,s)*fvc::grad(U1) + s*pow(T0,s-1)*T1*fvc::grad(U0) );
+        volScalarField p_xx = (2*(gamma8+gamma9)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / p0;
+        volScalarField p_yy = 2*((gamma8-2*gamma9)*T0*DU2 + gamma3*T0*DDT + gamma7*DT2) / 3 / p0;
+        volScalarField p_zz = (2*(gamma9-2*gamma8)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / p0;
+        volScalarField q_x = (0.5*gamma3 * sqr(T0) * DDU + 4*gamma10*T0*( fvc::grad(T0) & fvc::grad(U0) )) / p0;
         
         p2 = p2 * 0;
+        p2.internalField().replace(symmTensor::XY, p_xy2.internalField().component(vector::Y));
         p2.internalField().replace(symmTensor::XX, p_xx.internalField());
         p2.internalField().replace(symmTensor::YY, p_yy.internalField());
         p2.internalField().replace(symmTensor::ZZ, p_zz.internalField());
 
-        q2 = q2 * 0;
+        q2 = -1.25*gamma2*( pow(T0,s)*fvc::grad(T1) + s*pow(T0,s-1)*T1*fvc::grad(T0));
         q2.internalField().replace(vector::X, q_x.internalField());
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -78,6 +118,16 @@ int main(int argc, char *argv[])
 
         runTime.write();
     }
+    writeWallDerivativeField("U0", U0, mesh, runTime);
+    writeWallDerivativeField("T0", T0, mesh, runTime);
+
+    dimensionedScalar k = kn*Foam::sqrt(constant::mathematical::pi)/2;
+    Info<< "Overall integration:" << endl
+        << "\tM = " << (fvc::domainIntegrate(U0) + k*fvc::domainIntegrate(U1)).value() << endl
+        << "\tT = " << (fvc::domainIntegrate(T0) + k*fvc::domainIntegrate(T1)).value() << endl
+        << "\tp = " << fvc::domainIntegrate(p0) << endl
+        << "\tp_ij = " << (k*fvc::domainIntegrate(p1) + k*k*fvc::domainIntegrate(p2)).value() << endl
+        << "\tq_i = " << (k*fvc::domainIntegrate(q1) + k*k*fvc::domainIntegrate(q2)).value() << endl;
 
     Info<< "End\n" << endl;
 
