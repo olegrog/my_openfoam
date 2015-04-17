@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      U0;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    bottom
+    {
+        type fixedValue;
+        value uniform 0;
+    }
+    top
+    {
+        type            codedFixedValue;
+        value           uniform 0;
+        redirectType    velocity0;   // name of generated BC
+
+        code
+        #{
+            const dimensionedScalar U ("UB", dimensionSet(0, 1, -1, 0, 0, 0, 0), 2);
+            const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
+            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
+            const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
+            dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;
+            const surfaceScalarField wallU0 = U/2 + k0*k*fvc::interpolate(T0/p0)*fvc::snGrad(U0);
+            label patchId = patch().boundaryMesh().findPatchID("top");
+            operator==(wallU0.boundaryField()[patchId]);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    leftAndRight
+    {
+        type empty;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
+
+
+// ************************************************************************* //

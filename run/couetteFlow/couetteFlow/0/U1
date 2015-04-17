@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      U1;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    bottom
+    {
+        type fixedValue;
+        value uniform 0;
+    }
+    top
+    {
+        type            codedFixedValue;
+        value           uniform 0;
+        redirectType    velocity1;   // name of generated BC
+
+        code
+        #{
+            const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
+            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
+            const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
+            const surfaceScalarField wallU1 = k0*fvc::interpolate(T0)*fvc::snGrad(U0);
+            label patchId = patch().boundaryMesh().findPatchID("top");
+            operator==(wallU1.boundaryField()[patchId]);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    leftAndRight
+    {
+        type empty;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
+
+
+// ************************************************************************* //
