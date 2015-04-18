@@ -37,7 +37,7 @@ boundaryField
             const dimensionedScalar U ("UB", dimensionSet(0, 1, -1, 0, 0, 0, 0), 2);
             const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
             const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
-            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            const volScalarField& p0 = db().lookupObject<volScalarField>("press0");
             const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
             const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
             dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;

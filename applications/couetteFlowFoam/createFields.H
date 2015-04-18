@@ -54,12 +54,26 @@
         mesh
     );
 
-    Info<< "Reading field p0\n" << endl;
-    volScalarField p0
+    Info<< "Reading field press0\n" << endl;
+    volScalarField press0
     (
         IOobject
         (
-            "p0",
+            "press0",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
+    Info<< "Reading field press1\n" << endl;
+    volScalarField press1
+    (
+        IOobject
+        (
+            "press1",
             runTime.timeName(),
             mesh,
             IOobject::MUST_READ,
@@ -147,11 +161,11 @@
         transportProperties.lookup("kn")
     );
 
-    volSymmTensorField p1
+    volSymmTensorField P1
     (
         IOobject
         (
-            "p1",
+            "P1",
             runTime.timeName(),
             mesh,
             IOobject::READ_IF_PRESENT,
@@ -173,11 +187,11 @@
         mesh
     );
 
-    volSymmTensorField p2
+    volSymmTensorField P2
     (
         IOobject
         (
-            "p2",
+            "P2",
             runTime.timeName(),
             mesh,
             IOobject::READ_IF_PRESENT,

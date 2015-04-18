@@ -81,14 +81,15 @@ int main(int argc, char *argv[])
             + 1.25*gamma2*( fvm::laplacian(pow(T0,s), T1) + fvc::laplacian(s*pow(T0,s-1)*T1, T0) )
         );
 
-        p0 = sum(mesh.V()) / fvc::domainIntegrate(1/T0);
+        press0 = sum(mesh.V()) / fvc::domainIntegrate(1/T0);
+        press1 = sqr(press0) * fvc::domainIntegrate(T1/sqr(T0)) / sum(mesh.V());
 
-        volVectorField p_xy1 = -gamma1*pow(T0,s)*fvc::grad(U0);
-        p1 = p1 * 0;
-        p1.internalField().replace(symmTensor::XY, p_xy1.internalField().component(vector::Y));
-        p1.internalField().replace(symmTensor::XX, 1);
-        p1.internalField().replace(symmTensor::YY, 1);
-        p1.internalField().replace(symmTensor::ZZ, 1);
+        volVectorField P_xy1 = -gamma1*pow(T0,s)*fvc::grad(U0);
+        P1 = P1 * 0;
+        P1.internalField().replace(symmTensor::XY, P_xy1.internalField().component(vector::Y));
+        P1.internalField().replace(symmTensor::XX, 1);
+        P1.internalField().replace(symmTensor::YY, 1);
+        P1.internalField().replace(symmTensor::ZZ, 1);
         
         q1 = -1.25*gamma2*pow(T0,s)*fvc::grad(T0);
 
@@ -97,19 +98,19 @@ int main(int argc, char *argv[])
         volScalarField DT2 = magSqr(fvc::grad(T0));
         volScalarField DU2 = magSqr(fvc::grad(U0));
 
-        volVectorField p_xy2 = -gamma1*( pow(T0,s)*fvc::grad(U1) + s*pow(T0,s-1)*T1*fvc::grad(U0) );
-        volScalarField p_xx = (2*(gamma8+gamma9)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / p0;
-        volScalarField p_yy = 2*((gamma8-2*gamma9)*T0*DU2 + gamma3*T0*DDT + gamma7*DT2) / 3 / p0;
-        volScalarField p_zz = (2*(gamma9-2*gamma8)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / p0;
-        volScalarField q_x = (0.5*gamma3 * sqr(T0) * DDU + 4*gamma10*T0*( fvc::grad(T0) & fvc::grad(U0) )) / p0;
+        volVectorField P_xy2 = -gamma1*( pow(T0,s)*fvc::grad(U1) + s*pow(T0,s-1)*T1*fvc::grad(U0) );
+        volScalarField P_xx = (2*(gamma8+gamma9)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / press0;
+        volScalarField P_yy = 2*((gamma8-2*gamma9)*T0*DU2 + gamma3*T0*DDT + gamma7*DT2) / 3 / press0;
+        volScalarField P_zz = (2*(gamma9-2*gamma8)*T0*DU2 - gamma3*T0*DDT - gamma7*DT2) / 3 / press0;
+        volScalarField q_x = (0.5*gamma3 * sqr(T0) * DDU + 4*gamma10*T0*( fvc::grad(T0) & fvc::grad(U0) )) / press0;
         
-        p2 = p2 * 0;
-        p2.internalField().replace(symmTensor::XY, p_xy2.internalField().component(vector::Y));
-        p2.internalField().replace(symmTensor::XX, p_xx.internalField());
-        p2.internalField().replace(symmTensor::YY, p_yy.internalField());
-        p2.internalField().replace(symmTensor::ZZ, p_zz.internalField());
+        P2 = P2 * 0;
+        P2.internalField().replace(symmTensor::XY, P_xy2.internalField().component(vector::Y));
+        P2.internalField().replace(symmTensor::XX, P_xx.internalField());
+        P2.internalField().replace(symmTensor::YY, P_yy.internalField());
+        P2.internalField().replace(symmTensor::ZZ, P_zz.internalField());
 
-        q2 = -1.25*gamma2*( pow(T0,s)*fvc::grad(T1) + s*pow(T0,s-1)*T1*fvc::grad(T0));
+        q2 = -1.25*gamma2*( pow(T0,s)*fvc::grad(T1) + s*pow(T0,s-1)*T1*fvc::grad(T0) );
         q2.internalField().replace(vector::X, q_x.internalField());
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -125,8 +126,8 @@ int main(int argc, char *argv[])
     Info<< "Overall integration:" << endl
         << "\tM = " << (fvc::domainIntegrate(U0) + k*fvc::domainIntegrate(U1)).value() << endl
         << "\tT = " << (fvc::domainIntegrate(T0) + k*fvc::domainIntegrate(T1)).value() << endl
-        << "\tp = " << fvc::domainIntegrate(p0) << endl
-        << "\tp_ij = " << (k*fvc::domainIntegrate(p1) + k*k*fvc::domainIntegrate(p2)).value() << endl
+        << "\tp = " << (fvc::domainIntegrate(press0) + k*fvc::domainIntegrate(press1)).value() << endl
+        << "\tP_ij = " << (k*fvc::domainIntegrate(P1) + k*k*fvc::domainIntegrate(P2)).value() << endl
         << "\tq_i = " << (k*fvc::domainIntegrate(q1) + k*k*fvc::domainIntegrate(q2)).value() << endl;
 
     Info<< "End\n" << endl;
