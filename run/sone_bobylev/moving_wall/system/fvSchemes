@@ -11,59 +11,46 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvSolution;
+    object      fvSchemes;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solvers
+ddtSchemes
 {
-    U
-    {
-        solver          PBiCG;
-        preconditioner  DILU;
-        tolerance       1e-08;
-        relTol          0.01;
-    }
-
-    T
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-09;
-        relTol          0.01;
-    }
-
-    p
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-05;
-        relTol          0.1;
-    }
+    default         steadyState;
 }
 
-SIMPLE
+gradSchemes
 {
-    nNonOrthogonalCorrectors 0;
-    pRefCell            0;
-    pRefValue           0;
-    residualControl
-    {
-        p               1e-4;
-        U               1e-6;
-    }
+    default         Gauss linear;
 }
 
-relaxationFactors
+divSchemes
 {
-    fields
-    {
-        p               0.5;
-    }
-    equations
-    {
-        U               0.7;
-    }
+    default         Gauss linear;
+    div(phi,U1)     bounded Gauss linearUpwindV grad(U1);
 }
+
+laplacianSchemes
+{
+    default         Gauss linear corrected; 
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p2;
+}
+
 
 // ************************************************************************* //

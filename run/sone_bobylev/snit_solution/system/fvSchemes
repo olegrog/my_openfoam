@@ -27,9 +27,8 @@ gradSchemes
 
 divSchemes
 {
-    default         none;
-    div(phi,U)      bounded Gauss limitedCubicV 1;
-    div((sqrt(T)*dev2(T(grad(U))))) Gauss linear;
+    default         Gauss linear;
+    div(phi,U1)     bounded Gauss limitedCubicV 1;
 }
 
 laplacianSchemes
@@ -50,7 +49,7 @@ snGradSchemes
 fluxRequired
 {
     default         no;
-    p;
+    p2;
 }
 
 

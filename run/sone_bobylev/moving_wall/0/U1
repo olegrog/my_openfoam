@@ -9,21 +9,22 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
+    class       volVectorField;
     location    "0";
-    object      p;
+    object      U1;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -2 -1 0 0 0];
+dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform 1;
+internalField   uniform (0 0 0);
 
 boundaryField
 {
     wall
     {
-        type zeroGradient;
+        type fixedValue;
+        #include "int.U"
     }
     symmetry
     {

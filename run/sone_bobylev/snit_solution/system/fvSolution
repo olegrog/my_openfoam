@@ -9,40 +9,61 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      T;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
-
-internalField   uniform 1;
-
-boundaryField
+solvers
 {
-    wall
+    U1
     {
-        type fixedValue;
-        #include "int.T"
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-08;
+        relTol          0.01;
     }
-    symmetry
+
+    T0
     {
-        type symmetryPlane;
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-09;
+        relTol          0.01;
     }
-    left
+
+    p2
     {
-        type cyclic;
-    }
-    right
-    {
-        type cyclic;
-    }
-    frontAndBack
-    {
-        type empty;
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-05;
+        relTol          0.1;
     }
 }
 
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    p2RefCell           0;
+    p2RefValue          0;
+    residualControl
+    {
+        p2              1e-4;
+        U1              1e-6;
+    }
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p2              0.5;
+    }
+    equations
+    {
+        U1              0.7;
+    }
+}
 
 // ************************************************************************* //
