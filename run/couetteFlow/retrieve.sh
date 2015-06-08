@@ -3,9 +3,6 @@
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 cases=$(ls | grep '^[0-9]' | sort -g)
-if test $# -gt 0; then
-    cases=$@
-fi
 
 norm() {
     echo "print $1/$2" | python
@@ -14,8 +11,8 @@ norm() {
 for U in $cases; do
     echo "U = $U"
     (
-    printf '#%11s %13s %12s %13s %12s %12s %12s %12s %12s %12s %12s %13s %12s %12s\n' \
-        Kn Pxy M Qx Qy Pxx Pyy Pzz T p DU0 DT0 p0 T_B0
+    printf '#%11s %12s %11s %12s %11s %11s %11s %11s %11s %11s %11s %12s %11s %11s\n' \
+        Kn Pxy M Qx Qy Pxx Pyy Pzz tau P DU0 DT0 p0 T_B0
     for Kn in $(ls $U | sort -g); do
         last=$(grep ^Time $U/$Kn/log.couetteFlowFoam | tail -1 | awk '{ print $3 }')
         DU=$(grep -A4 top $U/$Kn/$last/wallDU0 | grep value | sed 's/.* //;s/;//')
@@ -23,15 +20,15 @@ for U in $cases; do
         TB=$(grep -A4 top $U/$Kn/$last/T0 | grep value | sed 's/.* //;s/;//')
         p0=$(grep uniform $U/$Kn/$last/press0 | sed 's/.* //;s/;//')
         M=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'M =' | awk '{print $3}') $U)
-        T=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'T =' | awk '{print $3}') $U)
-        p=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'p =' | awk '{print $3}') $U)
-        Pxy=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P_ij =' | awk '{print $4}') "($U*0.5)")
+        tau=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'tau =' | awk '{print $3}') $U)
+        P=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P =' | awk '{print $3}') $U)
+        Pxy=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P_ij =' | awk '{print $4}') $U)
         Pxx=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P_ij =' | awk '{print $3}' | sed 's/(//') $U)
         Pyy=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P_ij =' | awk '{print $6}') $U)
         Pzz=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'P_ij =' | awk '{print $8}' | sed 's/)//') $U)
         Qx=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'q_i =' | awk '{print $3}' | sed 's/(//') $U)
         Qy=$(norm $(tail $U/$Kn/log.couetteFlowFoam | grep 'q_i =' | awk '{print $4}') $U)
-        printf "%.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e %.6e\n" $Kn $Pxy $M $Qx $Qy $Pxx $Pyy $Pzz $T $p $DU $DT $p0 $TB
+        printf "%.6e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e %.5e\n" $Kn $Pxy $M $Qx $Qy $Pxx $Pyy $Pzz $tau $P $DU $DT $p0 $TB
     done
-    ) > ns-$(printf "%.1f" $U).txt
+    ) > $1-$(printf "%.1f" $U).txt
 done

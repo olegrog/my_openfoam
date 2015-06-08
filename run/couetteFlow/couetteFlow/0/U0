@@ -28,8 +28,35 @@ boundaryField
     }
     top
     {
-        type fixedValue;
-        value uniform 1;
+        type            codedFixedValue;
+        value           uniform 0;
+        redirectType    velocity0;   // name of generated BC
+
+        code
+        #{
+            const dimensionedScalar UB ("UB", dimensionSet(0, 1, -1, 0, 0, 0, 0), 2);
+            const dimensionedScalar TB ("TB", dimensionSet(0, 0, 0, 1, 0, 0, 0), 1);
+            const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
+            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
+            const volScalarField& p0 = db().lookupObject<volScalarField>("press0");
+            const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
+            const dimensionedScalar d1 = db().lookupObject<IOdictionary>("transportProperties").lookup("d1");
+            const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
+            dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;
+            const surfaceScalarField wallT0 = TB/(1 + d1*k/fvc::interpolate(p0)*fvc::snGrad(T0));
+            const surfaceScalarField wallU0 = UB/2 + k0*k/fvc::interpolate(p0)*wallT0*fvc::snGrad(U0);
+            label patchId = patch().boundaryMesh().findPatchID("top");
+            operator==(wallU0.boundaryField()[patchId]);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
     }
     leftAndRight
     {

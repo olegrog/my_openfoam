@@ -17,7 +17,7 @@ FoamFile
 
 dimensions      [0 0 0 1 0 0 0];
 
-internalField   uniform 1;
+internalField   uniform 0;
 
 boundaryField
 {
@@ -27,28 +27,8 @@ boundaryField
     }
     top
     {
-        type            codedFixedValue;
+        type            fixedValue;
         value           uniform 0;
-        redirectType    temperature1;   // name of generated BC
-
-        code
-        #{
-            const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
-            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
-            const dimensionedScalar d1 = db().lookupObject<IOdictionary>("transportProperties").lookup("d1");
-            const surfaceScalarField wallT1 = -d1*fvc::interpolate(T0)*fvc::snGrad(T0);
-            label patchId = patch().boundaryMesh().findPatchID("top");
-            operator==(wallT1.boundaryField()[patchId]);
-        #};
-        codeInclude
-        #{
-            #include "fvCFD.H"
-        #};
-
-        codeOptions
-        #{
-            -I$(LIB_SRC)/finiteVolume/lnInclude
-        #};
     }
     leftAndRight
     {

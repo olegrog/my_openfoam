@@ -11,7 +11,7 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      U0;
+    object      U1;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -30,20 +30,16 @@ boundaryField
     {
         type            codedFixedValue;
         value           uniform 0;
-        redirectType    velocity0;   // name of generated BC
+        redirectType    velocity1;   // name of generated BC
 
         code
         #{
-            const dimensionedScalar U ("UB", dimensionSet(0, 1, -1, 0, 0, 0, 0), 2);
             const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
             const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
-            const volScalarField& p0 = db().lookupObject<volScalarField>("press0");
             const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
-            const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
-            dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;
-            const surfaceScalarField wallU0 = U/2 + k0*k*fvc::interpolate(T0/p0)*fvc::snGrad(U0);
+            const surfaceScalarField wallU1 = k0*fvc::interpolate(T0)*fvc::snGrad(U0);
             label patchId = patch().boundaryMesh().findPatchID("top");
-            operator==(wallU0.boundaryField()[patchId]);
+            operator==(wallU1.boundaryField()[patchId]);
         #};
         codeInclude
         #{
