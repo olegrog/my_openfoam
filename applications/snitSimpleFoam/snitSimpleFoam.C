@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian(0.5 * gamma2 * sqrt(T), T) == fvc::div(phi, T)
+            fvm::laplacian(0.5 * gamma2 * sqrt(T0), T0) == fvc::div(phi, T0)
         );
         TEqn.solve();
 
@@ -50,63 +50,64 @@ int main(int argc, char *argv[])
 
         /** velocity predictor */
         tmp<fvVectorMatrix> UEqn(
-              fvm::div(phi, U)
-            - fvm::laplacian(0.5 * gamma1 * sqrt(T), U) ==
-              0.5 * gamma1 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
-            + gamma7 / T * (sqr(fvc::grad(T)) & (U / gamma2 / sqrt(T)))
+              fvm::div(phi, U1)
+            - fvm::laplacian(0.5 * gamma1 * sqrt(T0), U1) ==
+              0.5 * gamma1 * fvc::div(sqrt(T0) * dev2(::T(fvc::grad(U1))))
+            + gamma7 / T0 * (sqr(fvc::grad(T0)) & (U1 / gamma2 / sqrt(T0)))
         );
         UEqn().relax();
         solve(UEqn() ==
             fvc::reconstruct((
-                - fvc::snGrad(p)
-                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T)) / T) * fvc::snGrad(T)
+                - fvc::snGrad(p2)
+                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T0)) / T0) * fvc::snGrad(T0)
             ) * mesh.magSf())
         );
 
         /** pressure corrector */
         volScalarField rAU(1./UEqn().A());
-        surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T));
-        volVectorField HbyA("HbyA", U);
+        surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T0));
+        volVectorField HbyA("HbyA", U1);
         HbyA = rAU * UEqn().H();
         UEqn.clear();
 
-        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T) & mesh.Sf());
-        adjustPhi(phiHbyA, U, p);
+        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T0) & mesh.Sf());
+        adjustPhi(phiHbyA, U1, p2);
         surfaceScalarField phif(
             - 0.25 * gamma7 * rAUbyT
-            * fvc::interpolate(magSqr(fvc::grad(T)) / T)
-            * fvc::snGrad(T) * mesh.magSf()
+            * fvc::interpolate(magSqr(fvc::grad(T0)) / T0)
+            * fvc::snGrad(T0) * mesh.magSf()
         );
         phiHbyA += phif;
 
         // Update the fixedFluxPressure BCs to ensure flux consistency
         setSnGrad<fixedFluxPressureFvPatchScalarField>
         (
-            p.boundaryField(),
+            p2.boundaryField(),
             phiHbyA.boundaryField()
             / (mesh.magSf().boundaryField() * rAUbyT.boundaryField())
         );
 
         while (simple.correctNonOrthogonal()) {
             fvScalarMatrix pEqn(
-                fvm::laplacian(rAUbyT, p) == fvc::div(phiHbyA)
+                fvm::laplacian(rAUbyT, p2) == fvc::div(phiHbyA)
             );
-            pEqn.setReference(pRefCell, getRefCellValue(p, pRefCell));
+            pEqn.setReference(pRefCell, getRefCellValue(p2, pRefCell));
             pEqn.solve();
             if (simple.finalNonOrthogonalIter()) {
                 // Calculate the conservative fluxes
                 phi = phiHbyA - pEqn.flux();
-                p.relax();
+                p2.relax();
                 /** velocity corrector */
-                U = HbyA + rAU * fvc::reconstruct((phif - pEqn.flux()) / rAUbyT);
-                U.correctBoundaryConditions();
+                U1 = HbyA + rAU * fvc::reconstruct((phif - pEqn.flux()) / rAUbyT);
+                U1.correctBoundaryConditions();
             }
         }
         #include "continuityErrs.H"
 
         // Pressure is defined up to a constant factor,
         // we adjust it to maintain the initial domainIntegrate
-        p += (initialPressure - fvc::domainIntegrate(p)) / totalVolume;
+        p2 += (initialPressure - fvc::domainIntegrate(p2)) / totalVolume;
+        p0 = totalVolume / fvc::domainIntegrate(1/T0);
 
         runTime.write();
 
