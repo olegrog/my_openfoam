@@ -123,10 +123,12 @@ int main(int argc, char *argv[])
     writeWallDerivativeField("T0", T0, mesh, runTime);
 
     dimensionedScalar k = kn*Foam::sqrt(constant::mathematical::pi)/2;
+    dimensionedScalar tempOne = dimensionedScalar("tempOne", T0.dimensions(), 1);
+    dimensionedScalar pressOne = dimensionedScalar("pressOne", press0.dimensions(), 1);
     Info<< "Overall integration:" << endl
         << "\tM = " << (fvc::domainIntegrate(U0) + k*fvc::domainIntegrate(U1)).value() << endl
-        << "\tT = " << (fvc::domainIntegrate(T0) + k*fvc::domainIntegrate(T1)).value() << endl
-        << "\tp = " << (fvc::domainIntegrate(press0) + k*fvc::domainIntegrate(press1)).value() << endl
+        << "\ttau = " << (fvc::domainIntegrate(T0-tempOne) + k*fvc::domainIntegrate(T1)).value() << endl
+        << "\tP = " << (fvc::domainIntegrate(press0-pressOne) + k*fvc::domainIntegrate(press1)).value() << endl
         << "\tP_ij = " << (k*fvc::domainIntegrate(P1) + k*k*fvc::domainIntegrate(P2)).value() << endl
         << "\tq_i = " << (k*fvc::domainIntegrate(q1) + k*k*fvc::domainIntegrate(q2)).value() << endl;
 
