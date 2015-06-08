@@ -23,61 +23,21 @@ boundaryField
 {
     bottom
     {
-        type fixedValue;
-        value nonuniform List<vector> 
-50
-(
-(0.045108 0 0)
-(0.135412 0 0)
-(0.225974 0 0)
-(0.316941 0 0)
-(0.408427 0 0)
-(0.500501 0 0)
-(0.593177 0 0)
-(0.686405 0 0)
-(0.780069 0 0)
-(0.873985 0 0)
-(0.967896 0 0)
-(1.061478 0 0)
-(1.154344 0 0)
-(1.246047 0 0)
-(1.336085 0 0)
-(1.423914 0 0)
-(1.508950 0 0)
-(1.590582 0 0)
-(1.668178 0 0)
-(1.741096 0 0)
-(1.808692 0 0)
-(1.870330 0 0)
-(1.925388 0 0)
-(1.973270 0 0)
-(2.013410 0 0)
-(2.045284 0 0)
-(2.068411 0 0)
-(2.082366 0 0)
-(2.086780 0 0)
-(2.081347 0 0)
-(2.065829 0 0)
-(2.040060 0 0)
-(2.003948 0 0)
-(1.957474 0 0)
-(1.900700 0 0)
-(1.833763 0 0)
-(1.756882 0 0)
-(1.670347 0 0)
-(1.574528 0 0)
-(1.469866 0 0)
-(1.356872 0 0)
-(1.236122 0 0)
-(1.108257 0 0)
-(0.973970 0 0)
-(0.834011 0 0)
-(0.689171 0 0)
-(0.540283 0 0)
-(0.388212 0 0)
-(0.233849 0 0)
-(0.078104 0 0)
-);
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    velocity;
+        code
+        #{
+            scalar alpha, K1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("alpha") >> alpha;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+            scalar pi = constant::mathematical::pi;
+            tmp<Field<scalar> > T0 = 1 - alpha*cos(2*pi*patch().Cf().component(vector::X));
+            tmp<Field<scalar> > dT0 = 2*pi*alpha*sin(2*pi*patch().Cf().component(vector::X));
+            Field<vector> U1(patch().Cf().size(), vector::zero);
+            U1.replace(vector::X, -K1 * sqrt(T0) * dT0);
+            (*this)== U1;
+        #};
     }
     top
     {

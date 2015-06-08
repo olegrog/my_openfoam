@@ -6,5 +6,6 @@ cd ${0%/*} || exit 1    # run from this directory
 
 runApplication blockMesh
 runApplication snitSimpleFoam
+runApplication foamToVTK
 
 # ----------------------------------------------------------------- end-of-file
