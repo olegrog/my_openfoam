@@ -73,7 +73,30 @@
     dimensionedScalar initialPressure = fvc::domainIntegrate(p2);
     dimensionedScalar totalVolume = sum(mesh.V());
 
-    Info<< "Reading transportProperties\n" << endl;
+    IOdictionary nondimensionalProperties
+    (
+        IOobject
+        (
+            "nondimensionalProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+
+    IOdictionary knudsenLayerProperties
+    (
+        IOobject
+        (
+            "knudsenLayerProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+
     IOdictionary transportProperties
     (
         IOobject
@@ -85,6 +108,8 @@
             IOobject::NO_WRITE
         )
     );
+
+    Info<< "Reading transportProperties\n" << endl;
 
     Info<< "Reading gamma1\n" << endl;
     dimensionedScalar gamma1
