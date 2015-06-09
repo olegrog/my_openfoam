@@ -1,10 +1,15 @@
-#!/bin/bash
+#!/bin/bash -e
 cd ${0%/*} || exit 1    # run from this directory
 
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-runApplication blockMesh
+proj=$(ls *.geo | sed 's/\..*//')
+
+gmsh -3 $proj.geo
+runApplication gmshToFoam $proj.msh
+./updatePolyMesh.sh
+
 runApplication snitSimpleFoam
 runApplication foamToVTK
 
