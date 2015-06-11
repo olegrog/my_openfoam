@@ -2,3 +2,5 @@
 log*
 boundary
 *~
+darwin*
+lnInclude*
