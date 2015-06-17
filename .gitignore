@@ -9,8 +9,9 @@ lnInclude*
 # Backup files
 *~
 
-# Generating files
+# Run files
 log*
+dynamicCode
 boundary
 
 # Simulation directories
