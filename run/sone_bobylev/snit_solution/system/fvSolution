@@ -45,8 +45,8 @@ solvers
 SIMPLE
 {
     nNonOrthogonalCorrectors 0;
-    p2RefCell           0;
-    p2RefValue          0;
+    p2RefCell          0;
+    p2RefValue         0;
     residualControl
     {
         p2              1e-6;
@@ -58,6 +58,7 @@ relaxationFactors
 {
     fields
     {
+        T0              0.1;
         p2              0.5;
     }
     equations

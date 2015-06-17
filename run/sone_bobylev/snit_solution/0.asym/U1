@@ -9,15 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
+    class       volVectorField;
     location    "0";
-    object      T0;
+    object      U1;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
+dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform 1;
+internalField   uniform (0 0 0);
 
 boundaryField
 {
@@ -25,13 +25,25 @@ boundaryField
     {
         type            codedFixedValue;
         value           $internalField;
-        redirectType    temperature;
+        redirectType    velocity;
         code
         #{
-            scalar alpha;
+            scalar alpha, K1;
             db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("alpha") >> alpha;
-            scalar pi = constant::mathematical::pi;
-            (*this)== 1 - alpha*cos(2*pi*this->patch().Cf().component(vector::X));
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+            const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+            vectorField nf = patch().nf();
+            volVectorField _gradT0 = fvc::grad(db().lookupObject<volScalarField>("T0"));
+            Field<vector> gradT0 = _gradT0.boundaryField()[patch().index()];
+            (*this)== -K1 * sqrt(T0) * (gradT0 - (gradT0 & nf)*nf);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for fvc::grad
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
         #};
     }
     top

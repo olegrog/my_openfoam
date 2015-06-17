@@ -1,7 +1,17 @@
+# Compilation files
 *.dep
-log*
-boundary
-*~
 darwin*
 lnInclude*
+
+# Programs files
 *.swp
+
+# Backup files
+*~
+
+# Generating files
+log*
+boundary
+
+# Simulation directories
+_*

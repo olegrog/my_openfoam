@@ -9,7 +9,7 @@ BEGIN {
     type=""
 } 
 {
-    if ($1 == "defaultFaces")   type="empty";
+    if ($1 == "frontAndBack")   type="empty";
     if ($1 == "right")          type="symmetryPlane";
     if ($1 == "left")           type="symmetryPlane";
     if ($1 == "top")            type="symmetryPlane";

@@ -1,0 +1,70 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      T0;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 1;
+
+boundaryField
+{
+    bottom
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature;
+        code
+        #{
+            scalar alpha, kn, d1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("alpha") >> alpha;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar pi = constant::mathematical::pi;
+            scalar k = kn*sqrt(pi)/2;
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            scalar p0_ = getRefCellValue(p0, 0);
+            tmp<Field<scalar> > TB = 1 - alpha*cos(2*pi*patch().Cf().component(vector::X));
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for getRefCellValue
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    top
+    {
+        type symmetryPlane;
+    }
+    left
+    {
+        type symmetryPlane;
+    }
+    right
+    {
+        type symmetryPlane;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
+
+// ************************************************************************* //

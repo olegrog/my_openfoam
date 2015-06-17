@@ -1,10 +1,12 @@
-Kn = 1e+2;
+Kn = 1;
 Nx = 30;
 L = 1;
 
-If (Kn > 0.2)
-    Kn = 0.2;
+threshold = 0.1;
+If (Kn > threshold || Kn == 0)
+    Kn = threshold;
 EndIf
+Kn = 0.1;
 
 h_max = (L/2) / Nx;
 h_min = 0.02*Kn;
@@ -62,5 +64,5 @@ Physical Surface("bottom") = {44};
 Physical Surface("top") = {32};
 Physical Surface("left") = {24, 28};
 Physical Surface("right") = {36, 40};
-//Physical Surface("frontAndBack") = {1, 45};
+Physical Surface("frontAndBack") = {1, 45};
 Physical Volume("volume") = {1};

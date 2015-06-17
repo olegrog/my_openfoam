@@ -1,16 +1,26 @@
 #!/bin/bash -e
 cd ${0%/*} || exit 1    # run from this directory
 
+[ $# -ne 2 ] && { echo "Usage: ./Allrun <case> <kn>"; exit 1; }
+case=$1
+kn=$2
+
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 proj=$(ls *.geo | sed 's/\..*//')
 
-gmsh -3 $proj.geo
+sed -i~ -E "1s/[[:digit:]e.+-]+/$kn/" $proj.geo
+sed -i~ -E "19s/[[:digit:]e.+-]+/$kn/" constant/nondimensionalProperties
+cp -r 0.$case/ 0/
+
+gmsh -3 $proj.geo > log.gmsh
 runApplication gmshToFoam $proj.msh
 ./updatePolyMesh.sh
 
 runApplication snitSimpleFoam
+runApplication calcGradients -fields '(T0)'
 runApplication foamToVTK
+runApplication patchIntegrate T0 top
 
 # ----------------------------------------------------------------- end-of-file
