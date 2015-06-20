@@ -19,14 +19,14 @@ Description
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class GeoField>
-class createFields
+class readFields
 :
     public IOobjectList
 {
     PtrList<GeoField> geoFieldList_;
 
 public:
-    createFields
+    readFields
     (
         const fvMesh& mesh
     )
@@ -36,7 +36,7 @@ public:
         IOobjectList fieldObjects(lookupClass(GeoField::typeName));
         forAllIter(IOobjectList, fieldObjects, iter)
         {
-            Info<< "Create field " << iter()->name() << endl;
+            Info<< "Read field " << iter()->name() << endl;
             geoFieldList_.append(
                 new GeoField
                 (
@@ -57,19 +57,26 @@ public:
 
 int main(int argc, char *argv[])
 {
+    timeSelector::addOptions();
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
 
-    createFields<volScalarField> scalarFields(mesh);
-    createFields<volVectorField> vectorFields(mesh);
-    createFields<volSphericalTensorField> sphericalTensorFields(mesh);
-    createFields<volSymmTensorField> symmTensorFields(mesh);
-    createFields<volTensorField> tensorFields(mesh);
-    Info<< nl;
+    instantList timeDirs = timeSelector::select0(runTime, args);
+    forAll(timeDirs, timeI)
+    {
+        runTime.setTime(timeDirs[timeI], timeI);
+        Info<< "Time = " << runTime.timeName() << endl;
+        mesh.readUpdate();
 
-    while(runTime.loop()) {
-        Info<< "Time = " << runTime.timeName() << nl << endl;
+        readFields<volScalarField> scalarFields(mesh);
+        readFields<volVectorField> vectorFields(mesh);
+        readFields<volSphericalTensorField> sphericalTensorFields(mesh);
+        readFields<volSymmTensorField> symmTensorFields(mesh);
+        readFields<volTensorField> tensorFields(mesh);
+        Info<< nl;
+
+        runTime.functionObjects().execute();
     }
     
     Info<< "End" << endl;
