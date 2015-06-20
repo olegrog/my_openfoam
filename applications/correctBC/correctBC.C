@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
         correctFields<volSphericalTensorField>(mesh, objects, selectedFields);
         correctFields<volSymmTensorField>(mesh, objects, selectedFields);
         correctFields<volTensorField>(mesh, objects, selectedFields);
-
     }
 
     Info<< "End" << endl;
