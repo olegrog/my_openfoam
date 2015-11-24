@@ -21,6 +21,9 @@ runApplication gmshToFoam $proj.msh
 runApplication snitSimpleFoam
 runApplication calcGradients -fields '(T0)'
 runApplication foamToVTK
-runApplication patchIntegrate T0 top
+patchIntegrate T0 top &> log.patchIntegrate.T0.top
+patchIntegrate U1 top &> log.patchIntegrate.U1.top
+patchIntegrate T0 bottom &> log.patchIntegrate.T0.bottom
+patchIntegrate U1 bottom &> log.patchIntegrate.U1.bottom
 
 # ----------------------------------------------------------------- end-of-file

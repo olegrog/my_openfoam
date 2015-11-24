@@ -1,12 +1,15 @@
-Kn = 1;
+Kn = 0;
 Nx = 30;
 L = 1;
 
 threshold = 0.1;
-If (Kn > threshold || Kn == 0)
+If (Kn > threshold)
     Kn = threshold;
 EndIf
-Kn = 0.1;
+
+If (Kn == 0)
+    Kn = 1e-3;
+EndIf
 
 h_max = (L/2) / Nx;
 h_min = 0.02*Kn;
