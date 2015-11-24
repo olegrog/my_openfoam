@@ -1,8 +1,8 @@
-volScalarField T
+volScalarField T0
 (
     IOobject
     (
-        "T",
+        "T0",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,

@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
         const surfaceScalarField heatFlux
         (
-            -5./4 * g2 * fvc::interpolate(sqrt(T)) * fvc::snGrad(T)
+            -5./4 * g2 * fvc::interpolate(sqrt(T0)) * fvc::snGrad(T0)
         );
 
         const surfaceScalarField::GeometricBoundaryField& patchHeatFlux =
