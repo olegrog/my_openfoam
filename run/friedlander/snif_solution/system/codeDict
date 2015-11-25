@@ -1,0 +1,37 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      codeDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermalCreepFixedValue
+{
+    code            #{
+        scalar K1;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+        const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+        vectorField nf = patch().nf();
+        volVectorField _gradT0 = fvc::grad(db().lookupObject<volScalarField>("T0"));
+        Field<vector> gradT0 = _gradT0.boundaryField()[patch().index()];
+        (*this)== -K1 * sqrt(T0) * (gradT0 - (gradT0 & nf)*nf);
+    #};
+    codeInclude     #{
+        #include "fvCFD.H"              // need for fvc::grad
+    #};
+    codeOptions     #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude
+    #};
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

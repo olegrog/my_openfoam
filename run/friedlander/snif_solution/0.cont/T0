@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      T0;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 1;
+
+boundaryField
+{
+    left
+    {
+        type            fixedValue;
+        value           uniform 2.34;
+    }
+    right
+    {
+        type            fixedValue;
+        value           uniform 2.34;
+    }
+    cold
+    {
+        type            fixedValue;
+        value           uniform 1;
+    }
+    hot
+    {
+        type            fixedValue;
+        value           uniform 2.34;
+    }
+    short
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_fixed_short;
+        code
+        #{
+            (*this)== 2.34 - 1.34*(patch().Cf().component(vector::X) - 1)/0.15;
+        #};
+    }
+    long
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_fixed_long;
+        code
+        #{
+            (*this)== 1 + 1.34*(patch().Cf().component(vector::X) - 2.15);
+        #};
+    }
+    symmetry
+    {
+        type symmetryPlane;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
+
+// ************************************************************************* //
