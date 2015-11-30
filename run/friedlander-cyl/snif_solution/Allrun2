@@ -1,0 +1,9 @@
+#!/bin/bash -e
+cd ${0%/*} || exit 1    # run from this directory
+
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication calcGradients -fields '(T0)'
+runApplication foamToVTK
+runApplication patchIntegrate p2 left
+runApplication patchIntegrate p2 right

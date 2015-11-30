@@ -1,0 +1,152 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      T0;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 1;
+
+boundaryField
+{
+    left
+    {
+        type            fixedValue;
+        value           uniform 2.34;
+    }
+    right
+    {
+        type            fixedValue;
+        value           uniform 2.34;
+    }
+    cold
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_cold;
+        code
+        #{
+            scalar kn, d1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar pi = constant::mathematical::pi;
+            scalar k = kn*sqrt(pi)/2;
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            scalar p0_ = getRefCellValue(p0, 0);
+            tmp<Field<scalar> > TB = patch().Cf().component(vector::X)*0 + 1;
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for getRefCellValue
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    hot
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_hot;
+        code
+        #{
+            scalar kn, d1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar pi = constant::mathematical::pi;
+            scalar k = kn*sqrt(pi)/2;
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            scalar p0_ = getRefCellValue(p0, 0);
+            tmp<Field<scalar> > TB = patch().Cf().component(vector::X)*0 + 2.34;
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for getRefCellValue
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    short
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_short;
+        code
+        #{
+            scalar kn, d1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar pi = constant::mathematical::pi;
+            scalar k = kn*sqrt(pi)/2;
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            scalar p0_ = getRefCellValue(p0, 0);
+            tmp<Field<scalar> > TB = 2.34 - 1.34*(patch().Cf().component(vector::X) - 1)/0.15;
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for getRefCellValue
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    long
+    {
+        type            codedFixedValue;
+        value           $internalField;
+        redirectType    temperature_long;
+        code
+        #{
+            scalar kn, d1;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar pi = constant::mathematical::pi;
+            scalar k = kn*sqrt(pi)/2;
+            const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+            scalar p0_ = getRefCellValue(p0, 0);
+            tmp<Field<scalar> > TB = 1 + 1.34*(patch().Cf().component(vector::X) - 2.15);
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+        #};
+        codeInclude
+        #{
+            #include "fvCFD.H"              // need for getRefCellValue
+        #};
+        codeOptions
+        #{
+            -I$(LIB_SRC)/finiteVolume/lnInclude
+        #};
+    }
+    wedge1
+    {
+        type wedge;
+    }
+    wedge2
+    {
+        type wedge;
+    }
+}
+
+// ************************************************************************* //
