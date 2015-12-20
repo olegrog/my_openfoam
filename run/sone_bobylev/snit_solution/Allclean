@@ -6,7 +6,10 @@ cd ${0%/*} || exit 1    # run from this directory
 
 proj=$(ls *.geo | sed 's/\..*//')
 
+tmp=dynamicCode
+mv $tmp $tmp~
 cleanCase
-rm -rf $proj.msh constant/polyMesh
+mv $tmp~ $tmp
+rm -rf $proj.msh constant/polyMesh 0 *~
 
 # ----------------------------------------------------------------- end-of-file
