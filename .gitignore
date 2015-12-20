@@ -2,6 +2,7 @@
 *.dep
 darwin*
 lnInclude*
+*.pdf
 
 # Programs files
 *.swp

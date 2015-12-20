@@ -1,0 +1,64 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      codeDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermalCreepFixedValue
+{
+    code
+    #{
+        scalar K1;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+        const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+        vectorField nf = patch().nf();
+        volVectorField _gradT0 = fvc::grad(db().lookupObject<volScalarField>("T0"));
+        Field<vector> gradT0 = _gradT0.boundaryField()[patch().index()];
+        (*this)== -K1 * sqrt(T0) * (gradT0 - (gradT0 & nf)*nf);
+    #};
+    codeInclude
+    #{
+        #include "fvCFD.H"              // need for fvc::grad
+    #};
+    codeOptions
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude
+    #};
+}
+
+temperatureJumpFixedValue
+{
+    code
+    #{
+        scalar kn, d1, TB;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").subDict(patch().name()).lookup("value") >> TB;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+        const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+        scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+        scalar k = kn*sqrt(constant::mathematical::pi)/2;
+        scalar p0_ = getRefCellValue(p0, 0);
+        (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
+    #};
+    codeInclude
+    #{
+        #include "fvCFD.H"              // need for getRefCellValue
+    #};
+    codeOptions
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude
+    #};
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
