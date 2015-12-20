@@ -1,8 +1,8 @@
-volScalarField T
+volScalarField T0
 (
     IOobject
     (
-        "T",
+        "T0",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
@@ -11,11 +11,11 @@ volScalarField T
     mesh
 );
 
-volVectorField U
+volVectorField U1
 (
     IOobject
     (
-        "U",
+        "U1",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
@@ -24,11 +24,24 @@ volVectorField U
     mesh
 );
 
-volScalarField p
+volScalarField p0
 (
     IOobject
     (
-        "p",
+        "p0",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh
+);
+
+volScalarField p2
+(
+    IOobject
+    (
+        "p2",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,

@@ -62,17 +62,17 @@ int main(int argc, char *argv[])
         // NB: mesh.Sf() is a normal, pointed out of the gas on the boundary
 
         const surfaceVectorField hydrostatic(
-            2 * fvc::interpolate(p) * mesh.Sf()
+            2 * fvc::interpolate(p2/p0) * mesh.Sf()
         );
         const surfaceVectorField viscous(
-            g1*fvc::interpolate(sqrt(T)) * (
-                - 5/6 * fvc::interpolate(fvc::div(U)) * mesh.Sf()
-                - fvc::snGrad(U) * mesh.magSf()
+            g1*fvc::interpolate(sqrt(T0)/p0) * (
+                - 5/6 * fvc::interpolate(fvc::div(U1)) * mesh.Sf()
+                - fvc::snGrad(U1) * mesh.magSf()
             )
         );
         const surfaceVectorField thermal(
-            - g7 * fvc::interpolate(fvc::grad(T)) * fvc::snGrad(T) * mesh.magSf()
-            + g7/2 * magSqr(fvc::interpolate(fvc::grad(T))) * mesh.Sf()
+            - g7 * fvc::interpolate(fvc::grad(T0/p0)) * fvc::snGrad(T0) * mesh.magSf()
+            + g7/2 * magSqr(fvc::interpolate(fvc::grad(T0)))/fvc::interpolate(p0) * mesh.Sf()
         );
         const surfaceVectorField force(
             hydrostatic + viscous + thermal
@@ -105,8 +105,8 @@ int main(int argc, char *argv[])
         writeWallField("Force", force, mesh, runTime);
         writeWallField("Moment", moment, mesh, runTime);
 
-        const volVectorField DP(fvc::grad(p));
-        const volVectorField DT(fvc::grad(T));
+        const volVectorField DP(fvc::grad(p2));
+        const volVectorField DT(fvc::grad(T0));
         DP.write();
         DT.write();
     }
