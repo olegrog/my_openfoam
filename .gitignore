@@ -1,6 +1,7 @@
 # Compilation files
 *.dep
 darwin*
+linux*
 lnInclude*
 *.pdf
 
