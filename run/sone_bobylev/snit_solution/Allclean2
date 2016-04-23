@@ -1,0 +1,29 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial clean functions
+. $WM_PROJECT_DIR/bin/tools/CleanFunctions
+
+proj=$(ls *.geo | sed 's/\..*//')
+
+save() {
+    echo "Saving $@"
+    for f in $@; do
+        mv $f $(dirname $f)/__$(basename $f)
+    done
+}
+
+restore() {
+    echo "Restoring $@"
+    for f in $@; do
+        mv $(dirname $f)/__$(basename $f) $f
+    done
+}
+
+last=$(grep "^Time =" log.snitSimpleFoam | tail -1 | awk '{print $3}')
+tmp="dynamicCode log.snitSimpleFoam log.gmsh log.gmshToFoam log.updatePolyMesh.sh $last constant/polyMesh"
+save $tmp
+cleanCase
+restore $tmp
+
+# ----------------------------------------------------------------- end-of-file

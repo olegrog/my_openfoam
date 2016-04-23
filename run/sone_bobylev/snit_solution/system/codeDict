@@ -1,0 +1,99 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      codeDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermalCreepFixedValue
+{
+    code
+    #{
+        scalar kn, a4, k0;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("a4") >> a4;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("k0") >> k0;
+        const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+        const fvPatchField<vector>& U1 = patch().lookupPatchField<volVectorField, vector>("U1");
+        const symmTensorField tang = I - sqr(patch().nf());
+        volTensorField _grad2T0 = fvc::grad(fvc::grad(db().lookupObject<volScalarField>("T0")));
+        volVectorField _U1 = db().lookupObject<volVectorField>("U1");
+        surfaceVectorField _gradU1n = fvc::snGrad(_U1);
+        vectorField grad2T0n = _grad2T0.boundaryField()[patch().index()] & patch().nf();
+        vectorField gradU1n = _gradU1n.boundaryField()[patch().index()];
+        scalar k = kn*sqrt(constant::mathematical::pi)/2;
+        const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+        scalar p0_ = getRefCellValue(p0, 0);
+        (*this)== U1 + ( tang & (a4*sqrt(T0)*grad2T0n + k0*gradU1n) ) * k*T0/p0_;
+    #};
+    codeInclude
+    #{
+        #include "fvCFD.H"              // need for fvc::grad
+    #};
+    codeOptions
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude
+    #};
+}
+
+temperatureJumpFixedValue
+{
+    code
+    #{
+        scalar kn, d1;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+        const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+        const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
+        scalar p0_ = getRefCellValue(p0, 0);
+        scalar k = kn*sqrt(constant::mathematical::pi)/2;
+        (*this)== T0*(1 - d1*k/p0_*T0.snGrad());
+    #};
+    codeInclude
+    #{
+        #include "fvCFD.H"              // need for getRefCellValue
+    #};
+    codeOptions
+    #{
+        -I$(LIB_SRC)/finiteVolume/lnInclude
+    #};
+}
+
+temperature0FixedValue
+{
+    code
+    #{
+        scalar alpha;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("alpha") >> alpha;
+        scalar pi = constant::mathematical::pi;
+        (*this)== 1 - alpha*cos(2*pi*patch().Cf().component(vector::X));
+    #};
+}
+
+velocity1FixedValue
+{
+    code
+    #{
+        scalar alpha, K1;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("alpha") >> alpha;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+        scalar pi = constant::mathematical::pi;
+        tmp<Field<scalar> > T0 = 1 - alpha*cos(2*pi*patch().Cf().component(vector::X));
+        tmp<Field<scalar> > dT0 = 2*pi*alpha*sin(2*pi*patch().Cf().component(vector::X));
+        Field<vector> U1(patch().Cf().size(), vector::zero);
+        U1.replace(vector::X, -K1 * sqrt(T0) * dT0);
+        (*this)== U1;
+    #};
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

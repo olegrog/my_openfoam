@@ -4,7 +4,7 @@
 
 problem=$(basename $(pwd))
 dir="../_$problem$1"
-kn_corr=$HOME/latex/science/7_sone_bobylev/contours/knudsen_layer_correction.py
+kn_corr=$HOME/latex/science/7_snit_flows/contours/knudsen_layer_correction.py
 
 cd $dir
 
@@ -15,7 +15,8 @@ get_value() {
 }
 
 printf '#%11s %11s %12s %11s %11s\n' Kn topT topU bottomT bottomU
-for Kn in $(ls | sort -g); do
-    last=$(ls $Kn | grep '^[0-9]' | tail -1)
-    $kn_corr $Kn/VTK/$Kn'_'$last.vtk $Kn/tmp.vtk $Kn
-done
+for Kn in $(ls | sort -g); do (
+    cd $Kn
+    last=$(foamListTimes | tail -1)
+    $kn_corr VTK/$Kn'_'$last.vtk tmp.vtk $Kn
+) done

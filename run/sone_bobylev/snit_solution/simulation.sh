@@ -2,7 +2,8 @@
 
 Kn=$(python -c "
 import numpy, sys
-numpy.savetxt(sys.stdout, numpy.arange(0,0.07,0.0025), fmt='%.4f')
+#numpy.savetxt(sys.stdout, numpy.arange(0,0.07,0.0025), fmt='%.4f')
+numpy.savetxt(sys.stdout, numpy.logspace(-2.6,-1,25), fmt='%.7f')
 ")
 
 problem=$(basename $(pwd))

@@ -21,15 +21,31 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-12;
+        tolerance       1e-15;
         relTol          0.01;
+    }
+
+    T
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-15;
+        relTol          1e-5;
     }
 
     U1
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-07;
+        tolerance       1e-11;
+        relTol          0.01;
+    }
+
+    U
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-11;
         relTol          0.01;
     }
 
@@ -37,7 +53,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-07;
+        tolerance       1e-09;
         relTol          0.1;
     }
 }
@@ -49,8 +65,9 @@ SIMPLE
     p2RefValue         0;
     residualControl
     {
-        p2              1e-6;
-        U1              1e-6;
+        p2              1e-8;
+        U1              1e-9;
+        U               1e-9;
     }
 }
 
@@ -58,12 +75,13 @@ relaxationFactors
 {
     fields
     {
-        T0              0.05;
         p2              0.5;
+        T0              0.1;
     }
     equations
     {
         U1              0.7;
+        U               0.7;
     }
 }
 

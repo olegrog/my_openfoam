@@ -14,16 +14,16 @@ sed -i~ -E "1s/[[:digit:]e.+-]+/$kn/" $proj.geo
 sed -i~ -E "19s/[[:digit:]e.+-]+/$kn/" constant/nondimensionalProperties
 cp -r 0.$case/ 0/
 
-gmsh -3 $proj.geo > log.gmsh
+runApplication gmsh -3 $proj.geo
 runApplication gmshToFoam $proj.msh
-./updatePolyMesh.sh
+runApplication ./updatePolyMesh.sh
 
 runApplication snitSimpleFoam
-runApplication calcGradients -fields '(T0)'
-runApplication foamToVTK
-patchIntegrate T0 top &> log.patchIntegrate.T0.top
-patchIntegrate U1 top &> log.patchIntegrate.U1.top
-patchIntegrate T0 bottom &> log.patchIntegrate.T0.bottom
-patchIntegrate U1 bottom &> log.patchIntegrate.U1.bottom
+if test -f 0.$case/T; then
+    last=$(foamListTimes | tail -1)
+    cp 0.$case/{T,U} $last/
+    runApplication snitSimpleFoam2
+fi
 
-# ----------------------------------------------------------------- end-of-file
+./Allrun2
+echo ok
