@@ -95,6 +95,19 @@
         )
     );
 
+    Info<< "Reading nondimensionalProperties\n" << endl;
+    IOdictionary nondimensionalProperties
+    (
+        IOobject
+        (
+            "nondimensionalProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::NO_WRITE
+        )
+    );
+
     Info<< "Reading s\n" << endl;
     dimensionedScalar s
     (
@@ -143,23 +156,9 @@
         transportProperties.lookup("gamma10")
     );
 
-    Info<< "Reading k0\n" << endl;
-    dimensionedScalar k0
-    (
-        transportProperties.lookup("k0")
-    );
-
-    Info<< "Reading d1\n" << endl;
-    dimensionedScalar d1
-    (
-        transportProperties.lookup("d1")
-    );
-
     Info<< "Reading kn\n" << endl;
-    dimensionedScalar kn
-    (
-        transportProperties.lookup("kn")
-    );
+    scalar kn;
+    mesh.thisDb().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
 
     volSymmTensorField P1
     (
