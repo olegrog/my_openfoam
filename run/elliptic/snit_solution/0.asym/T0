@@ -31,17 +31,13 @@ boundaryField
     }
     outer
     {
-        type            codedFixedValue;
-        value           $internalField;
-        refValue        uniform 5;
-        redirectType    temperatureJumpFixedValue;
+        type            fixedValue;
+        value           uniform 5;
     }
     inner
     {
-        type            codedFixedValue;
-        value           $internalField;
-        refValue        uniform 1;
-        redirectType    temperatureJumpFixedValue;
+        type            fixedValue;
+        value           uniform 1;
     }
     bottom
     {

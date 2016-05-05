@@ -3,8 +3,9 @@ cd ${0%/*} || exit 1    # run from this directory
 
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-runApplication wallSnitHeatFlux
-runApplication wallSnitForces
+#runApplication wallSnitHeatFlux
+#runApplication wallSnitForces
 runApplication sample
-runApplication calcGradients -fields '( T )'
+#runApplication calcGradients -fields '(T0)'
+runApplication wallSnitDerivatives
 runApplication foamToVTK
