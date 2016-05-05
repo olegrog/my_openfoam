@@ -52,31 +52,31 @@ int main(int argc, char *argv[])
         /** velocity predictor */
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U)
-            - fvm::laplacian(0.5 * gamma1 * sqrt(T0), U) ==
-              0.5 * gamma1 * fvc::div(sqrt(T0) * dev2(::T(fvc::grad(U))))
-            + gamma7 / T0 * (sqr(fvc::grad(T0)) & (U / gamma2 / sqrt(T0)))
+            - fvm::laplacian(0.5 * gamma1 * sqrt(T), U) ==
+              0.5 * gamma1 * fvc::div(sqrt(T) * dev2(::T(fvc::grad(U))))
+            + gamma7 / T * (sqr(fvc::grad(T)) & (U / gamma2 / sqrt(T)))
         );
         UEqn().relax();
         solve(UEqn() ==
             fvc::reconstruct((
                 - fvc::snGrad(p2)
-                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T0)) / T0) * fvc::snGrad(T0)
+                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T)) / T) * fvc::snGrad(T)
             ) * mesh.magSf())
         );
 
         /** pressure corrector */
         volScalarField rAU(1./UEqn().A());
-        surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T0));
+        surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T));
         volVectorField HbyA("HbyA", U);
         HbyA = rAU * UEqn().H();
         UEqn.clear();
 
-        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T0) & mesh.Sf());
+        surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T) & mesh.Sf());
         adjustPhi(phiHbyA, U, p2);
         surfaceScalarField phif(
             - 0.25 * gamma7 * rAUbyT
-            * fvc::interpolate(magSqr(fvc::grad(T0)) / T0)
-            * fvc::snGrad(T0) * mesh.magSf()
+            * fvc::interpolate(magSqr(fvc::grad(T)) / T)
+            * fvc::snGrad(T) * mesh.magSf()
         );
         phiHbyA += phif;
 
