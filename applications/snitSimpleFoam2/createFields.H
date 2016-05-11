@@ -80,6 +80,7 @@
         ),
         mesh
     );
+    T = T0;
 
     Info<< "Reading field U\n" << endl;
     volVectorField U
@@ -94,6 +95,22 @@
         ),
         mesh
     );
+    U = U1;
+
+    volScalarField curvature
+    (
+        IOobject
+        (
+            "curvature",
+            runTime.timeName(),
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("zero", dimless, 0)
+    );
+
 
     label pRefCell = 0;
     scalar pRefValue = 0.0;

@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     while (simple.loop())
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
+        curvature.correctBoundaryConditions();
 
         /** temperature equation */
         fvScalarMatrix TEqn(
