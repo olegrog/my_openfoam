@@ -9,16 +9,39 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      knudsenLayerProperties;
+    class       volScalarField;
+    location    "0";
+    object      curvature;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-K1      -0.64642;
-d1      2.40014;
-k0      -1.25395;
-a4      0.0331;
-d3      0.4993;
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    bottom
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+    top
+    {
+        type symmetryPlane;
+    }
+    left
+    {
+        type symmetryPlane;
+    }
+    right
+    {
+        type symmetryPlane;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
 
 // ************************************************************************* //

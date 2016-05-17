@@ -19,11 +19,17 @@ runApplication gmshToFoam $proj.msh
 runApplication ./updatePolyMesh.sh
 
 runApplication snitSimpleFoam
-if test -f 0.$case/T; then
+if test -f 0.$case/T && ! test -f log.snitSimpleFoam2; then
     last=$(foamListTimes | tail -1)
-    cp 0.$case/{T,U} $last/
+    echo "copy files from 0.$case/ to $last/"
+    cp 0.$case/{T,U,curvature} $last/
     runApplication snitSimpleFoam2
 fi
 
-./Allrun2
+runApplication calcGradients -latestTime -fields '(T0 T)'
+runApplication wallSnitDerivatives -latestTime
+runApplication foamToVTK -latestTime
+last=$(foamListTimes | tail -1)
+$HOME/latex/science/7_snit_flows/contours/knudsen_layer_correction.py VTK/$(basename $(pwd))_$last.vtk $proj.vtk $kn > log.knudsen_layer_correction
+
 echo ok

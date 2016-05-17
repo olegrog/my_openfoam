@@ -10,6 +10,6 @@ tmp=dynamicCode
 mv $tmp $tmp~
 cleanCase
 mv $tmp~ $tmp
-rm -rf $proj.msh constant/polyMesh 0 *~
+rm -rf $proj.msh $proj.vtk constant/polyMesh 0 *~
 
 # ----------------------------------------------------------------- end-of-file

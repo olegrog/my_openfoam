@@ -27,14 +27,12 @@ thermalCreepFixedValue
         const fvPatchField<vector>& U1 = patch().lookupPatchField<volVectorField, vector>("U1");
         const symmTensorField tang = I - sqr(patch().nf());
         volTensorField _grad2T0 = fvc::grad(fvc::grad(db().lookupObject<volScalarField>("T0")));
-        volVectorField _U1 = db().lookupObject<volVectorField>("U1");
-        surfaceVectorField _gradU1n = fvc::snGrad(_U1);
         vectorField grad2T0n = _grad2T0.boundaryField()[patch().index()] & patch().nf();
-        vectorField gradU1n = _gradU1n.boundaryField()[patch().index()];
-        scalar k = kn*sqrt(constant::mathematical::pi)/2;
         const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
         scalar p0_ = getRefCellValue(p0, 0);
-        (*this)== U1 + ( tang & (a4*sqrt(T0)*grad2T0n + k0*gradU1n) ) * k*T0/p0_;
+        scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("U")/kn;
+        scalar k = kn*sqrt(constant::mathematical::pi)/2;
+        (*this)== relax*(U1 + ( tang & (a4*sqrt(T0)*grad2T0n + k0*snGrad()) ) * k*T0/p0_) + (1-relax)*(*this);
     #};
     codeInclude
     #{
@@ -50,14 +48,23 @@ temperatureJumpFixedValue
 {
     code
     #{
-        scalar kn, d1;
+        scalar kn, d1, d3, K1;
+        dimensionedScalar gamma2_;
         db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
         db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d3") >> d3;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("K1") >> K1;
+        db().lookupObject<IOdictionary>("transportProperties").lookup("gamma2") >> gamma2_;
+        scalar gamma2 = gamma2_.value();
         const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
+        const fvPatchField<vector>& U1 = patch().lookupPatchField<volVectorField, vector>("U1");
         const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
         scalar p0_ = getRefCellValue(p0, 0);
+        scalar pi = constant::mathematical::pi;
+        scalarField grad2T0nn = ( sqr(T0.snGrad()) + (1./K1+4./gamma2)*magSqr(U1)/K1/T0 )/2/T0 + sqr(2*pi)*(1-T0);
+        scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T")/kn;
         scalar k = kn*sqrt(constant::mathematical::pi)/2;
-        (*this)== T0*(1 - d1*k/p0_*T0.snGrad());
+        (*this)== relax*(T0 - (d1*snGrad() + d3*grad2T0nn*k*T0/p0_)*k*T0/p0_) + (1-relax)*(*this);
     #};
     codeInclude
     #{

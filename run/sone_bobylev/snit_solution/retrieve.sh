@@ -18,5 +18,6 @@ printf '#%11s %11s %12s %11s %11s\n' Kn topT topU bottomT bottomU
 for Kn in $(ls | sort -g); do (
     cd $Kn
     last=$(foamListTimes | tail -1)
-    $kn_corr VTK/$Kn'_'$last.vtk tmp.vtk $Kn
+    #[ -f VTK/$Kn'_'$last.vtk ] && $kn_corr VTK/$Kn'_'$last.vtk tmp.vtk $Kn
+    cat log.knudsen_layer_correction
 ) done
