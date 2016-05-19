@@ -19,22 +19,24 @@ thermalCreepFixedValue
 {
     code
     #{
-        scalar kn, a4, k0;
+        scalar kn, a4, a5, a6, k0;
         db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
         db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("a4") >> a4;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("a5") >> a5;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("a6") >> a6;
         db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("k0") >> k0;
+        const fvPatchField<scalar>& curv = patch().lookupPatchField<volScalarField, scalar>("curvature");
         const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
-        const fvPatchField<vector>& U1 = patch().lookupPatchField<volVectorField, vector>("U1");
         const symmTensorField tang = I - sqr(patch().nf());
         volTensorField _grad2T0 = fvc::grad(fvc::grad(db().lookupObject<volScalarField>("T0")));
-        volVectorField _U1 = db().lookupObject<volVectorField>("U1");
-        surfaceVectorField _gradU1n = fvc::snGrad(_U1);
+        volVectorField _gradT = fvc::grad(db().lookupObject<volScalarField>("T"));
         vectorField grad2T0n = _grad2T0.boundaryField()[patch().index()] & patch().nf();
-        vectorField gradU1n = _gradU1n.boundaryField()[patch().index()];
+        vectorField gradT = _gradT.boundaryField()[patch().index()];        // for curvature effects of Kn**3
+        scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("U");
         scalar k = kn*sqrt(constant::mathematical::pi)/2;
         const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
         scalar p0_ = getRefCellValue(p0, 0);
-        (*this)== U1 + ( tang & (a4*sqrt(T0)*grad2T0n + k0*gradU1n) ) * k*T0/p0_;
+        (*this)== relax*(tang & (sqrt(T0)*(a4*grad2T0n - (a6+a5/2)*curv*gradT) + k0*snGrad())) * k*T0/p0_ + (1-relax)*(*this);
     #};
     codeInclude
     #{
@@ -46,18 +48,33 @@ thermalCreepFixedValue
     #};
 }
 
+ellipticCurvatureFixedValue
+{
+    code
+    #{
+        scalar axis_x, axis_y;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").subDict(patch().name()).lookup("axis_x") >> axis_x;
+        db().lookupObject<IOdictionary>("nondimensionalProperties").subDict(patch().name()).lookup("axis_y") >> axis_y;
+        (*this)== sign(axis_x)*pow4(axis_x*axis_y)/pow3(mag(cmptMultiply(patch().Cf(), vector(sqr(axis_y), sqr(axis_x), 0))));
+    #};
+}
+
 temperatureJumpFixedValue
 {
     code
     #{
-        scalar kn, d1;
+        scalar kn, d1, d3, d5;
         db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
         db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d1") >> d1;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d3") >> d3;
+        db().lookupObject<IOdictionary>("knudsenLayerProperties").lookup("d5") >> d5;
+        const fvPatchField<scalar>& curv = patch().lookupPatchField<volScalarField, scalar>("curvature");
         const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
         const volScalarField& p0 = db().lookupObject<volScalarField>("p0");
         scalar p0_ = getRefCellValue(p0, 0);
+        scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T");
         scalar k = kn*sqrt(constant::mathematical::pi)/2;
-        (*this)== T0*(1 - d1*k/p0_*T0.snGrad());
+        (*this)== relax*(T0 - ( d1*snGrad() + ( d3*sqr(T0.snGrad())/2/T0 + (d5/2-d3)*curv*T0.snGrad() )*k*T0/p0_ )*k*T0/p0_) + (1-relax)*(*this);
     #};
     codeInclude
     #{

@@ -65,6 +65,7 @@ SIMPLE
     p2RefValue         0;
     residualControl
     {
+        T0              1e-10;
         p2              1e-8;
         U1              1e-9;
         U               1e-9;
@@ -76,7 +77,8 @@ relaxationFactors
     fields
     {
         p2              0.5;
-        T0              0.1;
+        T               0.1;
+        U               0.01;
     }
     equations
     {

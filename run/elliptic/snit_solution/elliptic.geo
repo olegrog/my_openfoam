@@ -4,7 +4,7 @@ b0 = .7;
 a1 = 1.5;
 b1 = 1;
 
-refine_i = 10; //40
+refine_i = 10; //40 //10
 refine_o = refine_i / 2; // /4
 
 L = 40;
