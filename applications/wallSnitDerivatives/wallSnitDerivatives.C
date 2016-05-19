@@ -61,19 +61,28 @@ int main(int argc, char *argv[])
 
         // calculate normal derivatives
         const surfaceScalarField DT0n = fvc::snGrad(T0);
+        const surfaceScalarField DTn = fvc::snGrad(T);
+        const surfaceVectorField DT = fvc::interpolate(fvc::grad(T));
         const surfaceVectorField DDT0n( 
             ( fvc::interpolate(fvc::grad(fvc::grad(T0))) & mesh.Sf() ) / mesh.magSf()
         );
         const surfaceVectorField DU1n = fvc::snGrad(U1);
+        const surfaceVectorField DUn = fvc::snGrad(U);
 
         // calculate tangential component
         surfaceSymmTensorField tang = I - sqr(mesh.Sf() / mesh.magSf());
         const surfaceVectorField DDT0nt = DDT0n & tang;
         const surfaceVectorField DU1nt = DU1n & tang;
+        const surfaceVectorField DTt = DT & tang;
+        const surfaceVectorField DUnt = DUn & tang;
 
         writeWallField("GradT0n", DT0n, mesh, runTime);
         writeWallField("GradGradT0nt", DDT0nt, mesh, runTime);
         writeWallField("GradU1nt", DU1nt, mesh, runTime);
+
+        writeWallField("GradTt", DTt, mesh, runTime);
+        writeWallField("GradTn", DTn, mesh, runTime);
+        writeWallField("GradUnt", DUnt, mesh, runTime);
     }
 
     Info<< "End" << endl;
