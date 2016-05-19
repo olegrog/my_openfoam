@@ -53,13 +53,14 @@ int main(int argc, char *argv[])
               fvm::div(phi, U1)
             - fvm::laplacian(0.5 * gamma1 * sqrt(T0), U1) ==
               0.5 * gamma1 * fvc::div(sqrt(T0) * dev2(::T(fvc::grad(U1))))
-            + gamma7 / T0 * (sqr(fvc::grad(T0)) & (U1 / gamma2 / sqrt(T0)))
         );
         UEqn().relax();
         solve(UEqn() ==
             fvc::reconstruct((
                 - fvc::snGrad(p2)
-                - 0.25 * gamma7 * fvc::interpolate(magSqr(fvc::grad(T0)) / T0) * fvc::snGrad(T0)
+                + gamma7 * fvc::snGrad(T0) * fvc::interpolate(
+                    (U1 / gamma2 / sqrt(T0) - 0.25*fvc::grad(T0)) & fvc::grad(T0)/T0
+                )
             ) * mesh.magSf())
         );
 
@@ -73,9 +74,9 @@ int main(int argc, char *argv[])
         surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T0) & mesh.Sf());
         adjustPhi(phiHbyA, U1, p2);
         surfaceScalarField phif(
-            - 0.25 * gamma7 * rAUbyT
-            * fvc::interpolate(magSqr(fvc::grad(T0)) / T0)
-            * fvc::snGrad(T0) * mesh.magSf()
+            gamma7 * rAUbyT * fvc::snGrad(T0) * mesh.magSf() * fvc::interpolate(
+                (U1 / gamma2 / sqrt(T0) - 0.25*fvc::grad(T0)) & fvc::grad(T0)/T0
+            )
         );
         phiHbyA += phif;
 
