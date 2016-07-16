@@ -98,9 +98,11 @@ void extrapolatedGradientFvPatchScalarField::updateCoeffs()
     volVectorField gradField 
         = fvc::grad(db().lookupObject<volScalarField>(field));
 
-    gradient() 
-        = (nf & gradField.boundaryField()[patch().index()]
-        .patchInternalField()());
+    gradient()
+//        = (nf & gradField.boundaryField()[patch().index()]
+//        .patchInternalField()());
+        = -2*(nf & gradField.boundaryField()[patch().index()]
+        .patchInternalField()()) * log(patch().deltaCoeffs())/(1-log(patch().deltaCoeffs()));
     
     fixedGradientFvPatchScalarField::updateCoeffs();
 }
