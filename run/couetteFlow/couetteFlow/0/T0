@@ -33,15 +33,15 @@ boundaryField
 
         code
         #{
-            const dimensionedScalar TB ("TB", dimensionSet(0, 0, 0, 1, 0, 0, 0), 1);
-            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
+            scalar kn, d1, TB;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").subDict(patch().name()).lookup("temperature") >> TB;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("d1") >> d1;
             const volScalarField& p0 = db().lookupObject<volScalarField>("press0");
-            const dimensionedScalar d1 = db().lookupObject<IOdictionary>("transportProperties").lookup("d1");
-            const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
-            dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;
-            const surfaceScalarField wallT0 = TB/(1 + d1*k/fvc::interpolate(p0)*fvc::snGrad(T0));
-            label patchId = patch().boundaryMesh().findPatchID("top");
-            operator==(wallT0.boundaryField()[patchId]);
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("T0");
+            scalar k = kn*sqrt(constant::mathematical::pi)/2;
+            scalar p0_ = getRefCellValue(p0, 0);
+            (*this)== relax * TB/(1 + d1*k/p0_*snGrad()) + (1-relax)*(*this);
         #};
         codeInclude
         #{

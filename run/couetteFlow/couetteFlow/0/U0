@@ -34,19 +34,16 @@ boundaryField
 
         code
         #{
-            const dimensionedScalar UB ("UB", dimensionSet(0, 1, -1, 0, 0, 0, 0), 2);
-            const dimensionedScalar TB ("TB", dimensionSet(0, 0, 0, 1, 0, 0, 0), 1);
-            const volScalarField& U0 = db().lookupObject<volScalarField>("U0");
-            const volScalarField& T0 = db().lookupObject<volScalarField>("T0");
+            scalar kn, k0, U;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("kn") >> kn;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").lookup("k0") >> k0;
+            db().lookupObject<IOdictionary>("nondimensionalProperties").subDict(patch().name()).lookup("velocity") >> U;
+            const fvPatchField<scalar>& T0 = patch().lookupPatchField<volScalarField, scalar>("T0");
             const volScalarField& p0 = db().lookupObject<volScalarField>("press0");
-            const dimensionedScalar k0 = db().lookupObject<IOdictionary>("transportProperties").lookup("k0");
-            const dimensionedScalar d1 = db().lookupObject<IOdictionary>("transportProperties").lookup("d1");
-            const dimensionedScalar kn = db().lookupObject<IOdictionary>("transportProperties").lookup("kn");
-            dimensionedScalar k = kn*sqrt(constant::mathematical::pi)/2;
-            const surfaceScalarField wallT0 = TB/(1 + d1*k/fvc::interpolate(p0)*fvc::snGrad(T0));
-            const surfaceScalarField wallU0 = UB/2 + k0*k/fvc::interpolate(p0)*wallT0*fvc::snGrad(U0);
-            label patchId = patch().boundaryMesh().findPatchID("top");
-            operator==(wallU0.boundaryField()[patchId]);
+            scalar relax = patch().boundaryMesh().mesh().fieldRelaxationFactor("U0");
+            scalar k = kn*sqrt(constant::mathematical::pi)/2;
+            scalar p0_ = getRefCellValue(p0, 0);
+            (*this)== relax * (U/2 + k0*k/p0_*T0*snGrad()) + (1-relax)*(*this);
         #};
         codeInclude
         #{

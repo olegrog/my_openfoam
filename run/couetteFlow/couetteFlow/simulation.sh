@@ -33,8 +33,7 @@ for U in $*; do
         (
             echo "Simulate for U=$U, Kn=$kn"
             cd ../$U/$kn
-            sed -i~ "37s/2/$U/" 0/U0
-            sed -i~ "28s/1/$kn/" constant/transportProperties
+            sed -i~ "20s/1/$kn/;24s/1/$U/" constant/nondimensionalProperties
             ./Allrun
         )
     done
