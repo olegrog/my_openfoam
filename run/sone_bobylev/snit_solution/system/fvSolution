@@ -76,8 +76,8 @@ relaxationFactors
     fields
     {
         p2              0.5;
-        T               0.0005;
-        U               0.0005;
+        T               0.0002;
+        U               0.0002;
     }
     equations
     {
