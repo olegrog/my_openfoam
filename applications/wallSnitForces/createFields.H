@@ -82,3 +82,17 @@ dimensionedScalar g7
     transportProperties.lookup("gamma7")
 );
 
+IOdictionary nondimensionalProperties
+(
+    IOobject
+    (
+        "nondimensionalProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ_IF_MODIFIED,
+        IOobject::NO_WRITE
+    )
+);
+
+scalar s = nondimensionalProperties.lookupOrDefault("s", 0.5);
+

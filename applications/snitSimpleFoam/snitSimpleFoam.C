@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
         /** temperature equation */
         fvScalarMatrix TEqn(
-            fvm::laplacian(0.5 * gamma2 * sqrt(T0), T0) == fvc::div(phi, T0)
+            fvm::laplacian(0.5 * gamma2 * pow(T0, s), T0) == fvc::div(phi, T0)
         );
         TEqn.solve();
 
@@ -51,15 +51,15 @@ int main(int argc, char *argv[])
         /** velocity predictor */
         tmp<fvVectorMatrix> UEqn(
               fvm::div(phi, U1)
-            - fvm::laplacian(0.5 * gamma1 * sqrt(T0), U1) ==
-              0.5 * gamma1 * fvc::div(sqrt(T0) * dev2(::T(fvc::grad(U1))))
+            - fvm::laplacian(0.5 * gamma1 * pow(T0, s), U1) ==
+              0.5 * gamma1 * fvc::div(pow(T0, s) * dev2(::T(fvc::grad(U1))))
         );
         UEqn().relax();
         solve(UEqn() ==
             fvc::reconstruct((
                 - fvc::snGrad(p2)
                 + gamma7 * fvc::snGrad(T0) * fvc::interpolate(
-                    (U1 / gamma2 / sqrt(T0) - 0.25*fvc::grad(T0)) & fvc::grad(T0)/T0
+                    (U1 / gamma2 - 0.25*pow(T0, s)*fvc::grad(T0)) & fvc::grad(T0) * pow(T0, s-2)
                 )
             ) * mesh.magSf())
         );
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
         adjustPhi(phiHbyA, U1, p2);
         surfaceScalarField phif(
             gamma7 * rAUbyT * fvc::snGrad(T0) * mesh.magSf() * fvc::interpolate(
-                (U1 / gamma2 / sqrt(T0) - 0.25*fvc::grad(T0)) & fvc::grad(T0)/T0
+                (U1 / gamma2 - 0.25*pow(T0, s)*fvc::grad(T0)) & fvc::grad(T0) * pow(T0, s-2)
             )
         );
         phiHbyA += phif;

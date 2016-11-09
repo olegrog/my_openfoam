@@ -128,3 +128,7 @@
     (
         transportProperties.lookup("gamma7")
     );
+
+    // the default value correspond to the hard-sphere model s = 0.5
+    // Gamma1,2 \propto T^s, \Gamma_3 \propto T^{2s}, \Gamma_7 \propto T^{2s-1}
+    scalar s = nondimensionalProperties.lookupOrDefault("s", 0.5);

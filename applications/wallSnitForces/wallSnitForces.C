@@ -65,14 +65,14 @@ int main(int argc, char *argv[])
             2 * fvc::interpolate(p2/p0) * mesh.Sf()
         );
         const surfaceVectorField viscous(
-            g1*fvc::interpolate(sqrt(T0)/p0) * (
-                - 5/6 * fvc::interpolate(fvc::div(U1)) * mesh.Sf()
+            g1*fvc::interpolate(pow(T0, s)/p0) * (
+                - (s + 1./3) * fvc::interpolate(fvc::div(U1)) * mesh.Sf()
                 - fvc::snGrad(U1) * mesh.magSf()
             )
         );
         const surfaceVectorField thermal(
-            - g7 * fvc::interpolate(fvc::grad(T0/p0)) * fvc::snGrad(T0) * mesh.magSf()
-            + g7/2 * magSqr(fvc::interpolate(fvc::grad(T0)))/fvc::interpolate(p0) * mesh.Sf()
+            - g7 * fvc::interpolate(pow(T0, 2*s-1)*fvc::grad(T0)/p0) * fvc::snGrad(T0) * mesh.magSf()
+            + g7/2 * magSqr(fvc::interpolate(fvc::grad(T0)))*fvc::interpolate(pow(T0, 2*s-1)/p0) * mesh.Sf()
         );
         const surfaceVectorField force(
             hydrostatic + viscous + thermal
