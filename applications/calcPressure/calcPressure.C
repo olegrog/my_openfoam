@@ -10,6 +10,7 @@ Application
 
 Description
     Calculates pressure (p) from temperature (T) and density (rho)
+    Calculates Mach number (Ma) from velocity (U)
 
 \*---------------------------------------------------------------------------*/
 
@@ -35,10 +36,14 @@ int main(int argc, char *argv[])
 
         volScalarField T(*objects.lookup("T"), mesh);
         volScalarField rho(*objects.lookup("rho"), mesh);
+        volVectorField U(*objects.lookup("U"), mesh);
 
         volScalarField p("p", rho*T);
+        // 2/gamma = 1.2 for monatomic gas
+        volScalarField Ma("Ma", mag(U)*std::sqrt(1.2));
 
         p.write();
+        Ma.write();
     }
 
     Info<< "End" << endl;
