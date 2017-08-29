@@ -33,17 +33,28 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << endl;
         mesh.readUpdate();
         IOobjectList objects(mesh, runTime.timeName());
+        
+        if (!objects.lookup("Ma")) {
+            Info<< "Writing Ma" << endl;
+            volVectorField U(*objects.lookup("U"), mesh);
+            volScalarField Ma("Ma", mag(U)*std::sqrt(1.2));     // 2/gamma = 1.2 for monatomic gas
+            Ma.write();
+        }
 
         volScalarField T(*objects.lookup("T"), mesh);
-        volScalarField rho(*objects.lookup("rho"), mesh);
-        volVectorField U(*objects.lookup("U"), mesh);
+        if (!objects.lookup("p")) {
+            Info<< "Writing p" << endl;
+            volScalarField rho(*objects.lookup("rho"), mesh);
+            volScalarField p("p", rho*T);
+            p.write();
+        }
+        if (!objects.lookup("rho")) {
+            Info<< "Writing rho" << endl;
+            volScalarField p(*objects.lookup("p"), mesh);
+            volScalarField rho("rho", p/T);
+            rho.write();
+        }
 
-        volScalarField p("p", rho*T);
-        // 2/gamma = 1.2 for monatomic gas
-        volScalarField Ma("Ma", mag(U)*std::sqrt(1.2));
-
-        p.write();
-        Ma.write();
     }
 
     Info<< "End" << endl;
