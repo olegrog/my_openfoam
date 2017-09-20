@@ -6,11 +6,11 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 Application
-    calcPressure
+    dsmcCalcPressure
 
 Description
-    Calculates pressure (p) from temperature (T) and density (rho)
-    Calculates Mach number (Ma) from velocity (U)
+    Calculates pressure (p) from temperature (overallT) and density (rhoMMean)
+    Calculates Mach number (Ma) from velocity (UMean)
 
 \*---------------------------------------------------------------------------*/
 
@@ -34,25 +34,30 @@ int main(int argc, char *argv[])
         mesh.readUpdate();
         IOobjectList objects(mesh, runTime.timeName());
         
-        if (objects.lookup("T")) {
-            volScalarField T(*objects.lookup("T"), mesh);
-            if (!objects.lookup("Ma")) {
-                Info<< "Writing Ma" << endl;
-                volVectorField U(*objects.lookup("U"), mesh);
-                volScalarField Ma("Ma", mag(U)/sqrt(1.2/T));     // 2/gamma = 1.2 for monatomic gas
-                Ma.write();
-            }
+        if (objects.lookup("overallT")) {
+            volScalarField T(*objects.lookup("overallT"), mesh); 
             if (!objects.lookup("p")) {
                 Info<< "Writing p" << endl;
-                volScalarField rho(*objects.lookup("rho"), mesh);
-                volScalarField p("p", rho*T);
-                p.write();
+            } else {
+                Info<< "Rewriting p" << endl;
             }
-            if (!objects.lookup("rho")) {
-                Info<< "Writing rho" << endl;
-                volScalarField p(*objects.lookup("p"), mesh);
-                volScalarField rho("rho", p/T);
-                rho.write();
+            volScalarField rho(*objects.lookup("rhoMMean"), mesh);
+            volScalarField p("p", rho*T);
+            p.write();
+
+            forAll(T, celli) {
+                if (T[celli] <= 1e-10) {
+                    T[celli] = 1;
+                }
+            }
+            volScalarField boundaryT(*objects.lookup("boundaryT"), mesh);
+            T.boundaryField() = boundaryT.boundaryField();
+
+            if (!objects.lookup("Ma")) {
+                Info<< "Writing Ma" << endl;
+                volVectorField U(*objects.lookup("UMean"), mesh);
+                volScalarField Ma("Ma", mag(U)*sqrt(1.2/T));     // 2/gamma = 1.2 for monatomic gas
+                Ma.write();
             }
         }
 
