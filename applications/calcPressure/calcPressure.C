@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
             if (!objects.lookup("Ma")) {
                 Info<< "Writing Ma" << endl;
                 volVectorField U(*objects.lookup("U"), mesh);
-                volScalarField Ma("Ma", mag(U)/sqrt(1.2/T));     // 2/gamma = 1.2 for monatomic gas
+                volScalarField Ma("Ma", mag(U)*sqrt(1.2/T));     // 2/gamma = 1.2 for monatomic gas
                 Ma.write();
             }
             if (!objects.lookup("p")) {
