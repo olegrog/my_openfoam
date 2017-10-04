@@ -14,8 +14,10 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#define NoConstructFromTmp
 #include "fvCFD.H"
 #include "wallFvPatch.H"
+#undef NoConstructFromTmp
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -37,8 +39,8 @@ void writeWallField(
         mesh,
         zeroField
     );
-    forAll(wallField.boundaryField(), patchi) {
-        wallField.boundaryField()[patchi] = field.boundaryField()[patchi];
+    forAll(wallField.boundaryFieldRef(), patchi) {
+        wallField.boundaryFieldRef()[patchi] = field.boundaryField()[patchi];
     }
     wallField.write();
 }

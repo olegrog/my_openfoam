@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
                 }
             }
             volScalarField boundaryT(*objects.lookup("boundaryT"), mesh);
-            T.boundaryField() = boundaryT.boundaryField();
+            T.boundaryFieldRef() = boundaryT.boundaryField();
 
             if (!objects.lookup("Ma")) {
                 Info<< "Writing Ma" << endl;

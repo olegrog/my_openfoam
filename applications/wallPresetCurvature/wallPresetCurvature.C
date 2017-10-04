@@ -112,13 +112,13 @@ int main(int argc, char *argv[])
         checkOption(args, "radius");
         scalar value = 1./strtod(args["radius"].c_str(), NULL);
         Info<< "Preset cylindrical curvature = " << value << endl;
-        curvature.boundaryField()[patch] = value;
+        curvature.boundaryFieldRef()[patch] = value;
     }
     if (args.optionFound("sphere")) {
         checkOption(args, "radius");
         scalar value = 2./strtod(args["radius"].c_str(), NULL);
         Info<< "Preset spherical curvature = " << value << endl;
-        curvature.boundaryField()[patch] = value;
+        curvature.boundaryFieldRef()[patch] = value;
     }
     if (args.optionFound("elliptic")) {
         checkOption(args, "major");
@@ -127,19 +127,19 @@ int main(int argc, char *argv[])
         scalar major = strtod(args["major"].c_str(), NULL);
         scalar minor = strtod(args["minor"].c_str(), NULL);
         scalar phi = strtod(args["phi"].c_str(), NULL);
-        forAll(curvature.boundaryField()[patch], celli) {
+        forAll(curvature.boundaryFieldRef()[patch], celli) {
             scalar x = mesh.boundary()[patch].Cf()[celli].x();
             scalar y = mesh.boundary()[patch].Cf()[celli].y();
             scalar pi = constant::mathematical::pi;
             scalar x_ = x * Foam::sin(phi*pi) + y * Foam::cos(phi*pi);
             scalar y_ = y * Foam::sin(phi*pi) - x * Foam::cos(phi*pi);
-            curvature.boundaryField()[patch][celli] =
+            curvature.boundaryFieldRef()[patch][celli] =
                 sign(major) * pow4(major*minor) /
                 pow3(Foam::sqrt(pow4(minor)*x_*x_ + pow4(major)*y_*y_));
         }
         Info<< "Preset elliptical curvature"
-            << ": min = " << min(curvature.boundaryField()[patch])
-            << ", max = " << max(curvature.boundaryField()[patch])
+            << ": min = " << min(curvature.boundaryFieldRef()[patch])
+            << ", max = " << max(curvature.boundaryFieldRef()[patch])
             << endl;
     }
 

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
             -5./4 * g2 * fvc::interpolate(sqrt(T0)) * fvc::snGrad(T0)
         );
 
-        const surfaceScalarField::GeometricBoundaryField& patchHeatFlux =
+        const surfaceScalarField::Boundary& patchHeatFlux =
             heatFlux.boundaryField();
 
         Info<< "\nThe energy transferred to" << endl;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
         forAll(wallHeatFlux.boundaryField(), patchi)
         {
-            wallHeatFlux.boundaryField()[patchi] = patchHeatFlux[patchi];
+            wallHeatFlux.boundaryFieldRef()[patchi] = patchHeatFlux[patchi];
         }
 
         wallHeatFlux.write();

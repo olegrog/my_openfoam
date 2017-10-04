@@ -13,7 +13,9 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#define NoConstructFromTmp
 #include "fvCFD.H"
+#undef NoConstructFromTmp
 #include "wallFvPatch.H"
 #include "simpleControl.H"
 
@@ -38,7 +40,7 @@ void writeWallDerivativeField(
     );
     const surfaceScalarField derivative = fvc::snGrad(field);
     forAll(wallField.boundaryField(), patchi) {
-        wallField.boundaryField()[patchi] = derivative.boundaryField()[patchi];
+        wallField.boundaryFieldRef()[patchi] = derivative.boundaryField()[patchi];
     }
     wallField.write();
 }
@@ -86,10 +88,10 @@ int main(int argc, char *argv[])
 
         volVectorField P_xy1 = -gamma1*pow(T0,s)*fvc::grad(U0);
         P1 = P1 * 0;
-        P1.internalField().replace(symmTensor::XY, P_xy1.internalField().component(vector::Y));
-        P1.internalField().replace(symmTensor::XX, 1);
-        P1.internalField().replace(symmTensor::YY, 1);
-        P1.internalField().replace(symmTensor::ZZ, 1);
+        P1.primitiveFieldRef().replace(symmTensor::XY, P_xy1.primitiveFieldRef().component(vector::Y));
+        P1.primitiveFieldRef().replace(symmTensor::XX, 1);
+        P1.primitiveFieldRef().replace(symmTensor::YY, 1);
+        P1.primitiveFieldRef().replace(symmTensor::ZZ, 1);
         
         q1 = -1.25*gamma2*pow(T0,s)*fvc::grad(T0);
 
@@ -105,13 +107,13 @@ int main(int argc, char *argv[])
         volScalarField q_x = (0.5*gamma3 * sqr(T0) * DDU + 4*gamma10*T0*( fvc::grad(T0) & fvc::grad(U0) )) / press0;
         
         P2 = P2 * 0;
-        P2.internalField().replace(symmTensor::XY, P_xy2.internalField().component(vector::Y));
-        P2.internalField().replace(symmTensor::XX, P_xx.internalField());
-        P2.internalField().replace(symmTensor::YY, P_yy.internalField());
-        P2.internalField().replace(symmTensor::ZZ, P_zz.internalField());
+        P2.primitiveFieldRef().replace(symmTensor::XY, P_xy2.primitiveFieldRef().component(vector::Y));
+        P2.primitiveFieldRef().replace(symmTensor::XX, P_xx.primitiveFieldRef());
+        P2.primitiveFieldRef().replace(symmTensor::YY, P_yy.primitiveFieldRef());
+        P2.primitiveFieldRef().replace(symmTensor::ZZ, P_zz.primitiveFieldRef());
 
         q2 = -1.25*gamma2*( pow(T0,s)*fvc::grad(T1) + s*pow(T0,s-1)*T1*fvc::grad(T0) );
-        q2.internalField().replace(vector::X, q_x.internalField());
+        q2.primitiveFieldRef().replace(vector::X, q_x.primitiveFieldRef());
 
         Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
             << "  ClockTime = " << runTime.elapsedClockTime() << " s"

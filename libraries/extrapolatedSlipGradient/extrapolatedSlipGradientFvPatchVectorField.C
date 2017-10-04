@@ -8,12 +8,14 @@
 
 \*---------------------------------------------------------------------------*/
 
+#define NoConstructFromTmp
 #include "extrapolatedSlipGradientFvPatchVectorField.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "uniformDimensionedFields.H"
 #include "fvcGrad.H"
+#undef NoConstructFromTmp
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -91,7 +93,7 @@ void extrapolatedSlipGradientFvPatchVectorField::updateCoeffs()
         return;
     }
     
-    word field = this->dimensionedInternalField().name();
+    word field = this->internalField().name();
     
     vectorField nf = patch().nf();
     

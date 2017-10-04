@@ -5,19 +5,18 @@
     \\  /    A nd           | Copyright (C) 1991-2009 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-
 Class
-    Foam::extrapolatedSlipGradientFvPatchVectorField
+    Foam::extrapolatedXLogXFvPatchScalarField
 
 Description
 
 SourceFiles
-    extrapolatedSlipGradientFvPatchVectorField.C
+    extrapolatedXLogXFvPatchScalarField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef extrapolatedSlipGradientFvPatchVectorFields_H
-#define extrapolatedSlipGradientFvPatchVectorFields_H
+#ifndef extrapolatedXLogXFvPatchScalarFields_H
+#define extrapolatedXLogXFvPatchScalarFields_H
 
 #include "fvPatchFields.H"
 #include "fixedGradientFvPatchFields.H"
@@ -28,79 +27,79 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                  Class extrapolatedGradientFvPatch Declaration
+                  Class extrapolatedXLogXFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
-class extrapolatedSlipGradientFvPatchVectorField
+class extrapolatedXLogXFvPatchScalarField
 :
-    public fixedGradientFvPatchVectorField
+    public fixedGradientFvPatchScalarField
 {
     // Private data
 
 public:
 
     //- Runtime type information
-    TypeName("extrapolatedSlipGradient");
+    TypeName("extrapolatedXLogX");
 
 
     // Constructors
 
         //- Construct from patch and internal field
-        extrapolatedSlipGradientFvPatchVectorField
+        extrapolatedXLogXFvPatchScalarField
         (
             const fvPatch&,
-            const DimensionedField<vector, volMesh>&
+            const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        extrapolatedSlipGradientFvPatchVectorField
+        extrapolatedXLogXFvPatchScalarField
         (
             const fvPatch&,
-            const DimensionedField<vector, volMesh>&,
+            const DimensionedField<scalar, volMesh>&,
             const dictionary&
         );
 
         //- Construct by mapping given
-        //  extrapolatedSlipGradientFvPatchVectorField onto a new patch
-        extrapolatedSlipGradientFvPatchVectorField
+        //  extrapolatedXLogXFvPatchScalarField onto a new patch
+        extrapolatedXLogXFvPatchScalarField
         (
-            const extrapolatedSlipGradientFvPatchVectorField&,
+            const extrapolatedXLogXFvPatchScalarField&,
             const fvPatch&,
-            const DimensionedField<vector, volMesh>&,
+            const DimensionedField<scalar, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Construct as copy
-        extrapolatedSlipGradientFvPatchVectorField
+        extrapolatedXLogXFvPatchScalarField
         (
-            const extrapolatedSlipGradientFvPatchVectorField&
+            const extrapolatedXLogXFvPatchScalarField&
         );
 
         //- Construct and return a clone
-        tmp<fvPatchVectorField> clone() const
+        virtual tmp<fvPatchScalarField> clone() const
         {
-            return tmp<fvPatchVectorField>
+            return tmp<fvPatchScalarField>
             (
-                new extrapolatedSlipGradientFvPatchVectorField(*this)
+                new extrapolatedXLogXFvPatchScalarField(*this)
             );
         }
 
         //- Construct as copy setting internal field reference
-        extrapolatedSlipGradientFvPatchVectorField
+        extrapolatedXLogXFvPatchScalarField
         (
-            const extrapolatedSlipGradientFvPatchVectorField&,
-            const DimensionedField<vector, volMesh>&
+            const extrapolatedXLogXFvPatchScalarField&,
+            const DimensionedField<scalar, volMesh>&
         );
 
         //- Construct and return a clone setting internal field reference
-        tmp<fvPatchVectorField> clone
+        virtual tmp<fvPatchScalarField> clone
         (
-            const DimensionedField<vector, volMesh>& iF
+            const DimensionedField<scalar, volMesh>& iF
         ) const
         {
-            return tmp<fvPatchVectorField>
+            return tmp<fvPatchScalarField>
             (
-                new extrapolatedSlipGradientFvPatchVectorField(*this, iF)
+                new extrapolatedXLogXFvPatchScalarField(*this, iF)
             );
         }
 
@@ -108,16 +107,10 @@ public:
     // Member functions
 
         //- Update the coefficients associated with the patch field
-        void updateCoeffs();
-
-        //- Evaluate the patch field
-        void evaluate
-        (
-            const Pstream::commsTypes commsType=Pstream::commsTypes::blocking
-        );
+        virtual void updateCoeffs();
 
         //- Write
-        void write(Ostream&) const;
+        virtual void write(Ostream&) const;
 };
 
 

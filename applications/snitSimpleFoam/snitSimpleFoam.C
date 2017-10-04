@@ -9,11 +9,8 @@ Application
     snitSimpleFoam
 
 Description
-    Solves fluid-dynamic-type equations derived from the asymptotic Sone-Bobylev
-    analysis of Boltzmann equation for hard-sphere gas.
-
-    For details look at Sone, Aoki, Takata, Sugimoto, Bobylev in Phys. Fluids 8
-    (1996).
+    Solves the dimensionless Kogan--Galkin--Friedlander equations
+    for the VHS model.
 
 \*---------------------------------------------------------------------------*/
 
@@ -49,13 +46,14 @@ int main(int argc, char *argv[])
         /** SIMPLE algorithm for solving pressure-velocity equations */
 
         /** velocity predictor */
-        tmp<fvVectorMatrix> UEqn(
+        tmp<fvVectorMatrix> tUEqn(
               fvm::div(phi, U1)
             - fvm::laplacian(0.5 * gamma1 * pow(T0, s), U1) ==
               0.5 * gamma1 * fvc::div(pow(T0, s) * dev2(::T(fvc::grad(U1))))
         );
-        UEqn().relax();
-        solve(UEqn() ==
+        fvVectorMatrix& UEqn = tUEqn.ref();
+        UEqn.relax();
+        solve(UEqn ==
             fvc::reconstruct((
                 - fvc::snGrad(p2)
                 + gamma7 * fvc::snGrad(T0) * fvc::interpolate(
@@ -65,11 +63,11 @@ int main(int argc, char *argv[])
         );
 
         /** pressure corrector */
-        volScalarField rAU(1./UEqn().A());
+        volScalarField rAU(1./UEqn.A());
         surfaceScalarField rAUbyT("rhorAUf", fvc::interpolate(rAU / T0));
         volVectorField HbyA("HbyA", U1);
-        HbyA = rAU * UEqn().H();
-        UEqn.clear();
+        HbyA = rAU * UEqn.H();
+        tUEqn.clear();
 
         surfaceScalarField phiHbyA("phiHbyA", fvc::interpolate(HbyA / T0) & mesh.Sf());
         adjustPhi(phiHbyA, U1, p2);
@@ -83,7 +81,7 @@ int main(int argc, char *argv[])
         // Update the fixedFluxPressure BCs to ensure flux consistency
         setSnGrad<fixedFluxPressureFvPatchScalarField>
         (
-            p2.boundaryField(),
+            p2.boundaryFieldRef(),
             phiHbyA.boundaryField()
             / (mesh.magSf().boundaryField() * rAUbyT.boundaryField())
         );

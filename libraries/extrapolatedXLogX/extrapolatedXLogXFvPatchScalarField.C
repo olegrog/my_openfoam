@@ -9,13 +9,13 @@
 \*---------------------------------------------------------------------------*/
 
 #define NoConstructFromTmp
-#include "extrapolatedGradientFvPatchScalarField.H"
+#include "extrapolatedXLogXFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "uniformDimensionedFields.H"
 #include "fvcGrad.H"
-#define NoConstructFromTmp
+#undef NoConstructFromTmp
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -24,8 +24,8 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-extrapolatedGradientFvPatchScalarField::
-extrapolatedGradientFvPatchScalarField
+extrapolatedXLogXFvPatchScalarField::
+extrapolatedXLogXFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF
@@ -35,8 +35,8 @@ extrapolatedGradientFvPatchScalarField
 {}
 
 
-extrapolatedGradientFvPatchScalarField::
-extrapolatedGradientFvPatchScalarField
+extrapolatedXLogXFvPatchScalarField::
+extrapolatedXLogXFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
@@ -50,10 +50,10 @@ extrapolatedGradientFvPatchScalarField
 }
 
 
-extrapolatedGradientFvPatchScalarField::
-extrapolatedGradientFvPatchScalarField
+extrapolatedXLogXFvPatchScalarField::
+extrapolatedXLogXFvPatchScalarField
 (
-    const extrapolatedGradientFvPatchScalarField& ptf,
+    const extrapolatedXLogXFvPatchScalarField& ptf,
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
     const fvPatchFieldMapper& mapper
@@ -63,20 +63,20 @@ extrapolatedGradientFvPatchScalarField
 {}
 
 
-extrapolatedGradientFvPatchScalarField::
-extrapolatedGradientFvPatchScalarField
+extrapolatedXLogXFvPatchScalarField::
+extrapolatedXLogXFvPatchScalarField
 (
-    const extrapolatedGradientFvPatchScalarField& ptf
+    const extrapolatedXLogXFvPatchScalarField& ptf
 )
 :
     fixedGradientFvPatchScalarField(ptf)
 {}
 
 
-extrapolatedGradientFvPatchScalarField::
-extrapolatedGradientFvPatchScalarField
+extrapolatedXLogXFvPatchScalarField::
+extrapolatedXLogXFvPatchScalarField
 (
-    const extrapolatedGradientFvPatchScalarField& ptf,
+    const extrapolatedXLogXFvPatchScalarField& ptf,
     const DimensionedField<scalar, volMesh>& iF
 )
 :
@@ -86,7 +86,7 @@ extrapolatedGradientFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void extrapolatedGradientFvPatchScalarField::updateCoeffs()
+void extrapolatedXLogXFvPatchScalarField::updateCoeffs()
 {
     if (updated())
     {
@@ -100,17 +100,19 @@ void extrapolatedGradientFvPatchScalarField::updateCoeffs()
     volVectorField gradField 
         = fvc::grad(db().lookupObject<volScalarField>(field));
 
-    gradient()
-//        = (nf & gradField.boundaryField()[patch().index()]
-//        .patchInternalField()());
-        = -2*(nf & gradField.boundaryField()[patch().index()]
-        .patchInternalField()()) * log(patch().deltaCoeffs())/(1-log(patch().deltaCoeffs()));
+    extrapolatedXLogXFvPatchScalarField::operator==(
+        this->internalField() - 2*(nf & gradField.boundaryField()[patch().index()]
+                .patchInternalField()())
+    );
+    gradient() 
+        = 2*(nf & gradField.boundaryField()[patch().index()]
+        .patchInternalField()());
     
     fixedGradientFvPatchScalarField::updateCoeffs();
 }
 
 
-void extrapolatedGradientFvPatchScalarField::write(Ostream& os) const
+void extrapolatedXLogXFvPatchScalarField::write(Ostream& os) const
 {
     fixedGradientFvPatchScalarField::write(os);
     writeEntry("value", os);
@@ -122,7 +124,7 @@ void extrapolatedGradientFvPatchScalarField::write(Ostream& os) const
 makePatchTypeField
 (
     fvPatchScalarField,
-    extrapolatedGradientFvPatchScalarField
+    extrapolatedXLogXFvPatchScalarField
 );
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -37,7 +37,7 @@ void writeWallField(
         zeroField
     );
     forAll(wallField.boundaryField(), patchi) {
-        wallField.boundaryField()[patchi] =
+        wallField.boundaryFieldRef()[patchi] =
             field.boundaryField()[patchi] / mesh.magSf().boundaryField()[patchi];
     }
     wallField.write();
