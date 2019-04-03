@@ -9,8 +9,8 @@ k_B = 1.3806488e-23
 mass, ndensity = 2*k_B, .5/k_B
 R, r = 7.5, 0.5
 volume = np.pi/2*(R**2-r**2)
-ensemble = 50e5
-total = 40
+ensemble = 20e5
+total = 60
 window = total*.25
 
 H = [ 30, 50, 70, 90, 105 ]

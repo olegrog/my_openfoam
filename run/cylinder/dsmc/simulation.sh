@@ -13,7 +13,7 @@ increase_ansemble() {
 }
 
 for d in $(ls $problem | grep ^[0-9]); do
-    [[ -f $problem/$d/log.nsfSimpleFoam ]] && continue
+    [[ -f $problem/$d/log.dsmcFoam ]] && continue
     (
         echo "Simulate for $d"
         cd $problem/$d

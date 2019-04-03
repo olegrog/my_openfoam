@@ -10,16 +10,23 @@ runApplication gmsh -3 $proj.geo
 runApplication gmshToFoam $proj.msh
 runApplication ./updatePolyMesh.sh
 
-runApplication dsmcInitialise
-runApplication `getApplication`
-runApplication dsmcCalcPressure
-runApplication foamToTecplot360 -latestTime
+single() {
+    runApplication dsmcInitialise
+    runApplication `getApplication`
+    runApplication dsmcCalcPressure
+    runApplication foamToTecplot360 -latestTime
+}
 
-#runApplication decomposePar
-#runParallel dsmcInitialise 4
-#runParallel `getApplication` 4
-#runApplication reconstructPar -noLagrangian
-#runApplication calcPressure
+parallel() {
+    runApplication decomposePar
+    runParallel dsmcInitialise
+    runParallel `getApplication`
+    runApplication reconstructPar -noLagrangian
+    runApplication dsmcCalcPressure
+    runApplication foamToTecplot360 -latestTime
+}
+
+parallel
 
 echo ok
 
