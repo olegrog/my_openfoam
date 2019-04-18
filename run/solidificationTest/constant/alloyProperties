@@ -1,0 +1,32 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | foam-extend: Open Source CFD                    |
+|  \\    /   O peration     | Version:     4.0                                |
+|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      alloyProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+components (
+    Mn {
+        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.146;
+        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.189;
+        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -1168;
+        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   -1168;
+        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  3.0e14;
+        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.7e9;
+    }
+);
+
+entropyChange   entropyChange   [ 1 2 -2 -1 -1 0 0 ]    8.9;
+meltingTemp     meltingTemp     [ 0 0 0 1 0 0 0 ]       1703;
+
+// ************************************************************************* //

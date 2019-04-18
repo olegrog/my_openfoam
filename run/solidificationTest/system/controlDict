@@ -1,0 +1,34 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | foam-extend: Open Source CFD                    |
+|  \\    /   O peration     | Version:     4.0                                |
+|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application         solidificationFoam;
+startFrom           startTime;
+startTime           0;
+stopAt              endTime;
+endTime             1e-4;
+deltaT              1e-6;
+writeControl        runTime;
+writeInterval       1e-6;
+purgeWrite          0;
+writeFormat         ascii;
+writePrecision      8;
+writeCompression    off;
+timeFormat          general;
+timePrecision       10;
+runTimeModifiable   true;
+
+// ************************************************************************* //
