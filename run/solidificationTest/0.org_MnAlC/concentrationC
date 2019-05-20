@@ -9,18 +9,35 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "constant";
-    object      phaseFieldProperties;
+    class       volScalarField;
+    location    "0";
+    object      concentrationMn;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-interfaceWidth  interfaceWidth  [ 0 1 0 0 0 0 0 ]   6e-8;
-undercooling    undercooling    [ 0 0 0 1 0 0 0 ]   10; //10;
-tempGradient    tempGradient    [ 0 -1 0 1 0 0 0 ]  5e5; //5e5
-coolingRate     coolingRate     [ 0 0 -1 1 0 0 0 ]  10e3; //3e3;
+dimensions      [0 0 0 0 0 0 0];
 
-epsilon4    0.05;
-frontPosition 0.02;
+internalField   uniform 0.0033;
+
+boundaryField
+{
+    bottom
+    {
+        type zeroGradient;
+    }
+    top
+    {
+        type            fixedValue;
+        value           uniform 0.0033;
+    }
+    leftAndRight
+    {
+        type symmetryPlane;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
+}
 
 // ************************************************************************* //

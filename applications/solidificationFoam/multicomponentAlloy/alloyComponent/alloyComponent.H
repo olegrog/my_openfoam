@@ -117,9 +117,15 @@ public:
         return equilibriumS_ - equilibriumL_;
     }
 
+    dimensionedScalar molarVolume() const {
+        return atomicMass_ / densityMelting_;
+    }
+
 private:
     word name_;
     dictionary alloyComponentDict_;
+    dimensionedScalar densityMelting_;
+    dimensionedScalar atomicMass_;
     dimensionedScalar equilibriumS_;
     dimensionedScalar equilibriumL_;
     dimensionedScalar slopeS_;

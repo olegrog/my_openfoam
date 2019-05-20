@@ -41,24 +41,41 @@ multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh) :
         )
     ),
     entropyChange_(lookup("entropyChange")),
-    meltingTemp_(lookup("meltingTemp")),
-    components_(lookup("components"), alloyComponent::iNew(mesh, meltingTemp_)),
+    interfaceEnergy_(lookup("interfaceEnergy")),
+    solidus_(lookup("solidus")),
+    liquidus_(lookup("liquidus")),
+    components_(lookup("components"), alloyComponent::iNew(mesh, liquidus_)),
     factorS_(calcFactor<0>()),
     factorL_(calcFactor<1>())
-{
-    Info<< "factorS_: " << factorS_ << endl;
-    Info<< "factorL_: " << factorL_ << endl;
-}
+{}
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-dimensionedScalar multicomponentAlloy::kineticParameter() const {
+dimensionedScalar multicomponentAlloy::relaxationTime() const {
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    dimensionedScalar result = sqr(iter().deltaA()) / iter().diffusion<1>();
+    dimensionedScalar result = sqr(iter().deltaA()) / iter().diffusion<1>() / iter().molarVolume();
     for (++iter; iter != components_.end(); ++iter) {
-        result += sqr(iter().deltaA()) / iter().diffusion<1>();
+        result += sqr(iter().deltaA()) / iter().diffusion<1>() / iter().molarVolume();
     }
-    return result * factorL_;
+    return result * factorL_ / interfaceEnergy_;
+}
+
+dimensionedScalar multicomponentAlloy::capillaryLength() const {
+    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
+    dimensionedScalar result = iter().diffusion<1>();
+    for (++iter; iter != components_.end(); ++iter) {
+        result += iter().diffusion<1>();
+    }
+    return 1. / result / relaxationTime();
+}
+
+dimensionedScalar multicomponentAlloy::diffusionL() const {
+    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
+    dimensionedScalar result = sqr(iter().deltaA()) / iter().molarVolume();
+    for (++iter; iter != components_.end(); ++iter) {
+        result += sqr(iter().deltaA()) / iter().molarVolume();
+    }
+    return result * factorL_ / relaxationTime() / interfaceEnergy_;
 }
 
 tmp<volScalarField> multicomponentAlloy::chemicalDrivingForce(
@@ -66,9 +83,11 @@ tmp<volScalarField> multicomponentAlloy::chemicalDrivingForce(
     const volScalarField& T
 ) const {
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T));
+    tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T))
+        / iter().molarVolume();
     for (++iter; iter != components_.end(); ++iter) {
-        result() += iter().deltaA() * (iter() - iter().equilibrium(phase, T));
+        result() += iter().deltaA() * (iter() - iter().equilibrium(phase, T))
+            / iter().molarVolume();
     }
     return result() * factorL_ / partition(phase);
 }

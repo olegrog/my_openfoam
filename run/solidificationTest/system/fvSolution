@@ -21,23 +21,31 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-4;
-        relTol          0.1;
+        tolerance       1e-5;
+        relTol          0.01;
     }
     concentration
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-4;
-        relTol          0.1;
+        tolerance       1e-5;
+        relTol          0;
     }
 }
 
 PIMPLE
 {
-    nOuterCorrectors    2;
-    nCorrectors         1;
+    nOuterCorrectors         20;
     nNonOrthogonalCorrectors 0;
+
+    residualControl
+    {
+        phase
+        {
+            tolerance   1e-4;
+            relTol      0;
+        }
+     }
 }
 
 // ************************************************************************* //

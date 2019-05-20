@@ -49,13 +49,43 @@ public:
     // Member Functions
 
     //- Return the alloy components
-    PtrDictionary<alloyComponent>& components()
-    {
+    PtrDictionary<alloyComponent>& components() {
         return components_;
     }
 
-    //- Return the kinetic parameter
-    dimensionedScalar kineticParameter() const;
+    //- Return the solidus temperature
+    dimensionedScalar solidus() const {
+        return solidus_;
+    }
+
+    //- Return the liquidus temperature
+    dimensionedScalar liquidus() const {
+        return liquidus_;
+    }
+
+    //- Return the interface energy
+    dimensionedScalar interfaceEnergy() const {
+        return interfaceEnergy_;
+    }
+
+    //- Return the dimensionless undercooling
+    dimensionedScalar undercooling(const dimensionedScalar& T) const {
+        return (liquidus_ - T) / (liquidus_ - solidus_);
+    }
+
+    //- Return the dimensionless undercooling
+    tmp<volScalarField> undercooling(const volScalarField& T) const {
+        return (liquidus_ - T) / (liquidus_ - solidus_);
+    }
+
+    //- Return the relaxation time
+    dimensionedScalar relaxationTime() const;
+
+    //- Return the mean capillary length
+    dimensionedScalar capillaryLength() const;
+
+    //- Return the mean diffusion coefficient
+    dimensionedScalar diffusionL() const;
 
     //- Return the chemical driving force of the solidification
     tmp<volScalarField> chemicalDrivingForce(
@@ -84,8 +114,8 @@ private:
     }
 
 private:
-    const dimensionedScalar entropyChange_;
-    const dimensionedScalar meltingTemp_;
+    const dimensionedScalar entropyChange_, interfaceEnergy_;
+    const dimensionedScalar solidus_, liquidus_;
     PtrDictionary<alloyComponent> components_;
     const dimensionedScalar factorS_;
     const dimensionedScalar factorL_;
