@@ -15,13 +15,13 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-undercooling    undercooling    [ 0 0 0 1 0 0 0 ]   30; //10;
+undercooling    undercooling    [ 0 0 0 1 0 0 0 ]   20; //10;
 tempGradient    tempGradient    [ 0 -1 0 1 0 0 0 ]  5e5; //5e5
-coolingRate     coolingRate     [ 0 0 -1 1 0 0 0 ]  15e3; //3e3;
+coolingRate     coolingRate     [ 0 0 -1 1 0 0 0 ]  5e3; //3e3;
 
 // Initial conditions
 frontPosition 0.05;
-nSeeds 1; //5
+nSeeds 4; //5
 seedNarrowing 5; //5
 interfaceNarrowing 1;
 

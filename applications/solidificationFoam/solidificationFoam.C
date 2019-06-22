@@ -48,26 +48,40 @@ int main(int argc, char *argv[])
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createMesh.H"
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    pimpleControl pimple(mesh);
-
     #include "createFields.H"
 
-    /** Initial conditions */
+    /** Additional variables */
 
+    pimpleControl pimple(mesh);
+    multicomponentAlloy alloy(mesh);
+
+    // Derived quantities
+    const dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
+    dimensionedScalar tipVelocity = coolingRate / tempGradient;
+
+    // Coordinates-related constants and variables
+    volScalarField coordX = mesh.C().component(vector::X);
+    volScalarField coordY = mesh.C().component(vector::Y);
     const boundBox& bounds = mesh.bounds();
     const dimensionedScalar xmax("xmax", dimLength, bounds.max().x());
     const dimensionedScalar xmin("xmin", dimLength, bounds.min().x());
     const dimensionedScalar ymax("ymax", dimLength, bounds.max().y());
     const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
-    const dimensionedScalar front = ymin + (ymax - ymin) * frontPosition;
+    const dimensionedScalar height("height", ymax - ymin);
+    const dimensionedScalar width("width", xmax - xmin);
+    const dimensionedScalar frontPosition = ymin + frontPositionRel * height;
     const dimensionedScalar initialWidth = interfaceWidth / interfaceNarrowing;
+    dimensionedScalar tipPosition = frontPosition;
+    dimensionedScalar tipPositionPrev = tipPosition;
+    label tipCell(0), tipCellPrev(0);
+    dimensionedScalar tipTimeInterval("tipTimeInterval", dimTime, 0);
 
-    phase = Foam::atan(pow3((front - coordY) / initialWidth)) / mathematicalConstant::pi + 0.5;
-    const dimensionedScalar radius = (xmax - xmin) / nSeeds / seedNarrowing;
+    /** Initial conditions */
+
+    phase = Foam::atan(pow3((frontPosition - coordY) / initialWidth)) / mathematicalConstant::pi + .5;
+    const dimensionedScalar radius = width / nSeeds / seedNarrowing;
     for (int i = 0; i < nSeeds; i++) {
-        phase += addSeed(coordX, coordY, xmin + (i+.5)/nSeeds*(xmax - xmin), front, radius);
+        phase += addSeed(coordX, coordY, xmin + (i+.5)/nSeeds * width, frontPosition, radius);
     }
 
     //phase += addSeed(coordX, coordY, (xmax + xmin)/2, (ymax + ymin)/2, radius);
@@ -80,11 +94,11 @@ int main(int argc, char *argv[])
 
     forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
         alloyComponent& C = iter();
-        C == C.equilibrium(phase, T);
+        C == C.equilibrium(phase, alloy.solidus() * phase + alloy.liquidus() * (1 - phase));
         C.write();
     }
 
-    dimensionedScalar tip_velocity = coolingRate / tempGradient;
+    /** Print reference parameters */
 
     Info<< "Dimensionless parameters:" << endl
         << " -- minimal undercooling = "
@@ -96,25 +110,57 @@ int main(int argc, char *argv[])
         << " -- mesh step / interface width = "
         << (1./ interfaceWidth / Foam::max(mesh.surfaceInterpolation::deltaCoeffs())).value() << endl
         << " -- interface stability parameter = "
-        << (alloy.diffusionL() * alloy.capillaryLength() / tip_velocity / sqr(interfaceWidth)).value() << nl << endl;
+        << (alloy.diffusionL() * alloy.capillaryLength() / tipVelocity / sqr(interfaceWidth)).value() << nl << endl;
 
     Info<< "Dimensioned parameters:" << endl
-        << " -- tip velocity (m/s) = "
-        << tip_velocity.value() << endl;
+        << " -- theoretical tip velocity (m/s) = "
+        << tipVelocity.value() << endl;
+
+    /** Time evolution loop */
 
     Info<< "\nStarting time loop\n" << endl;
-
     while (runTime.run()) {
         runTime++;
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        /** Temperature calculation */
+        /** Calculate tip velocity */
+
+        tipTimeInterval += runTime.deltaT();
+
+        // Find the current tip position and the corresponding cell
+        tipPosition = ymin;
+        forAll(phase, cellI) {
+            if (phase[cellI] > .5) {
+                dimensionedScalar tipPositionNew = dimensionedScalar("y", dimLength, coordY[cellI])
+                    + mathematicalConstant::pi * (phase[cellI] - .5) * interfaceWidth;
+                if (tipPositionNew > tipPosition) {
+                    tipPosition = tipPositionNew;
+                    tipCell = cellI;
+                }
+            }
+        }
+
+        if (tipCell != tipCellPrev) {
+            Info<< "Tip position(m) = " << (tipPosition).value()
+                << " relative = " << ((tipPosition - ymin) / height).value()
+                << " tip velocity(m/s) = "
+                << ((tipPosition - tipPositionPrev) / tipTimeInterval).value()
+                << " tip undercooling(K) = " << T[tipCell]
+                << " relative = "
+                << alloy.undercooling(dimensionedScalar("T", dimTemperature, T[tipCell])).value()
+                << endl;
+            tipPositionPrev = tipPosition;
+            tipCellPrev = tipCell;
+            tipTimeInterval *= 0;
+        }
+
+        /** Calculate temperature */
 
         T = alloy.liquidus() - undercooling
             + tempGradient * (coordY - ymin/3 - 2*ymax/3)
             - coolingRate * runTime;
 
-        /** Adaptive time step */
+        /** Adapt time step */
 
 #       include "createTimeControls.H" // read adjustTimeStep, maxCo, maxDeltaT from controlDict
         scalar minDeltaT =
@@ -162,7 +208,8 @@ int main(int argc, char *argv[])
                 << endl;
         }
         while (pimple.loop()) {
-            /** Phase field calculation */
+
+            /** Calculate phase field */
 
             volVectorField gradPhase = fvc::grad(phase);
             volVectorField normal = calcNormal(gradPhase);
@@ -187,7 +234,7 @@ int main(int argc, char *argv[])
             );
             phaseEqn.solve();
 
-            /** Concentrations calculation */
+            /** Calculate concentrations */
 
             // Recompute normal
             normal = calcNormal(fvc::grad(phase));
@@ -206,6 +253,8 @@ int main(int argc, char *argv[])
                 CEqn.solve(mesh.solutionDict().solver("concentration"));
             }
         }
+
+        /** Finalize iteration */
 
         runTime.write();
         if (!adjustTimeStep) {

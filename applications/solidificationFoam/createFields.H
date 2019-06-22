@@ -76,14 +76,8 @@
     dimensionedScalar tempGradient(problemProperties.lookup("tempGradient"));
     dimensionedScalar coolingRate(problemProperties.lookup("coolingRate"));
 
-    scalar frontPosition(problemProperties.lookupOrDefault<scalar>("frontPosition", 0));
+    scalar frontPositionRel(problemProperties.lookupOrDefault<scalar>("frontPosition", 0));
     scalar interfaceNarrowing(problemProperties.lookupOrDefault<scalar>("interfaceNarrowing", 1));
     scalar seedNarrowing(problemProperties.lookupOrDefault<scalar>("seedNarrowing", 1));
     label nSeeds(problemProperties.lookupOrDefault<label>("nSeeds", 0));
 
-    /* Create all components of the alloy and read the corresponding properties */
-    multicomponentAlloy alloy(mesh);
-    dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
-
-    volScalarField coordX = mesh.C().component(vector::X);
-    volScalarField coordY = mesh.C().component(vector::Y);

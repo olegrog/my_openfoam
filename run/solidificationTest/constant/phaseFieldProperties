@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-interfaceWidth  interfaceWidth  [ 0 1 0 0 0 0 0 ]   3e-8; //6e-8
+interfaceWidth  interfaceWidth  [ 0 1 0 0 0 0 0 ]   6e-8; //6e-8
 epsilon4    0.06;
 a1          0.2357;
 a2          2.35;
