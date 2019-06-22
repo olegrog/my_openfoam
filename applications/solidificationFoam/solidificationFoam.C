@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
                 volVectorField normal = calcNormal(fvc::grad(phase));
                 volScalarField rhsC = (
                     fvc::laplacian(C.diffusion(phase), (C - C.equilibrium(phase, T)) / h)
-                    + fvc::div(interfaceWidth / sqrt(2) * C.deltaA() * normal * rhsPhase)
+                    + fvc::div(interfaceWidth / Foam::sqrt(2.) * C.deltaA() * normal * rhsPhase)
                 ) / C.equilibrium(phase, T);
                 Info<< "Max relative change of " << C.name() << " = "
                     << max(mag(rhsC)* runTime.deltaT()).value() << endl;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
                 fvScalarMatrix CEqn(
                     fvm::ddt(C) == fvm::laplacian(C.diffusion(phase) / h, C) - fvm::div(phi, C)
                     - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T) / h)
-                    + fvc::div(interfaceWidth / sqrt(2) * C.deltaA() * normal * fvc::ddt(phase))
+                    + fvc::div(interfaceWidth / Foam::sqrt(2.) * C.deltaA() * normal * fvc::ddt(phase))
                 );
                 CEqn.solve(mesh.solutionDict().solver("concentration"));
             }

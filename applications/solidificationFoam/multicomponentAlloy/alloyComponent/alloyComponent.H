@@ -103,14 +103,14 @@ public:
     }
 
     //- Return the slopes along the solidification path (solid and liquid)
-    template<label Phase> dimensionedScalar slope() const;
-    template<> dimensionedScalar slope<0>() const { return slopeS_; }
-    template<> dimensionedScalar slope<1>() const { return slopeL_; }
+    template<label Phase> dimensionedScalar slope() const {
+        return Phase ? slopeL_ : slopeS_;
+    }
 
     //- Return the diffusion coefficients (solid and liquid)
-    template<label Phase> dimensionedScalar diffusion() const;
-    template<> dimensionedScalar diffusion<0>() const { return diffusionS_; }
-    template<> dimensionedScalar diffusion<1>() const { return diffusionL_; }
+    template<label Phase> dimensionedScalar diffusion() const {
+        return Phase ? diffusionL_ : diffusionS_;
+    }
 
     //- Return the difference of the equilibrium concentrations
     dimensionedScalar deltaA() const {

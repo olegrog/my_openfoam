@@ -26,12 +26,12 @@ writeInterval       2e-5; //2e-5
 purgeWrite          0;
 writeFormat         ascii;
 writePrecision      8;
-writeCompression    off;
+writeCompression    on;
 timeFormat          fixed;
 timePrecision       7;
 adjustTimeStep      yes;
 maxCo               0.02;
-minDeltaT           1e-10;
+minDeltaT           1e-12;
 //maxDeltaT           1e-6;
 runTimeModifiable   yes;
 
