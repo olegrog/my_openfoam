@@ -21,7 +21,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-5;
+        tolerance       1e-6;
         relTol          0.01;
     }
     concentration
@@ -29,7 +29,7 @@ solvers
         solver          PBiCG;
         preconditioner  DILU;
         tolerance       1e-5;
-        relTol          0;
+        relTol          0.01;
     }
 }
 
@@ -43,6 +43,11 @@ PIMPLE
         phase
         {
             tolerance   1e-4;
+            relTol      0;
+        }
+        concentrationMn
+        {
+            tolerance   1e-3;
             relTol      0;
         }
      }

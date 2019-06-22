@@ -17,23 +17,21 @@ FoamFile
 
 dimensions      [0 0 0 0 0 0 0];
 
-internalField   uniform 0.1;
+internalField   uniform 0;
 
 boundaryField
 {
     bottom
     {
-        type fixedGradient;
-        gradient uniform 1e-5;
+        type zeroGradient;
     }
     top
     {
-        type fixedGradient;
-        gradient uniform -1e-5;
+        type zeroGradient;
     }
     leftAndRight
     {
-        type symmetryPlane;
+        type cyclic;
     }
     frontAndBack
     {

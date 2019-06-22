@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 8e-6;
+convertToMeters 3e-6;
 
 vertices
 (
@@ -49,7 +49,7 @@ boundary
     }
     top
     {
-        type patch;
+        type wall;
         faces
         (
             (3 7 6 2)
@@ -57,11 +57,11 @@ boundary
     }
     leftAndRight
     {
-        type symmetryPlane;
+        type cyclic;
         faces
         (
             (0 4 7 3)
-            (2 6 5 1)
+            (1 2 6 5)
         );
     }
     frontAndBack

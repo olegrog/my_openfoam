@@ -4,7 +4,7 @@ cd ${0%/*} || exit 1    # run from this directory
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-zero_dir=0.000000
+zero_dir=0.0000000
 mkdir -p $zero_dir
 cp -r 0.org/* $zero_dir/
 runApplication blockMesh

@@ -11,13 +11,13 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      concentrationMn;
+    object      concentrationC;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 dimensions      [0 0 0 0 0 0 0];
 
-internalField   uniform 0.0033;
+internalField   uniform 0;
 
 boundaryField
 {
@@ -27,12 +27,11 @@ boundaryField
     }
     top
     {
-        type            fixedValue;
-        value           uniform 0.0033;
+        type zeroGradient;
     }
     leftAndRight
     {
-        type symmetryPlane;
+        type cyclic;
     }
     frontAndBack
     {

@@ -26,11 +26,18 @@
         mesh
     );
 
-    volVectorField smallVector
+    volScalarField Co
     (
-        IOobject("smallVector", runTime.constant(), mesh),
+        IOobject
+        (
+            "Co",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
         mesh,
-        1e-20 * dimensionedVector("1", dimless / dimLength, vector(0, 1, 0))
+        dimensionedScalar("1", dimless, 0)
     );
 
     Info<< "Reading phase-field properties\n" << endl;
@@ -46,16 +53,35 @@
         )
     );
 
+    dimensionedScalar interfaceWidth(phaseFieldProperties.lookup("interfaceWidth"));
+
     scalar a1(phaseFieldProperties.lookupOrDefault<scalar>("a1", Foam::sqrt(2.)/6));
     scalar a2(phaseFieldProperties.lookupOrDefault<scalar>("a2", 2.35));
     scalar epsilon4(phaseFieldProperties.lookupOrDefault<scalar>("epsilon4", 0));
-    scalar frontPosition(phaseFieldProperties.lookupOrDefault<scalar>("frontPosition", 0));
 
-    dimensionedScalar interfaceWidth(phaseFieldProperties.lookup("interfaceWidth"));
-    dimensionedScalar undercooling(phaseFieldProperties.lookup("undercooling"));
-    dimensionedScalar tempGradient(phaseFieldProperties.lookup("tempGradient"));
-    dimensionedScalar coolingRate(phaseFieldProperties.lookup("coolingRate"));
+    Info<< "Reading problem-specific properties\n" << endl;
+    IOdictionary problemProperties
+    (
+        IOobject
+        (
+            "problemProperties",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
 
+    dimensionedScalar undercooling(problemProperties.lookup("undercooling"));
+    dimensionedScalar tempGradient(problemProperties.lookup("tempGradient"));
+    dimensionedScalar coolingRate(problemProperties.lookup("coolingRate"));
+
+    scalar frontPosition(problemProperties.lookupOrDefault<scalar>("frontPosition", 0));
+    scalar interfaceNarrowing(problemProperties.lookupOrDefault<scalar>("interfaceNarrowing", 1));
+    scalar seedNarrowing(problemProperties.lookupOrDefault<scalar>("seedNarrowing", 1));
+    label nSeeds(problemProperties.lookupOrDefault<label>("nSeeds", 0));
+
+    /* Create all components of the alloy and read the corresponding properties */
     multicomponentAlloy alloy(mesh);
     dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
 

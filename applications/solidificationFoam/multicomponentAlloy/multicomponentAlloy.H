@@ -98,7 +98,7 @@ public:
         return phi + (1 - phi) * factorS_ / factorL_;
     }
 
-    dimensionedScalar partition_prime() const {
+    dimensionedScalar partitionPrime() const {
         return 1 - factorS_ / factorL_;
     }
 
