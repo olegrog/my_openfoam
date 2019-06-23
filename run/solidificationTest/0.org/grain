@@ -9,54 +9,34 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    location    "system";
-    object      fvSolution;
+    class       volVectorField;
+    location    "0";
+    object      grain;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-solvers
-{
-    phase
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-6;
-        relTol          0.01;
-    }
-    grain
-    {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-6;
-    }
-    concentration
-    {
-        solver          PBiCG;
-        preconditioner  DILU;
-        tolerance       1e-5;
-        relTol          0.01;
-    }
-}
+dimensions      [0 0 0 0 0 0 0];
 
-PIMPLE
-{
-    nOuterCorrectors         20;
-    nNonOrthogonalCorrectors 0;
+internalField   uniform (0 0 0);
 
-    residualControl
+boundaryField
+{
+    bottom
     {
-        phase
-        {
-            tolerance   1e-4;
-            relTol      0;
-        }
-        concentrationMn
-        {
-            tolerance   1e-3;
-            relTol      0;
-        }
-     }
+        type zeroGradient;
+    }
+    top
+    {
+        type zeroGradient;
+    }
+    leftAndRight
+    {
+        type cyclic;
+    }
+    frontAndBack
+    {
+        type empty;
+    }
 }
 
 // ************************************************************************* //

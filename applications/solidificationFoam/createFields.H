@@ -26,6 +26,20 @@
         mesh
     );
 
+    Info<< "Reading field grain\n" << endl;
+    volVectorField grain
+    (
+        IOobject
+        (
+            "grain",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh
+    );
+
     volScalarField Co
     (
         IOobject
@@ -57,7 +71,11 @@
 
     scalar a1(phaseFieldProperties.lookupOrDefault<scalar>("a1", Foam::sqrt(2.)/6));
     scalar a2(phaseFieldProperties.lookupOrDefault<scalar>("a2", 2.35));
+    scalar a3(phaseFieldProperties.lookupOrDefault<scalar>("a3", 1));
+    scalar a4(phaseFieldProperties.lookupOrDefault<scalar>("a4", 10));
     scalar epsilon4(phaseFieldProperties.lookupOrDefault<scalar>("epsilon4", 0));
+
+    dictionary crystallographicAngles = phaseFieldProperties.subDict("crystallographicAngles");
 
     Info<< "Reading problem-specific properties\n" << endl;
     IOdictionary problemProperties

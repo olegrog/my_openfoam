@@ -28,19 +28,38 @@ tmp<volScalarField> gPrime(const volScalarField& phase) {
     return 30 * sqr(phase) * sqr(1 - phase);
 }
 
-tmp<volScalarField> addSeed(
+tmp<volScalarField> generateSeed(
     const volScalarField& coordX,
     const volScalarField& coordY,
     const dimensionedScalar& centerX,
     const dimensionedScalar& centerY,
     const dimensionedScalar& radius)
 {
-    return 2*Foam::exp(-sqr((mag(coordX - centerX) + mag(coordY - centerY)) / radius));
+    return min(
+        2 * Foam::exp(-sqr((mag(coordX - centerX) + mag(coordY - centerY)) / radius)),
+        scalar(1)
+    );
 }
 
-tmp<volVectorField> calcNormal(const volVectorField& gradPhase) {
-    dimensionedVector smallVector("small", dimless / dimLength, vector(0, 1e-20, 0));
-    return (gradPhase + smallVector) / mag(gradPhase + smallVector);
+void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains) {
+    forAll(grain, cellI) {
+        scalar argument = 2 * mathematicalConstant::pi * sign(phase[cellI]) * nGrain / nGrains;
+        scalar magnitude = fabs(phase[cellI]);
+        grain[cellI].x() += magnitude * Foam::cos(argument);
+        grain[cellI].y() += magnitude * Foam::sin(argument);
+    }
+}
+
+void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains) {
+    forAll(grain, cellI) {
+        nGrain[cellI] = Foam::atan2(grain[cellI].y(), grain[cellI].x())
+            / 2 / mathematicalConstant::pi * nGrains;
+    }
+}
+
+tmp<volVectorField> calcNormal(const volVectorField& vField) {
+    dimensionedVector smallVector("small", vField.dimensions(), vector(0, 1e-20, 0));
+    return (vField + smallVector) / mag(vField + smallVector);
 }
 
 int main(int argc, char *argv[])
@@ -54,14 +73,17 @@ int main(int argc, char *argv[])
 
     pimpleControl pimple(mesh);
     multicomponentAlloy alloy(mesh);
+    volScalarField theta = 0 * phase;
+    volScalarField nGrain = 0 * phase;
 
     // Derived quantities
     const dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
     dimensionedScalar tipVelocity = coolingRate / tempGradient;
+    const label nGrains = crystallographicAngles.size();
 
     // Coordinates-related constants and variables
-    volScalarField coordX = mesh.C().component(vector::X);
-    volScalarField coordY = mesh.C().component(vector::Y);
+    const volScalarField coordX = mesh.C().component(vector::X);
+    const volScalarField coordY = mesh.C().component(vector::Y);
     const boundBox& bounds = mesh.bounds();
     const dimensionedScalar xmax("xmax", dimLength, bounds.max().x());
     const dimensionedScalar xmin("xmin", dimLength, bounds.min().x());
@@ -69,6 +91,8 @@ int main(int argc, char *argv[])
     const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
     const dimensionedScalar height("height", ymax - ymin);
     const dimensionedScalar width("width", xmax - xmin);
+    const dimensionedScalar centerX("centerX", (xmax + xmin) / 2);
+    const dimensionedScalar centerY("centerY", (ymax + ymin) / 2);
     const dimensionedScalar frontPosition = ymin + frontPositionRel * height;
     const dimensionedScalar initialWidth = interfaceWidth / interfaceNarrowing;
     dimensionedScalar tipPosition = frontPosition;
@@ -81,13 +105,20 @@ int main(int argc, char *argv[])
     phase = Foam::atan(pow3((frontPosition - coordY) / initialWidth)) / mathematicalConstant::pi + .5;
     const dimensionedScalar radius = width / nSeeds / seedNarrowing;
     for (int i = 0; i < nSeeds; i++) {
-        phase += addSeed(coordX, coordY, xmin + (i+.5)/nSeeds * width, frontPosition, radius);
+        phase += generateSeed(coordX, coordY, xmin + (i+.5)/nSeeds * width, frontPosition, radius);
     }
-
-    //phase += addSeed(coordX, coordY, (xmax + xmin)/2, (ymax + ymin)/2, radius);
 
     phase = min(max(phase, scalar(0)), scalar(1));
     phase.write();
+
+    addGrain(grain, phase * sign((coordX - centerX) / width), 1, nGrains);
+
+    // Add a nucleation grain
+    volScalarField seed = generateSeed(coordX, coordY, centerX, ymin/3 + 2*ymax/3, radius / 2);
+    phase += seed;
+    addGrain(grain, seed, 0, nGrains);
+    phase.write();
+    grain.write();
 
     T = alloy.liquidus() - undercooling + tempGradient * (coordY - ymin/3 - 2*ymax/3);
     T.write();
@@ -114,13 +145,14 @@ int main(int argc, char *argv[])
 
     Info<< "Dimensioned parameters:" << endl
         << " -- theoretical tip velocity (m/s) = "
-        << tipVelocity.value() << endl;
+        << tipVelocity.value() << endl
+        << " -- relaxation time (s) = "
+        << tau.value() << endl;
 
     /** Time evolution loop */
 
     Info<< "\nStarting time loop\n" << endl;
-    while (runTime.run()) {
-        runTime++;
+    while (runTime.loop()) {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         /** Calculate tip velocity */
@@ -213,9 +245,11 @@ int main(int argc, char *argv[])
 
             volVectorField gradPhase = fvc::grad(phase);
             volVectorField normal = calcNormal(gradPhase);
-            volScalarField theta = 0 * phase;
+            calcNGrain(nGrain, grain, nGrains);
             forAll(theta, cellI) {
-                theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y());
+                theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y())
+                    - crystallographicAngles.lookupOrDefault(name(std::lround(nGrain[cellI])), 0)
+                        * mathematicalConstant::pi / 180;
             }
             volScalarField a_s = 1 + epsilon4 * Foam::cos(4 * theta);
 
@@ -253,6 +287,29 @@ int main(int argc, char *argv[])
                 CEqn.solve(mesh.solutionDict().solver("concentration"));
             }
         }
+
+        /** Calculate crystallographic direction */
+
+        volVectorField gNormal = calcNormal(grain);
+        tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
+        volVectorField gTangent = rot & gNormal;
+        calcNGrain(nGrain, grain, nGrains);
+
+        if (runTime.outputTime()) {
+            gNormal.rename("gNormal");
+            gTangent.rename("gTangent");
+            nGrain.rename("nGrain");
+            gNormal.write();
+            gTangent.write();
+            nGrain.write();
+        }
+        fvVectorMatrix grainEqn(
+            tau * fvm::ddt(grain) + a3 * phase * (
+                gNormal * (mag(grain) - 1)
+                + gTangent * sin(2 * mathematicalConstant::pi * nGrain)
+            ) == a4 * pow3(interfaceWidth) * fvm::laplacian(mag(fvc::grad(phase)), grain)
+        );
+        grainEqn.solve();
 
         /** Finalize iteration */
 
