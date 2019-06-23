@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
     pimpleControl pimple(mesh);
     multicomponentAlloy alloy(mesh);
     volScalarField theta = 0 * phase;
-    volScalarField nGrain = 0 * phase;
 
     // Derived quantities
     const dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
@@ -102,6 +101,7 @@ int main(int argc, char *argv[])
 
     /** Initial conditions */
 
+    // phase + grain
     phase = Foam::atan(pow3((frontPosition - coordY) / initialWidth)) / mathematicalConstant::pi + .5;
     const dimensionedScalar radius = width / nSeeds / seedNarrowing;
     for (int i = 0; i < nSeeds; i++) {
@@ -109,25 +109,26 @@ int main(int argc, char *argv[])
     }
 
     phase = min(max(phase, scalar(0)), scalar(1));
-    phase.write();
-
     addGrain(grain, phase * sign((coordX - centerX) / width), 1, nGrains);
+    if (addRandomSeeds) {
+        volScalarField seed = generateSeed(coordX, coordY, centerX, ymin/3 + 2*ymax/3, radius / 2);
+        phase += seed;
+        addGrain(grain, seed, 0, nGrains);
+    }
 
-    // Add a nucleation grain
-    volScalarField seed = generateSeed(coordX, coordY, centerX, ymin/3 + 2*ymax/3, radius / 2);
-    phase += seed;
-    addGrain(grain, seed, 0, nGrains);
-    phase.write();
-    grain.write();
+    // number of grain
+    calcNGrain(nGrain, grain, nGrains);
 
+    // temperature
     T = alloy.liquidus() - undercooling + tempGradient * (coordY - ymin/3 - 2*ymax/3);
-    T.write();
 
+    // concentrations
     forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
         alloyComponent& C = iter();
         C == C.equilibrium(phase, alloy.solidus() * phase + alloy.liquidus() * (1 - phase));
-        C.write();
     }
+
+    runTime.writeNow();
 
     /** Print reference parameters */
 
@@ -245,7 +246,6 @@ int main(int argc, char *argv[])
 
             volVectorField gradPhase = fvc::grad(phase);
             volVectorField normal = calcNormal(gradPhase);
-            calcNGrain(nGrain, grain, nGrains);
             forAll(theta, cellI) {
                 theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y())
                     - crystallographicAngles.lookupOrDefault(name(std::lround(nGrain[cellI])), 0)
@@ -293,16 +293,7 @@ int main(int argc, char *argv[])
         volVectorField gNormal = calcNormal(grain);
         tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
         volVectorField gTangent = rot & gNormal;
-        calcNGrain(nGrain, grain, nGrains);
 
-        if (runTime.outputTime()) {
-            gNormal.rename("gNormal");
-            gTangent.rename("gTangent");
-            nGrain.rename("nGrain");
-            gNormal.write();
-            gTangent.write();
-            nGrain.write();
-        }
         fvVectorMatrix grainEqn(
             tau * fvm::ddt(grain) + a3 * phase * (
                 gNormal * (mag(grain) - 1)
@@ -310,6 +301,8 @@ int main(int argc, char *argv[])
             ) == a4 * pow3(interfaceWidth) * fvm::laplacian(mag(fvc::grad(phase)), grain)
         );
         grainEqn.solve();
+
+        calcNGrain(nGrain, grain, nGrains);
 
         /** Finalize iteration */
 

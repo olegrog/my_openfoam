@@ -29,25 +29,21 @@ namespace Foam {
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-alloyComponent::alloyComponent
-(
+alloyComponent::alloyComponent(
     const word& name,
     const dictionary& alloyComponentDict,
     const fvMesh& mesh,
     const dimensionedScalar& meltingTemp
-)
-:
-    volScalarField
-    (
-        IOobject
-        (
+) :
+    volScalarField(
+        IOobject(
             "concentration" + name,
             mesh.time().timeName(),
             mesh,
-            IOobject::MUST_READ,
+            IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh
+        mesh.lookupObject<volScalarField>("phase")
     ),
     name_(name),
     alloyComponentDict_(alloyComponentDict),

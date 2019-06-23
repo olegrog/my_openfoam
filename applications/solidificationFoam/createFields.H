@@ -1,49 +1,53 @@
-    Info<< "Reading field T\n" << endl;
-    volScalarField T
-    (
-        IOobject
-        (
+    Info<< "Reading boundary conditions\n" << endl;
+    IOdictionary boundaryConditions(
+        IOobject(
+            "boundaryConditions",
+            runTime.constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    );
+
+    volScalarField T(
+        IOobject(
             "T",
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ,
+            IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh
+        mesh,
+        boundaryConditions
     );
+    T.dimensions().reset(dimTemperature);
 
-    Info<< "Reading field phase\n" << endl;
-    volScalarField phase
-    (
-        IOobject
-        (
+    volScalarField phase(
+        IOobject(
             "phase",
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ,
+            IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh
+        mesh,
+        boundaryConditions
     );
 
-    Info<< "Reading field grain\n" << endl;
-    volVectorField grain
-    (
-        IOobject
-        (
-            "grain",
+    volScalarField nGrain(
+        IOobject(
+            "nGrain",
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ,
+            IOobject::NO_READ,
             IOobject::AUTO_WRITE
         ),
-        mesh
+        mesh,
+        boundaryConditions
     );
 
-    volScalarField Co
-    (
-        IOobject
-        (
+    volScalarField Co(
+        IOobject(
             "Co",
             runTime.timeName(),
             mesh,
@@ -51,14 +55,25 @@
             IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar("1", dimless, 0)
+        boundaryConditions
+    );
+
+    boundaryConditions.set("internalField", "uniform (0 0 0)");
+    volVectorField grain(
+        IOobject(
+            "grain",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        boundaryConditions
     );
 
     Info<< "Reading phase-field properties\n" << endl;
-    IOdictionary phaseFieldProperties
-    (
-        IOobject
-        (
+    IOdictionary phaseFieldProperties(
+        IOobject(
             "phaseFieldProperties",
             runTime.constant(),
             mesh,
@@ -78,10 +93,8 @@
     dictionary crystallographicAngles = phaseFieldProperties.subDict("crystallographicAngles");
 
     Info<< "Reading problem-specific properties\n" << endl;
-    IOdictionary problemProperties
-    (
-        IOobject
-        (
+    IOdictionary problemProperties(
+        IOobject(
             "problemProperties",
             runTime.constant(),
             mesh,
@@ -98,4 +111,5 @@
     scalar interfaceNarrowing(problemProperties.lookupOrDefault<scalar>("interfaceNarrowing", 1));
     scalar seedNarrowing(problemProperties.lookupOrDefault<scalar>("seedNarrowing", 1));
     label nSeeds(problemProperties.lookupOrDefault<label>("nSeeds", 0));
+    bool addRandomSeeds(problemProperties.lookupOrDefault<bool>("addRandomSeeds", false));
 
