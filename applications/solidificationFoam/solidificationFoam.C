@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
     pimpleControl pimple(mesh);
     multicomponentAlloy alloy(mesh);
     volScalarField theta = 0 * phase;
+    volScalarField theta0 = 0 * phase;
+    tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
 
     // Derived quantities
     const dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
@@ -247,9 +249,7 @@ int main(int argc, char *argv[])
             volVectorField gradPhase = fvc::grad(phase);
             volVectorField normal = calcNormal(gradPhase);
             forAll(theta, cellI) {
-                theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y())
-                    - crystallographicAngles.lookupOrDefault(name(std::lround(nGrain[cellI])), 0)
-                        * mathematicalConstant::pi / 180;
+                theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y()) - theta0[cellI];
             }
             volScalarField a_s = 1 + epsilon4 * Foam::cos(4 * theta);
 
@@ -288,10 +288,9 @@ int main(int argc, char *argv[])
             }
         }
 
-        /** Calculate crystallographic direction */
+        /** Calculate grain number and crystallographic orientation */
 
         volVectorField gNormal = calcNormal(grain);
-        tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
         volVectorField gTangent = rot & gNormal;
 
         fvVectorMatrix grainEqn(
@@ -303,6 +302,10 @@ int main(int argc, char *argv[])
         grainEqn.solve();
 
         calcNGrain(nGrain, grain, nGrains);
+        forAll(theta0, cellI) {
+            theta0[cellI] = crystallographicAngles.lookupOrDefault(name(lround(nGrain[cellI])), 0)
+                * mathematicalConstant::pi / 180;
+        }
 
         /** Finalize iteration */
 

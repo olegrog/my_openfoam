@@ -18,7 +18,7 @@ FoamFile
 components (
     Mn {
         densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  5950;
-        atomicMass      atomicMass      [ 1 0 0 0 -1 0 0 ]  55e-3;
+        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  55e-3;
         equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.146;
         equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.189;
         slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -1168;

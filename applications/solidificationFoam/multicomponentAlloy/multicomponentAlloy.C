@@ -53,9 +53,9 @@ multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh) :
 
 dimensionedScalar multicomponentAlloy::relaxationTime() const {
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    dimensionedScalar result = sqr(iter().deltaA()) / iter().diffusion<1>() / iter().molarVolume();
+    dimensionedScalar result = sqr(iter().deltaA()) / iter().diffusion<1>();
     for (++iter; iter != components_.end(); ++iter) {
-        result += sqr(iter().deltaA()) / iter().diffusion<1>() / iter().molarVolume();
+        result += sqr(iter().deltaA()) / iter().diffusion<1>();
     }
     return result * factorL_ / interfaceEnergy_;
 }
@@ -71,9 +71,9 @@ dimensionedScalar multicomponentAlloy::capillaryLength() const {
 
 dimensionedScalar multicomponentAlloy::diffusionL() const {
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    dimensionedScalar result = sqr(iter().deltaA()) / iter().molarVolume();
+    dimensionedScalar result = sqr(iter().deltaA());
     for (++iter; iter != components_.end(); ++iter) {
-        result += sqr(iter().deltaA()) / iter().molarVolume();
+        result += sqr(iter().deltaA());
     }
     return result * factorL_ / relaxationTime() / interfaceEnergy_;
 }
@@ -83,11 +83,9 @@ tmp<volScalarField> multicomponentAlloy::chemicalDrivingForce(
     const volScalarField& T
 ) const {
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T))
-        / iter().molarVolume();
+    tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T));
     for (++iter; iter != components_.end(); ++iter) {
-        result() += iter().deltaA() * (iter() - iter().equilibrium(phase, T))
-            / iter().molarVolume();
+        result() += iter().deltaA() * (iter() - iter().equilibrium(phase, T));
     }
     return result() * factorL_ / partition(phase);
 }

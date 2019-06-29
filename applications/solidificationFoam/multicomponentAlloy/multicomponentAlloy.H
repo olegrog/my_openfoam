@@ -106,9 +106,9 @@ private:
     template<label Phase>
     dimensionedScalar calcFactor() const {
         PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-        dimensionedScalar result = iter().deltaA() / iter().slope<Phase>();
+        dimensionedScalar result = iter().deltaA() / iter().slope<Phase>() * iter().molarVolume();
         for (++iter; iter != components_.end(); ++iter) {
-            result += iter().deltaA() / iter().slope<Phase>();
+            result += iter().deltaA() / iter().slope<Phase>() * iter().molarVolume();
         }
         return dimensionedScalar(entropyChange_ / result);
     }

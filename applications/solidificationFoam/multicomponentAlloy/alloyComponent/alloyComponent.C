@@ -48,7 +48,7 @@ alloyComponent::alloyComponent(
     name_(name),
     alloyComponentDict_(alloyComponentDict),
     densityMelting_(alloyComponentDict_.lookup("densityMelting")),
-    atomicMass_(alloyComponentDict_.lookup("atomicMass")),
+    molarMass_(alloyComponentDict_.lookup("molarMass")),
     equilibriumS_(alloyComponentDict_.lookup("equilibriumS")),
     equilibriumL_(alloyComponentDict_.lookup("equilibriumL")),
     slopeS_(alloyComponentDict_.lookup("slopeS")),
