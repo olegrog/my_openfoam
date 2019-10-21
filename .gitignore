@@ -15,6 +15,13 @@ lnInclude*
 log*
 dynamicCode
 boundary
+[0-9]*
+*.gz
+*.foam
+
+# Results files
+*.vtk
+*.txt
 
 # Simulation directories
 _*

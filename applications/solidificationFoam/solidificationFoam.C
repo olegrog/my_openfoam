@@ -29,14 +29,12 @@ tmp<volScalarField> gPrime(const volScalarField& phase) {
 }
 
 tmp<volScalarField> generateSeed(
-    const volScalarField& coordX,
-    const volScalarField& coordY,
-    const dimensionedScalar& centerX,
-    const dimensionedScalar& centerY,
+    const volVectorField& coord,
+    const dimensionedVector& center,
     const dimensionedScalar& radius)
 {
     return min(
-        2 * Foam::exp(-sqr((mag(coordX - centerX) + mag(coordY - centerY)) / radius)),
+        2 * Foam::exp(-magSqr((coord - center) / radius)),
         scalar(1)
     );
 }
@@ -83,8 +81,7 @@ int main(int argc, char *argv[])
     const label nGrains = crystallographicAngles.size();
 
     // Coordinates-related constants and variables
-    const volScalarField coordX = mesh.C().component(vector::X);
-    const volScalarField coordY = mesh.C().component(vector::Y);
+    const volVectorField coord = mesh.C();
     const boundBox& bounds = mesh.bounds();
     const dimensionedScalar xmax("xmax", dimLength, bounds.max().x());
     const dimensionedScalar xmin("xmin", dimLength, bounds.min().x());
@@ -92,8 +89,7 @@ int main(int argc, char *argv[])
     const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
     const dimensionedScalar height("height", ymax - ymin);
     const dimensionedScalar width("width", xmax - xmin);
-    const dimensionedScalar centerX("centerX", (xmax + xmin) / 2);
-    const dimensionedScalar centerY("centerY", (ymax + ymin) / 2);
+    const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min()) / 2);
     const dimensionedScalar frontPosition = ymin + frontPositionRel * height;
     const dimensionedScalar initialWidth = interfaceWidth / interfaceNarrowing;
     dimensionedScalar tipPosition = frontPosition;
@@ -104,16 +100,21 @@ int main(int argc, char *argv[])
     /** Initial conditions */
 
     // phase + grain
-    phase = Foam::atan(pow3((frontPosition - coordY) / initialWidth)) / mathematicalConstant::pi + .5;
+    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y)) / initialWidth)) / mathematicalConstant::pi + .5;
     const dimensionedScalar radius = width / nSeeds / seedNarrowing;
     for (int i = 0; i < nSeeds; i++) {
-        phase += generateSeed(coordX, coordY, xmin + (i+.5)/nSeeds * width, frontPosition, radius);
+        dimensionedVector position = center;
+        position.replace(vector::X, xmin + (i+.5)/nSeeds * width);
+        position.replace(vector::Y, frontPosition);
+        phase += generateSeed(coord, position, radius);
     }
 
     phase = min(max(phase, scalar(0)), scalar(1));
-    addGrain(grain, phase * sign((coordX - centerX) / width), 1, nGrains);
+    addGrain(grain, phase * sign((coord.component(vector::X) - center.component(vector::X)) / width), 1, nGrains);
     if (addRandomSeeds) {
-        volScalarField seed = generateSeed(coordX, coordY, centerX, ymin/3 + 2*ymax/3, radius / 2);
+        dimensionedVector position = center;
+        position.replace(vector::Y, ymin/3 + 2*ymax/3);
+        volScalarField seed = generateSeed(coord, position, radius / 2);
         phase += seed;
         addGrain(grain, seed, 0, nGrains);
     }
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
     calcNGrain(nGrain, grain, nGrains);
 
     // temperature
-    T = alloy.liquidus() - undercooling + tempGradient * (coordY - ymin/3 - 2*ymax/3);
+    T = alloy.liquidus() - undercooling + tempGradient * (coord.component(vector::Y) - ymin/3 - 2*ymax/3);
 
     // concentrations
     forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
@@ -143,12 +144,16 @@ int main(int argc, char *argv[])
         << (interfaceWidth / alloy.capillaryLength()).value() << endl
         << " -- mesh step / interface width = "
         << (1./ interfaceWidth / Foam::max(mesh.surfaceInterpolation::deltaCoeffs())).value() << endl
+        << " -- theoretical tip velocity = "
+        << (tipVelocity * alloy.capillaryLength() / alloy.diffusionL()).value() << endl
         << " -- interface stability parameter = "
         << (alloy.diffusionL() * alloy.capillaryLength() / tipVelocity / sqr(interfaceWidth)).value() << nl << endl;
 
     Info<< "Dimensioned parameters:" << endl
         << " -- theoretical tip velocity (m/s) = "
         << tipVelocity.value() << endl
+        << " -- characteristic velocity (m/s) = "
+        << (alloy.diffusionL() / alloy.capillaryLength()).value() << endl
         << " -- relaxation time (s) = "
         << tau.value() << endl;
 
@@ -166,7 +171,7 @@ int main(int argc, char *argv[])
         tipPosition = ymin;
         forAll(phase, cellI) {
             if (phase[cellI] > .5) {
-                dimensionedScalar tipPositionNew = dimensionedScalar("y", dimLength, coordY[cellI])
+                dimensionedScalar tipPositionNew = dimensionedScalar("y", dimLength, coord[cellI].y())
                     + mathematicalConstant::pi * (phase[cellI] - .5) * interfaceWidth;
                 if (tipPositionNew > tipPosition) {
                     tipPosition = tipPositionNew;
@@ -176,11 +181,13 @@ int main(int argc, char *argv[])
         }
 
         if (tipCell != tipCellPrev) {
+            dimensionedScalar tipVelocity = (tipPosition - tipPositionPrev) / tipTimeInterval;
             Info<< "Tip position(m) = " << (tipPosition).value()
                 << " relative = " << ((tipPosition - ymin) / height).value()
-                << " tip velocity(m/s) = "
-                << ((tipPosition - tipPositionPrev) / tipTimeInterval).value()
-                << " tip undercooling(K) = " << T[tipCell]
+                << " tip velocity(m/s) = " << tipVelocity.value()
+                << " dimless = "
+                << (tipVelocity * alloy.capillaryLength() / alloy.diffusionL()).value()
+                << " tip undercooling(K) = " << alloy.liquidus().value() - T[tipCell]
                 << " relative = "
                 << alloy.undercooling(dimensionedScalar("T", dimTemperature, T[tipCell])).value()
                 << endl;
@@ -192,7 +199,7 @@ int main(int argc, char *argv[])
         /** Calculate temperature */
 
         T = alloy.liquidus() - undercooling
-            + tempGradient * (coordY - ymin/3 - 2*ymax/3)
+            + tempGradient * (coord.component(vector::Y) - ymin/3 - 2*ymax/3)
             - coolingRate * runTime;
 
         /** Adapt time step */

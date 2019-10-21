@@ -1,6 +1,6 @@
-EXE_INC = -g -O0 \
+EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude
 
-EXE_LIBS = -g -O0 \
+EXE_LIBS = \
     -lfiniteVolume
