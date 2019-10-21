@@ -97,17 +97,12 @@ tmp<volVectorField> calcNormal(const volVectorField& vField) {
 }
 
 tmp<volScalarField> generateBall(
-    const volScalarField& coordX,
-    const volScalarField& coordY,
-    const volScalarField& coordZ,
-    const dimensionedScalar& centerX,
-    const dimensionedScalar& centerY,
+    const volVectorField& coord,
+    const dimensionedVector& center,
     const dimensionedScalar& radius)
 {
     return min(
-        2 * Foam::exp(
-            - (sqr(coordX - centerX) + sqr(coordY - centerY) + sqr(coordZ - radius)) / sqr(radius)
-        ),
+        2 * Foam::exp(-magSqr((coord - center) / radius)),
         scalar(1)
     );
 }
@@ -140,17 +135,15 @@ int main(int argc, char *argv[])
         << endl;
 
     // -- Initial conditions
-    const volScalarField coordX = mesh.C().component(vector::X);
-    const volScalarField coordY = mesh.C().component(vector::Y);
-    const volScalarField coordZ = mesh.C().component(vector::Z);
-    const dimensionedScalar& R = ballRadius;
     Random random(123);
     for (int j = -2; j <= 2; j++) {
         for (int i = -2; i < nBalls-2; i++) {
-            alpha1 += generateBall(coordX, coordY, coordZ,
-                random.scalarAB(-1, 1)*R/2 + 2.7*R*i,
-                random.scalarAB(-1, 1)*R/2 + 2.7*R*j,
-            R);
+            const dimensionedScalar& R = ballRadius * (1 + 1e-1*random.scalarAB(-1, 1));
+            alpha1 += generateBall(mesh.C(), dimensionedVector("center", dimless, vector(
+                random.scalarAB(-1, 1)/2 + 2.7*i,
+                random.scalarAB(-1, 1)/2 + 2.7*j,
+                1
+            )) * R, R);
         }
     }
     alpha1 = min(max(alpha1, scalar(0)), scalar(1));
@@ -188,7 +181,7 @@ int main(int argc, char *argv[])
         volScalarField laserHeatSource = mag(fvc::grad(alpha1))
             * absorptivity * laserPower * gaussian(mesh.C(), laserCoordinate, laserRadius);
         volScalarField fusionTerm = fvc::laplacian(diffusivity * enthalpyFusion, liquidFraction);
-        
+
         fvScalarMatrix heEqn
         (
             fvm::ddt(rho, he)
