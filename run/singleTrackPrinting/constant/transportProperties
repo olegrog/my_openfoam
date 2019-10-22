@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  7  
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+phases (metal air);
+
+metal
+{
+    transportModel  Newtonian;
+    nu              8.21e-4; // for SS316L: 2.3852/T - 5.958e-4 // 5.2e-3 for Ti-6Al-4V;
+    rho             6.9e3;  // liquid SS316L
+}
+
+air
+{
+    transportModel  Newtonian;
+    nu              1.48e-05;
+    rho             1;
+}
+
+sigma            3.282; // for SS316L // 1.5 for Ti-6Al-4V;
+
+// ************************************************************************* //

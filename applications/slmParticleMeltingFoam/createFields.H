@@ -196,5 +196,9 @@ IOdictionary problemProperties(
 dimensionedScalar permeability(problemProperties.lookup("permeability"));
 dimensionedScalar marangoni(problemProperties.lookup("marangoni"));
 dimensionedScalar ballRadius(problemProperties.lookup("ballRadius"));
+dimensionedScalar molarMass(problemProperties.lookup("molarMass"));
+dimensionedScalar ambientPressure(problemProperties.lookup("ambientPressure"));
+
 label nBalls(problemProperties.lookupOrDefault<label>("nBalls", 0));
+scalar anisimov(problemProperties.lookupOrDefault<scalar>("anisimov", 0.54));
 
