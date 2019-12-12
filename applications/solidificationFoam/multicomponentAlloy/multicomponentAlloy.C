@@ -85,7 +85,7 @@ tmp<volScalarField> multicomponentAlloy::chemicalDrivingForce(
     PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
     tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T));
     for (++iter; iter != components_.end(); ++iter) {
-        result() += iter().deltaA() * (iter() - iter().equilibrium(phase, T));
+        result = result() + iter().deltaA() * (iter() - iter().equilibrium(phase, T));
     }
     return result() * factorL_ / partition(phase);
 }
