@@ -43,6 +43,8 @@ Description
 #include "CorrectPhi.H"
 #include "fvcSmooth.H"
 
+#include "../solidificationFoam/multicomponentAlloy/multicomponentAlloy.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class T>
@@ -117,6 +119,7 @@ int main(int argc, char *argv[])
     #include "initContinuityErrs.H"
     #include "createDyMControls.H"
     #include "createFields.H"
+    #include "createFieldRefs.H"
     #include "createAlphaFluxes.H"
     #include "initCorrectPhi.H"
     #include "createUfIfPresent.H"
@@ -131,7 +134,7 @@ int main(int argc, char *argv[])
 
     dimensionedScalar phi0 = tanhSmooth(T0, (T_solidus + T_liquidus)/2, (T_liquidus - T_solidus)/2);
     Info<< "Initial enthalpy: "
-        << enthalpyCalc(T0, phi0, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion)
+        << enthalpyCalc(T0, phi0, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion).value()
         << endl;
 
     // -- Initial conditions
@@ -147,8 +150,17 @@ int main(int argc, char *argv[])
         }
     }
     alpha1 = min(max(alpha1, scalar(0)), scalar(1));
-    liquidFraction = tanhSmooth(he, (he_solidus + he_liquidus)/2, (he_liquidus - he_solidus)/2);
     T = temperatureCalc(he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
+    runTime.writeNow();
+
+    // -- Initial conditions for concentrations
+    if (segregation) {
+        forAllIter(PtrDictionary<alloyComponent>, pAlloy->components(), iter) {
+            alloyComponent& C = iter();
+            C == C.equilibrium(0, pAlloy->liquidus());
+        }
+        runTime.writeNow();
+    }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -194,6 +206,7 @@ int main(int argc, char *argv[])
         heEqn.solve();
 
         liquidFraction = tanhSmooth(he, (he_solidus + he_liquidus)/2, (he_liquidus - he_solidus)/2);
+        wasMelted = max(wasMelted, liquidFraction);
         T = temperatureCalc(he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
 
         // --- Pressure-velocity PIMPLE corrector loop
@@ -238,6 +251,21 @@ int main(int argc, char *argv[])
                 }
             }
 
+            // -- Calculate concentrations
+            if (segregation) {
+                volScalarField phase = 1 - liquidFraction;
+                volScalarField h = pAlloy->partition(phase);
+                forAllIter(PtrDictionary<alloyComponent>, pAlloy->components(), iter) {
+                    alloyComponent& C = iter();
+                    surfaceScalarField phi = fvc::snGrad(phase) * mesh.magSf()
+                        * fvc::interpolate(C.diffusion(phase) / sqr(h)) * pAlloy->partitionPrime();
+                    fvScalarMatrix CEqn(
+                        fvm::ddt(C) == fvm::laplacian(C.diffusion(phase) / h, C) - fvm::div(phi, C)
+                        - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T) / h)
+                    );
+                    CEqn.solve();
+                }
+            }
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 

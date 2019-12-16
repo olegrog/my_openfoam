@@ -70,11 +70,19 @@ solvers
         tolerance       1e-6;
         relTol          0;
     }
+    "concentration.*"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-5;
+        relTol          0.01;
+    }
 }
 
 PIMPLE
 {
     momentumPredictor   no; //yes;
+    segregation         yes;
     nOuterCorrectors    1;
     nCorrectors         4;
     nNonOrthogonalCorrectors 0;

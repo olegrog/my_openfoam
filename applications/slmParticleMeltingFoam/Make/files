@@ -1,3 +1,5 @@
+../solidificationFoam/multicomponentAlloy/alloyComponent/alloyComponent.C
+../solidificationFoam/multicomponentAlloy/multicomponentAlloy.C
 slmParticleMeltingFoam.C
 
 EXE = $(FOAM_USER_APPBIN)/slmParticleMeltingFoam

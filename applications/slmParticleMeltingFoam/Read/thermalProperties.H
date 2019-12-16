@@ -25,4 +25,4 @@ dimensionedScalar T_solidus(thermalProperties.lookup("T_solidus"));
 dimensionedScalar T_liquidus(thermalProperties.lookup("T_liquidus"));
 dimensionedScalar T_boiling(thermalProperties.lookup("T_boiling"));
 dimensionedScalar enthalpyFusion(thermalProperties.lookup("enthalpyFusion"));
-dimensionedScalar enthalpyEvaporation(thermalProperties.lookup("enthalpyEvaporation"));
+dimensionedScalar enthalpyBoiling(thermalProperties.lookup("enthalpyBoiling"));

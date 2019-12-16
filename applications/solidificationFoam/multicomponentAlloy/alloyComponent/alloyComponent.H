@@ -97,6 +97,14 @@ public:
              + (equilibriumL_ + (T - meltingTemp_) / slopeL_) * (1 - phase);
     }
 
+    dimensionedScalar equilibrium(
+        const scalar phase,
+        const dimensionedScalar& T
+    ) const {
+        return (equilibriumS_ + (T - meltingTemp_) / slopeS_) * phase
+             + (equilibriumL_ + (T - meltingTemp_) / slopeL_) * (1 - phase);
+    }
+
     //- Return the diffusion coefficient
     tmp<volScalarField> diffusion(const volScalarField& phase) const {
         return diffusionS_ * phase + diffusionL_ * (1 - phase);

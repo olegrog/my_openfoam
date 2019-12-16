@@ -99,6 +99,18 @@ volScalarField& alpha2(mixture.alpha2());
 const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
 
+volScalarField wasMelted
+(
+    IOobject
+    (
+        "wasMelted",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    liquidFraction
+);
 
 // Need to store rho for ddt(rho, U)
 volScalarField rho
@@ -199,6 +211,26 @@ dimensionedScalar ballRadius(problemProperties.lookup("ballRadius"));
 dimensionedScalar molarMass(problemProperties.lookup("molarMass"));
 dimensionedScalar ambientPressure(problemProperties.lookup("ambientPressure"));
 
-label nBalls(problemProperties.lookupOrDefault<label>("nBalls", 0));
-scalar anisimov(problemProperties.lookupOrDefault<scalar>("anisimov", 0.54));
+Switch segregation(
+    pimple.dict().lookupOrDefault<Switch>("segregation", false)
+);
+autoPtr<multicomponentAlloy> pAlloy;
+if (segregation) {
+    // This field is necessary for creating multicomponentAlloy
+    volScalarField phase
+    (
+        IOobject
+        (
+            "phase",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh, dimless, zeroGradientFvPatchField<scalar>::typeName
+    );
+
+    Info<< "Reading alloyProperties\n" << endl;
+    pAlloy = new multicomponentAlloy(mesh);
+}
 

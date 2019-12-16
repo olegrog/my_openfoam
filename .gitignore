@@ -1,4 +1,5 @@
 # Compilation files
+*.o
 *.dep
 darwin*
 linux*

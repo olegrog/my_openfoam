@@ -1,7 +1,7 @@
     MRF.correctBoundaryVelocity(U);
 
     volVectorField normal("normal", fvc::reconstruct(mixture.nHatf()));
-    dimensionedScalar evapor = enthalpyEvaporation * molarMass / constant::physicoChemical::R;
+    dimensionedScalar evapor = enthalpyBoiling * molarMass / constant::physicoChemical::R;
 
     fvVectorMatrix UEqn
     (

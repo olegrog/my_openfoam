@@ -33,15 +33,15 @@ Cp_liq          Cp_liq [ 0 2 -2 -1 0 0 0 ] 830;
 
 dCp_liq         dCp_liq [ 0 2 -2 -2 0 0 0 ] 1e-06;
 
-T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1100;
+T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1648;
 
-T_liquidus      T_liquidus [ 0 0 0 1 0 0 0 ] 1683;
+T_liquidus      T_liquidus [ 0 0 0 1 0 0 0 ] 1673;
 
 T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3086;
 
 enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 268000;
 
-enthalpyEvaporation enthalpyEvaporation [ 0 2 -2 0 0 0 0 ] 7.41e+06;
+enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+06;
 
 
 // ************************************************************************* //
