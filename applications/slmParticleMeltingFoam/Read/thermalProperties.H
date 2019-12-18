@@ -8,7 +8,7 @@ IOdictionary thermalProperties
         runTime.constant(),
         mesh,
         IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
+        IOobject::NO_WRITE
     )
 );
 

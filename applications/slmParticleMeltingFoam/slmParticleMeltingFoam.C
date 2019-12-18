@@ -98,17 +98,6 @@ tmp<volVectorField> calcNormal(const volVectorField& vField) {
     return (vField + smallVector) / mag(vField + smallVector);
 }
 
-tmp<volScalarField> generateBall(
-    const volVectorField& coord,
-    const dimensionedVector& center,
-    const dimensionedScalar& radius)
-{
-    return min(
-        2 * Foam::exp(-magSqr((coord - center) / radius)),
-        scalar(1)
-    );
-}
-
 int main(int argc, char *argv[])
 {
     #include "postProcess.H"
@@ -137,21 +126,7 @@ int main(int argc, char *argv[])
         << enthalpyCalc(T0, phi0, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion).value()
         << endl;
 
-    // -- Initial conditions
-    Random random(123);
-    for (int j = -2; j <= 2; j++) {
-        for (int i = -2; i < nBalls-2; i++) {
-            const dimensionedScalar& R = ballRadius * (1 + 1e-1*random.scalarAB(-1, 1));
-            alpha1 += generateBall(mesh.C(), dimensionedVector("center", dimless, vector(
-                random.scalarAB(-1, 1)/2 + 2.7*i,
-                random.scalarAB(-1, 1)/2 + 2.7*j,
-                1
-            )) * R, R);
-        }
-    }
-    alpha1 = min(max(alpha1, scalar(0)), scalar(1));
     T = temperatureCalc(he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
-    runTime.writeNow();
 
     // -- Initial conditions for concentrations
     if (segregation) {
@@ -159,7 +134,6 @@ int main(int argc, char *argv[])
             alloyComponent& C = iter();
             C == C.equilibrium(0, pAlloy->liquidus());
         }
-        runTime.writeNow();
     }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -184,7 +158,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Temperature equation //
+        // --- Temperature equation
         volScalarField Cp = fourParameterModel(liquidFraction, T, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T0);
         volScalarField k = fourParameterModel(liquidFraction, T, k_sol, k_liq, dk_sol, dk_liq, T0) * alpha1;
         diffusivity = k / Cp;

@@ -38,7 +38,7 @@ volScalarField he
         "he",
         runTime.timeName(),
         mesh,
-        IOobject::READ_IF_PRESENT,
+        IOobject::MUST_READ,
         IOobject::AUTO_WRITE
     ),
     enthalpyCalc(T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion)
@@ -207,7 +207,6 @@ IOdictionary problemProperties(
 );
 dimensionedScalar permeability(problemProperties.lookup("permeability"));
 dimensionedScalar marangoni(problemProperties.lookup("marangoni"));
-dimensionedScalar ballRadius(problemProperties.lookup("ballRadius"));
 dimensionedScalar molarMass(problemProperties.lookup("molarMass"));
 dimensionedScalar ambientPressure(problemProperties.lookup("ambientPressure"));
 

@@ -22,7 +22,6 @@ defaultFieldValues
 
 high 1e5;
 low -1e5;
-powderLayer 0;//4e-5;
 
 regions
 (
@@ -32,14 +31,6 @@ regions
         fieldValues
         (
             volScalarFieldValue alpha.metal 1
-        );
-    }
-    boxToCell
-    {
-        box ($low $low 0) ($high $high $powderLayer);
-        fieldValues
-        (
-            volScalarFieldValue alpha.metal 0.5
         );
     }
 );
