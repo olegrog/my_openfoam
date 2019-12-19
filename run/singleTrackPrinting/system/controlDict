@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     slmParticleMeltingFoam;
+application     slmMeltPoolFoam;
 
 startFrom       startTime;
 
