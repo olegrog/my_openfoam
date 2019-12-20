@@ -30,6 +30,19 @@ volScalarField liquidFraction
     tanhSmooth(T, (T_solidus + T_liquidus)/2, (T_liquidus - T_solidus)/2)
 );
 
+volScalarField wasMelted
+(
+    IOobject
+    (
+        "wasMelted",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    liquidFraction
+);
+
 Info << "Reading field he\n" << endl;
 volScalarField he
 (
@@ -41,8 +54,10 @@ volScalarField he
         IOobject::MUST_READ,
         IOobject::AUTO_WRITE
     ),
-    enthalpyCalc(T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion)
+    mesh
 );
+// Read only boundary conditions
+he = enthalpyCalc(T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
 
 volScalarField diffusivity
 (
@@ -93,24 +108,20 @@ volVectorField U
 Info<< "Reading transportProperties\n" << endl;
 immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
 
+autoPtr<Function1<scalar>> pSigma = Function1<scalar>::New("sigma", mixture.subDict("sigma"));
+dimensionedScalar dsigma_dT
+(
+    "dsigma_dT",
+    mixture.sigmaK()().dimensions() / dimTemperature * dimLength,
+    pSigma->value(1) - pSigma->value(0)
+);
+Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() << ")*T" << endl;
+
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 
 const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
-
-volScalarField wasMelted
-(
-    IOobject
-    (
-        "wasMelted",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    liquidFraction
-);
 
 // Need to store rho for ddt(rho, U)
 volScalarField rho
@@ -206,7 +217,6 @@ IOdictionary problemProperties(
     )
 );
 dimensionedScalar permeability(problemProperties.lookup("permeability"));
-dimensionedScalar marangoni(problemProperties.lookup("marangoni"));
 dimensionedScalar molarMass(problemProperties.lookup("molarMass"));
 dimensionedScalar ambientPressure(problemProperties.lookup("ambientPressure"));
 

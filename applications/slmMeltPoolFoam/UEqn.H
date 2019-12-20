@@ -1,6 +1,7 @@
     MRF.correctBoundaryVelocity(U);
 
     volVectorField normal("normal", fvc::reconstruct(mixture.nHatf()));
+    volTensorField I_nn("I_nn", tensor::one - normal*normal);
     dimensionedScalar evapor = enthalpyBoiling * molarMass / constant::physicoChemical::R;
 
     fvVectorMatrix UEqn
@@ -11,7 +12,7 @@
       + fvm::Sp(permeability * sqr(1-liquidFraction) / pow(liquidFraction + SMALL, 3) * alpha1, U)
      ==
         fvOptions(rho, U)
-      + mag(fvc::grad(alpha1)) * marangoni * (fvc::grad(T) - normal * (normal & fvc::grad(T)))
+      + dsigma_dT * mag(fvc::grad(alpha1)) * (fvc::grad(T) & I_nn)
 //      - anisimov * ambientPressure * evapor * fvc::snGrad(T) *
 //        fvc::interpolate(exp(evapor * alpha1 * (1./T_boiling - 1./T)) / sqr(T))
     );
