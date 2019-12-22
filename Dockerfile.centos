@@ -1,0 +1,12 @@
+FROM openfoamplus/of_v1906_centos73:latest
+
+RUN yum install -y epel-release \
+ && yum install -y ack colordiff gdb git less mlocate source-highlight vim \
+ && yum clean all \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN updatedb
+
+RUN echo "source /opt/OpenFOAM/setImage_v1906.sh" >> /etc/profile.d/openfoam.sh
+RUN curl https://raw.githubusercontent.com/tpope/vim-pathogen/master/autoload/pathogen.vim \
+    > /usr/share/vim/vimfiles/autoload/pathogen.vim

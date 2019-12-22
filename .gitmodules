@@ -1,0 +1,3 @@
+[submodule ".vim/bundle/vimextensionopenfoam"]
+	path = .vim/bundle/vimextensionopenfoam
+	url = https://bitbucket.org/shor-ty/vimextensionopenfoam.git
