@@ -12,17 +12,17 @@ IOdictionary thermalProperties
     )
 );
 
-dimensionedScalar T0(thermalProperties.lookup("T0"));
-dimensionedScalar k_sol(thermalProperties.lookup("k_sol"));
-dimensionedScalar dk_sol(thermalProperties.lookup("dk_sol"));
-dimensionedScalar k_liq(thermalProperties.lookup("k_liq"));
-dimensionedScalar dk_liq(thermalProperties.lookup("dk_liq"));
-dimensionedScalar Cp_sol(thermalProperties.lookup("Cp_sol"));
-dimensionedScalar dCp_sol(thermalProperties.lookup("dCp_sol"));
-dimensionedScalar Cp_liq(thermalProperties.lookup("Cp_liq"));
-dimensionedScalar dCp_liq(thermalProperties.lookup("dCp_liq"));
-dimensionedScalar T_solidus(thermalProperties.lookup("T_solidus"));
-dimensionedScalar T_liquidus(thermalProperties.lookup("T_liquidus"));
-dimensionedScalar T_boiling(thermalProperties.lookup("T_boiling"));
-dimensionedScalar enthalpyFusion(thermalProperties.lookup("enthalpyFusion"));
-dimensionedScalar enthalpyBoiling(thermalProperties.lookup("enthalpyBoiling"));
+dimensionedScalar T0("T0", thermalProperties);
+dimensionedScalar k_sol("k_sol", thermalProperties);
+dimensionedScalar dk_sol("dk_sol", thermalProperties);
+dimensionedScalar k_liq("k_liq", thermalProperties);
+dimensionedScalar dk_liq("dk_liq", thermalProperties);
+dimensionedScalar Cp_sol("Cp_sol", thermalProperties);
+dimensionedScalar dCp_sol("dCp_sol", thermalProperties);
+dimensionedScalar Cp_liq("Cp_liq", thermalProperties);
+dimensionedScalar dCp_liq("dCp_liq", thermalProperties);
+dimensionedScalar T_solidus("T_solidus", thermalProperties);
+dimensionedScalar T_liquidus("T_liquidus", thermalProperties);
+dimensionedScalar T_boiling("T_boiling", thermalProperties);
+dimensionedScalar enthalpyFusion("enthalpyFusion", thermalProperties);
+dimensionedScalar enthalpyBoiling("enthalpyBoiling", thermalProperties);

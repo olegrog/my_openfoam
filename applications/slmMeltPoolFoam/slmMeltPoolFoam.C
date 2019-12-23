@@ -20,7 +20,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Description
-    Solver for macroscopic model of SLM based on interFoam.
+    Solver for thermo-fluid-dynamic model of SLM based on interFoam.
 
 \*---------------------------------------------------------------------------*/
 
@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
 {
     #include "postProcess.H"
 
+    #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
     #include "createDynamicFvMesh.H"
@@ -149,39 +150,20 @@ int main(int argc, char *argv[])
             #include "setDeltaT.H"
         }
 
-        runTime++;
+        ++runTime;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Temperature equation
-        volScalarField Cp = fourParameterModel(liquidFraction, T, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T0);
-        volScalarField k = fourParameterModel(liquidFraction, T, k_sol, k_liq, dk_sol, dk_liq, T0) * alpha1;
-        diffusivity = k / Cp;
+        #include "heEqn.H"
 
-        dimensionedVector laserCoordinate("laserCoordinate", coordStart + laserVelocity * mesh.time());
-        volScalarField laserHeatSource = mag(fvc::grad(alpha1))
-            * absorptivity * laserPower * gaussian(mesh.C(), laserCoordinate, laserRadius);
-        volScalarField fusionTerm = fvc::laplacian(diffusivity * enthalpyFusion, liquidFraction);
-
-        fvScalarMatrix heEqn
-        (
-            fvm::ddt(rho, he)
-            + fvm::div(rhoPhi, he)
-            - fvm::laplacian(diffusivity, he)
-            - fvc::div(rho * U & turbulence->devReff())
-            - (runTime < timeStop) * laserHeatSource
-            + fusionTerm
-        );
-        heEqn.solve();
-
-        liquidFraction = tanhSmooth(he, (he_solidus + he_liquidus)/2, (he_liquidus - he_solidus)/2);
-        wasMelted = max(wasMelted, liquidFraction);
-        T = temperatureCalc(he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
+        if (segregation) {
+            #include "CEqn.H"
+        }
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            if (pimple.firstPimpleIter() || moveMeshOuterCorrectors)
+            if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
                 mesh.update();
 
@@ -209,9 +191,10 @@ int main(int argc, char *argv[])
 
                         // Make the flux relative to the mesh motion
                         fvc::makeRelative(phi, U);
+
+                        mixture.correct();
                     }
 
-                    mixture.correct();
 
                     if (checkMeshCourantNo)
                     {
@@ -220,25 +203,15 @@ int main(int argc, char *argv[])
                 }
             }
 
-            // -- Calculate concentrations
-            if (segregation) {
-                volScalarField phase = 1 - liquidFraction;
-                volScalarField h = pAlloy->partition(phase);
-                forAllIter(PtrDictionary<alloyComponent>, pAlloy->components(), iter) {
-                    alloyComponent& C = iter();
-                    surfaceScalarField phi = fvc::snGrad(phase) * mesh.magSf()
-                        * fvc::interpolate(C.diffusion(phase) / sqr(h)) * pAlloy->partitionPrime();
-                    fvScalarMatrix CEqn(
-                        fvm::ddt(C) == fvm::laplacian(C.diffusion(phase) / h, C) - fvm::div(phi, C)
-                        - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T) / h)
-                    );
-                    CEqn.solve();
-                }
-            }
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
+
+            if (pimple.frozenFlow())
+            {
+                continue;
+            }
 
             #include "UEqn.H"
 
@@ -256,9 +229,7 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
+        runTime.printExecutionTime(Info);
     }
 
     Info<< "End\n" << endl;

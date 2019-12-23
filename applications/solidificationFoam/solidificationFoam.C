@@ -41,7 +41,7 @@ tmp<volScalarField> generateSeed(
 
 void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains) {
     forAll(grain, cellI) {
-        scalar argument = 2 * mathematicalConstant::pi * sign(phase[cellI]) * nGrain / nGrains;
+        scalar argument = 2 * constant::mathematical::pi * sign(phase[cellI]) * nGrain / nGrains;
         scalar magnitude = fabs(phase[cellI]);
         grain[cellI].x() += magnitude * Foam::cos(argument);
         grain[cellI].y() += magnitude * Foam::sin(argument);
@@ -51,7 +51,7 @@ void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, 
 void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains) {
     forAll(grain, cellI) {
         nGrain[cellI] = Foam::atan2(grain[cellI].y(), grain[cellI].x())
-            / 2 / mathematicalConstant::pi * nGrains;
+            / 2 / constant::mathematical::pi * nGrains;
     }
 }
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     /** Initial conditions */
 
     // phase + grain
-    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y)) / initialWidth)) / mathematicalConstant::pi + .5;
+    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y)) / initialWidth)) / constant::mathematical::pi + .5;
     const dimensionedScalar radius = width / nSeeds / seedNarrowing;
     for (int i = 0; i < nSeeds; i++) {
         dimensionedVector position = center;
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         forAll(phase, cellI) {
             if (phase[cellI] > .5) {
                 dimensionedScalar tipPositionNew = dimensionedScalar("y", dimLength, coord[cellI].y())
-                    + mathematicalConstant::pi * (phase[cellI] - .5) * interfaceWidth;
+                    + constant::mathematical::pi * (phase[cellI] - .5) * interfaceWidth;
                 if (tipPositionNew > tipPosition) {
                     tipPosition = tipPositionNew;
                     tipCell = cellI;
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
                     - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T) / h)
                     + fvc::div(interfaceWidth / Foam::sqrt(2.) * C.deltaA() * normal * fvc::ddt(phase))
                 );
-                CEqn.solve(mesh.solutionDict().solver("concentration"));
+                CEqn.solve(mesh.solverDict("concentration"));
             }
         }
 
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
         fvVectorMatrix grainEqn(
             tau * fvm::ddt(grain) + a3 * phase * (
                 gNormal * (mag(grain) - 1)
-                + gTangent * sin(2 * mathematicalConstant::pi * nGrain)
+                + gTangent * sin(2 * constant::mathematical::pi * nGrain)
             ) == a4 * pow3(interfaceWidth) * fvm::laplacian(mag(fvc::grad(phase)), grain)
         );
         grainEqn.solve();
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
         calcNGrain(nGrain, grain, nGrains);
         forAll(theta0, cellI) {
             theta0[cellI] = crystallographicAngles.lookupOrDefault(name(lround(nGrain[cellI])), 0)
-                * mathematicalConstant::pi / 180;
+                * constant::mathematical::pi / 180;
         }
 
         /** Finalize iteration */

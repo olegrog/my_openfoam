@@ -13,6 +13,7 @@ if [[ "$1" == "-parallel" ]]; then
     runApplication reconstructPar
 else
     runApplication blockMesh
+    cp 0/alpha.metal.orig 0/alpha.metal
     runApplication setFields
     runApplication generatePowderBed alpha.metal
     runApplication $application

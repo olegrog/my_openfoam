@@ -47,14 +47,14 @@ alloyComponent::alloyComponent(
     ),
     name_(name),
     alloyComponentDict_(alloyComponentDict),
-    densityMelting_(alloyComponentDict_.lookup("densityMelting")),
-    molarMass_(alloyComponentDict_.lookup("molarMass")),
-    equilibriumS_(alloyComponentDict_.lookup("equilibriumS")),
-    equilibriumL_(alloyComponentDict_.lookup("equilibriumL")),
-    slopeS_(alloyComponentDict_.lookup("slopeS")),
-    slopeL_(alloyComponentDict_.lookup("slopeL")),
-    diffusionS_(alloyComponentDict_.lookup("diffusionS")),
-    diffusionL_(alloyComponentDict_.lookup("diffusionL")),
+    densityMelting_("densityMelting", alloyComponentDict_),
+    molarMass_("molarMass", alloyComponentDict_),
+    equilibriumS_("equilibriumS", alloyComponentDict_),
+    equilibriumL_("equilibriumL", alloyComponentDict_),
+    slopeS_("slopeS", alloyComponentDict_),
+    slopeL_("slopeL", alloyComponentDict_),
+    diffusionS_("diffusionS", alloyComponentDict_),
+    diffusionL_("diffusionL", alloyComponentDict_),
     meltingTemp_(meltingTemp)
 {}
 
@@ -63,7 +63,7 @@ alloyComponent::alloyComponent(
 autoPtr<alloyComponent> alloyComponent::clone() const
 {
     notImplemented("alloyComponent::clone() const");
-    return autoPtr<alloyComponent>(NULL);
+    return autoPtr<alloyComponent>();
 }
 
 } // End namespace Foam

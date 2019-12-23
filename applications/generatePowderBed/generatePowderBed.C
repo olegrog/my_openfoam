@@ -43,12 +43,12 @@ tmp<volScalarField> generateBall(
 
 int main(int argc, char *argv[])
 {
-    argList::validArgs.append("field");
+    argList::addArgument("field");
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createNamedMesh.H"
 
-    word alphaName = args.argRead<word>(1);
+    word alphaName = args.get<word>(1);
 
     // -- Read an alpha field
     Info<< "Reading field " << alphaName << endl;
@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
         )
     );
 
-    dimensionedScalar ballRadius(powderBedProperties.lookup("ballRadius"));
-    dimensionedScalar substratePosition(powderBedProperties.lookup("substratePosition"));
+    dimensionedScalar ballRadius("ballRadius", powderBedProperties);
+    dimensionedScalar substratePosition("substratePosition", powderBedProperties);
 
     label seed(powderBedProperties.lookupOrDefault<label>("seed", 0));
     scalar amplitudeRadius(powderBedProperties.lookupOrDefault<scalar>("amplitudeRadius", 0));
@@ -89,17 +89,17 @@ int main(int argc, char *argv[])
     Random random(seed);
     for (int j = -2; j <= 2; j++) {
         for (int i = -2; i < 15-2; i++) {
-            const dimensionedScalar& R = ballRadius * (1 + amplitudeRadius * random.scalarAB(-1, 1));
+            const dimensionedScalar& R = ballRadius * (1 + amplitudeRadius * random.position(-1, 1));
             alpha += generateBall(mesh.C(), dimensionedVector("center", dimless, vector(
-                amplitudePosition * random.scalarAB(-1, 1) + latticeStep*i,
-                amplitudePosition * random.scalarAB(-1, 1) + latticeStep*j,
+                amplitudePosition * random.position(-1, 1) + latticeStep*i,
+                amplitudePosition * random.position(-1, 1) + latticeStep*j,
                 (substratePosition/R).value() + 1
             )) * R, R);
         }
     }
-    //alpha = min(max(alpha, scalar(0)), scalar(1));
+    alpha = min(max(alpha, scalar(0)), scalar(1));
 
-    Info<< "Writing field" << alphaName << endl;
+    Info<< "Writing field " << alphaName << endl;
     alpha.write();
 
     Info<< "\nEnd\n" << endl;

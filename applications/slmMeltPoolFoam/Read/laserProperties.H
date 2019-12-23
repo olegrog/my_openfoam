@@ -12,9 +12,9 @@ IOdictionary laserProperties
     )
 );
 
-dimensionedScalar laserPower(laserProperties.lookup("laserPower"));
-dimensionedScalar absorptivity(laserProperties.lookup("absorptivity"));
-dimensionedVector laserVelocity(laserProperties.lookup("laserVelocity"));
-dimensionedScalar laserRadius(laserProperties.lookup("laserRadius"));
-dimensionedVector coordStart(laserProperties.lookup("coordStart"));
-dimensionedScalar timeStop(laserProperties.lookup("timeStop"));
+dimensionedScalar laserPower("laserPower", laserProperties);
+dimensionedScalar absorptivity("absorptivity", laserProperties);
+dimensionedVector laserVelocity("laserVelocity", laserProperties);
+dimensionedScalar laserRadius("laserRadius", laserProperties);
+dimensionedVector coordStart("coordStart", laserProperties);
+dimensionedScalar timeStop("timeStop", laserProperties);

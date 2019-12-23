@@ -107,8 +107,12 @@ volVectorField U
 
 Info<< "Reading transportProperties\n" << endl;
 immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
+dimensionedScalar permeability("permeability", mixture);
 
-autoPtr<Function1<scalar>> pSigma = Function1<scalar>::New("sigma", mixture.subDict("sigma"));
+autoPtr<Function1<scalar>> pSigma
+(
+    Function1<scalar>::New("sigma", mixture.subDict("sigma"))
+);
 dimensionedScalar dsigma_dT
 (
     "dsigma_dT",
@@ -203,6 +207,20 @@ if (p_rgh.needReference())
 mesh.setFluxRequired(p_rgh.name());
 mesh.setFluxRequired(alpha1.name());
 
+// MULES compressed flux is registered in case scalarTransport FO needs it.
+surfaceScalarField alphaPhiUn
+(
+    IOobject
+    (
+        "alphaPhiUn",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar(phi.dimensions(), Zero)
+);
 #include "createMRF.H"
 #include "createFvOptions.H"
 
@@ -216,9 +234,8 @@ IOdictionary problemProperties(
         IOobject::NO_WRITE
     )
 );
-dimensionedScalar permeability(problemProperties.lookup("permeability"));
-dimensionedScalar molarMass(problemProperties.lookup("molarMass"));
-dimensionedScalar ambientPressure(problemProperties.lookup("ambientPressure"));
+dimensionedScalar molarMass("molarMass", problemProperties);
+dimensionedScalar ambientPressure("ambientPressure", problemProperties);
 
 Switch segregation(
     pimple.dict().lookupOrDefault<Switch>("segregation", false)
@@ -240,6 +257,6 @@ if (segregation) {
     );
 
     Info<< "Reading alloyProperties\n" << endl;
-    pAlloy = new multicomponentAlloy(mesh);
+    pAlloy = autoPtr<multicomponentAlloy>::New(mesh);
 }
 

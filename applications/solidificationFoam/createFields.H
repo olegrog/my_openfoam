@@ -82,7 +82,7 @@
         )
     );
 
-    dimensionedScalar interfaceWidth(phaseFieldProperties.lookup("interfaceWidth"));
+    dimensionedScalar interfaceWidth("interfaceWidth", phaseFieldProperties);
 
     scalar a1(phaseFieldProperties.lookupOrDefault<scalar>("a1", Foam::sqrt(2.)/6));
     scalar a2(phaseFieldProperties.lookupOrDefault<scalar>("a2", 2.35));
@@ -103,9 +103,9 @@
         )
     );
 
-    dimensionedScalar undercooling(problemProperties.lookup("undercooling"));
-    dimensionedScalar tempGradient(problemProperties.lookup("tempGradient"));
-    dimensionedScalar coolingRate(problemProperties.lookup("coolingRate"));
+    dimensionedScalar undercooling("undercooling", problemProperties);
+    dimensionedScalar tempGradient("tempGradient", problemProperties);
+    dimensionedScalar coolingRate("coolingRate", problemProperties);
 
     scalar frontPositionRel(problemProperties.lookupOrDefault<scalar>("frontPosition", 0));
     scalar interfaceNarrowing(problemProperties.lookupOrDefault<scalar>("interfaceNarrowing", 1));

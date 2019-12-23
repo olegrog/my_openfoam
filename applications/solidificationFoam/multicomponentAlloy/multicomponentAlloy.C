@@ -40,10 +40,10 @@ multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh) :
             IOobject::NO_WRITE
         )
     ),
-    entropyChange_(lookup("entropyChange")),
-    interfaceEnergy_(lookup("interfaceEnergy")),
-    solidus_(lookup("solidus")),
-    liquidus_(lookup("liquidus")),
+    entropyChange_(get<dimensionedScalar>("entropyChange")),
+    interfaceEnergy_(get<dimensionedScalar>("interfaceEnergy")),
+    solidus_(get<dimensionedScalar>("solidus")),
+    liquidus_(get<dimensionedScalar>("liquidus")),
     components_(lookup("components"), alloyComponent::iNew(mesh, liquidus_)),
     factorS_(calcFactor<0>()),
     factorL_(calcFactor<1>())

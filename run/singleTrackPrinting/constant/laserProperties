@@ -18,7 +18,7 @@ FoamFile
 laserPower      laserPower [ 1 2 -3 0 0 0 0 ] 100;
 absorptivity    absorptivity [ 0 0 0 0 0 0 0 ] 0.5;
 laserRadius     laserRadius [ 0 1 0 0 0 0 0 ] 2.7e-05;
-laserVelocity   laserVelocity [ 0 1 -1 0 0 0 0 ] ( 0.75 0 0 );
+laserVelocity   laserVelocity [ 0 1 -1 0 0 0 0 ] ( 0.5 0 0 );
 coordStart      coordStart [ 0 1 0 0 0 0 0 ] ( 0 0 0 );
 timeStop        timeStop [ 0 0 1 0 0 0 0 ] 0.001;
 
