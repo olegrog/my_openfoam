@@ -24,7 +24,7 @@ export HISTCONTROL="ignorespace:erasedups"
 shopt -s histappend
 
 # Colorize less output
-export LESSOPEN="| $(which source-highlight) -i %s -f esc"
+export LESSOPEN="| $(which source-highlight) -i %s -f esc256 --style-file esc256.style"
 export LESS=" -R"
 
 # Search among OpenFOAM source

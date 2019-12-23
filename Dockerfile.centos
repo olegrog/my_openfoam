@@ -1,12 +1,21 @@
 FROM openfoamplus/of_v1906_centos73:latest
 
+# boost-devel is used to build source-highlight from source
 RUN yum install -y epel-release \
- && yum install -y ack colordiff gdb git less mlocate source-highlight vim \
+ && yum install -y ack colordiff gdb git less mlocate boost-devel vim \
  && yum clean all \
  && rm -rf /var/lib/apt/lists/*
 
-RUN updatedb
-
 RUN echo "source /opt/OpenFOAM/setImage_v1906.sh" >> /etc/profile.d/openfoam.sh
+
 RUN curl https://raw.githubusercontent.com/tpope/vim-pathogen/master/autoload/pathogen.vim \
     > /usr/share/vim/vimfiles/autoload/pathogen.vim
+
+ARG source_highlight="source-highlight-3.1.8"
+RUN wget ftp://ftp.gnu.org/gnu/src-highlite/"$source_highlight".tar.gz \
+ && tar xf "$source_highlight".tar.gz \
+ && cd "$source_highlight" \
+ && ./configure && make -j2 && make install \
+ && cd .. && rm -r "$source_highlight"*
+
+RUN updatedb
