@@ -17,19 +17,19 @@ FoamFile
 
 application     slmMeltPoolFoam;
 
-startFrom       startTime;
+startFrom       latestTime;
 
 startTime       0;
 
 stopAt          endTime;
 
-endTime         2e-3;//1;
+endTime         2e-3;
 
 deltaT          2e-5;
 
-writeControl    adjustableRunTime;
+writeControl    adjustableRunTime;  // use timeStep for debug
 
-writeInterval   4e-5;
+writeInterval   4e-5;               // use 1 for debug
 
 purgeWrite      0;
 

@@ -17,6 +17,7 @@
     prompt = false
 
 [alias]
+    d = diff
     co = checkout
     up = !git submodule update --init --recursive
     st = status -suno

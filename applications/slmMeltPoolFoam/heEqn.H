@@ -2,11 +2,13 @@
     volScalarField Cp = fourParameterModel(liquidFraction, T, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T0);
     volScalarField k = fourParameterModel(liquidFraction, T, k_sol, k_liq, dk_sol, dk_liq, T0) * alpha1;
     diffusivity = k / Cp;
+    vector beamDirection(0, 0, -1);
 
     dimensionedVector laserCoordinate("laserCoordinate", coordStart + laserVelocity * mesh.time());
-    tmp<volScalarField> laserHeatSource = mag(fvc::grad(alpha1))
+    tmp<volScalarField> laserHeatSource = mag(fvc::grad(alpha1) & beamDirection)
         * absorptivity * laserPower * gaussian(mesh.C(), laserCoordinate, laserRadius);
     tmp<volScalarField> fusionTerm = fvc::laplacian(diffusivity * enthalpyFusion, liquidFraction);
+    dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
 
     fvScalarMatrix heEqn
     (
@@ -19,9 +21,12 @@
     );
     heEqn.solve();
 
+    Info<< "Energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
+        << ", laser energy = " << (absorptivity * laserPower * runTime.deltaT()).value()
+        << endl;
+
+    // Update other variables
     liquidFraction = tanhSmooth(he, (he_solidus + he_liquidus)/2, (he_liquidus - he_solidus)/2);
     wasMelted = max(wasMelted, liquidFraction);
     T = temperatureCalc(he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
 }
-
-

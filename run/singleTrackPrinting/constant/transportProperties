@@ -20,7 +20,7 @@ phases (metal air);
 metal
 {
     transportModel  Newtonian;
-    nu              8.21e-4; // 5.2e-3 for Ti-6Al-4V;
+    nu              6.145e-3;
     rho             6.9e3;
 }
 
