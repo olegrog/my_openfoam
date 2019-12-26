@@ -20,4 +20,6 @@ EXE_LIBS = \
     -ldynamicFvMesh \
     -ltopoChangerFvMesh \
     -lfvOptions \
-    -lmeshTools
+    -lmeshTools \
+    -L$(FOAM_USER_LIBBIN) \
+    -ltrueArrhenius

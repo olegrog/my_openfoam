@@ -19,7 +19,12 @@ phases (metal air);
 
 metal
 {
-    transportModel  Newtonian;
+    transportModel  trueArrheniusNewtonian;
+    trueArrhenius<Newtonian>Coeffs
+    {
+        alpha       5484;
+        Talpha      1673;
+    };
     nu              6.145e-3;
     rho             6.9e3;
 }

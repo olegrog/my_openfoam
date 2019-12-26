@@ -1,12 +1,15 @@
 colorscheme ron
-set ts=4 sw=4 sts=4 et ai
 set hlsearch
+set ts=4 sw=4 sts=4 et ai
+filetype plugin indent on
 
 "- Colorize OpenFOAM case files
 execute pathogen#infect()
-filetype plugin indent on
 let g:foam256_use_custom_colors=1
 set t_Co=256
+
+"- Highlight long lines
+autocmd FileType python,c,cpp,sh set colorcolumn=100
 
 "- Highlight trailing whitespaces
 highlight ExtraWhitespace ctermbg=red guibg=red
