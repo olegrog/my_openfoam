@@ -29,13 +29,9 @@ License
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
 template<class ViscousModel>
-Foam::tmp<Foam::volScalarField>
-Foam::viscosityModels::trueArrhenius<ViscousModel>::calcNu
-(
-    const volScalarField& field
-) const
+void Foam::viscosityModels::trueArrhenius<ViscousModel>::calcTemperatureFactor()
 {
-    return exp(-alpha_*(1/field - 1/Talpha_));
+    temperatureFactor_ = exp(alpha_*(1/T_ - 1/Talpha_));
 }
 
 
@@ -55,17 +51,26 @@ Foam::viscosityModels::trueArrhenius<ViscousModel>::trueArrhenius
     (
         viscosityProperties.subDict(typeName + "Coeffs")
     ),
+    temperatureFactor_
+    (
+        IOobject
+        (
+            name,
+            U.time().timeName(),
+            U.db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        U.mesh(),
+        dimless
+    ),
     alpha_("alpha", dimTemperature, trueArrheniusCoeffs_),
     Talpha_("Talpha", dimTemperature, trueArrheniusCoeffs_),
-    fieldName_(trueArrheniusCoeffs_.lookupOrDefault<word>("field", "T")),
-    mesh_(U.mesh())
+    TName_(trueArrheniusCoeffs_.lookupOrDefault<word>("field", "T")),
+    T_(U.mesh().lookupObject<volScalarField>(TName_))
 {
-    const auto* fldPtr = mesh_.findObject<volScalarField>(fieldName_);
-
-    if (fldPtr)
-    {
-        this->nu_ *= calcNu(*fldPtr);
-    }
+    calcTemperatureFactor();
+    this->nu_ *= temperatureFactor_;
 }
 
 

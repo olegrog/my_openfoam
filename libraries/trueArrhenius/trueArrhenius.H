@@ -28,7 +28,7 @@ Description
     trueArrhenius type of dependency on a given scalar field name. Most likely
     temperature. The expression is as follow:
     \verbatim
-        mu = exp(-alpha_*(inv(T) - inv(Talpha_)))
+        mu = exp(alpha_*(inv(T) - inv(Talpha_)))
     \endverbatim
 
 SourceFiles
@@ -62,25 +62,23 @@ class trueArrhenius
     // Private data
 
         dictionary trueArrheniusCoeffs_;
+        volScalarField temperatureFactor_;
 
         // Model coefficients
         dimensionedScalar alpha_;
         dimensionedScalar Talpha_;
 
-        //- Field used for as temperature
-        word fieldName_;
+        //- Name of the field used as temperature
+        const word TName_;
 
-        //- Auto pointer for scalar field
-        autoPtr<volScalarField> field_;
-
-        //- Reference to mesh
-        const fvMesh& mesh_;
+        //- Reference to the temperature field
+        const volScalarField& T_;
 
 
     // Private Member Functions
 
-        //- Calculate and return the laminar viscosity
-        tmp<volScalarField> calcNu(const volScalarField&) const;
+        //- Calculate the temperature factor for laminar viscosity
+        void calcTemperatureFactor();
 
 
 public:
@@ -111,14 +109,11 @@ public:
         //- Correct the laminar viscosity
         virtual void correct()
         {
+            // the temperature factor should be removed for viscous models without correction
+            this->nu_ /= temperatureFactor_;
             ViscousModel::correct();
-
-            const auto* fldPtr = mesh_.findObject<volScalarField>(fieldName_);
-
-            if (fldPtr)
-            {
-                this->nu_ *= calcNu(*fldPtr);
-            }
+            calcTemperatureFactor();
+            this->nu_ *= temperatureFactor_;
         }
 
         //- Read transportProperties dictionary
