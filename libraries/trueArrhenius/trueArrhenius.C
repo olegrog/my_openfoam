@@ -31,7 +31,7 @@ License
 template<class ViscousModel>
 void Foam::viscosityModels::trueArrhenius<ViscousModel>::calcTemperatureFactor()
 {
-    temperatureFactor_ = exp(alpha_*(1/T_ - 1/Talpha_));
+    temperatureFactor_ = min(exp(alpha_*(1/T_ - 1/Talpha_)), scalar(1));
 }
 
 
