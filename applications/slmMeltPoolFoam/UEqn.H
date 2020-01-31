@@ -9,12 +9,12 @@
         fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
       + MRF.DDt(rho, U)
       + turbulence->divDevRhoReff(rho, U)
-      + fvm::Sp(permeability * sqr(1-liquidFraction) / pow(liquidFraction + SMALL, 3) * alpha1, U)
      ==
         fvOptions(rho, U)
-      + dsigma_dT * mag(fvc::grad(alpha1)) * (fvc::grad(T) & I_nn)
+      - fvm::Sp(permeability * sqr(1-liquidFraction) / pow(liquidFraction + SMALL, 3) * alpha1, U)
+      + dsigma_dT * mag(fvc::grad(alpha2)) * (fvc::grad(T) & I_nn)
 //      - anisimov * ambientPressure * evapor * fvc::snGrad(T) *
-//        fvc::interpolate(exp(evapor * alpha1 * (1./T_boiling - 1./T)) / sqr(T))
+//        fvc::interpolate(exp(evapor * alpha2 * (1./T_boiling - 1./T)) / sqr(T))
     );
 
     UEqn.relax();

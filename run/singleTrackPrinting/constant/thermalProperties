@@ -15,18 +15,25 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-T0              T0 [ 0 0 0 1 0 0 0 ] 273;
-k_sol           k_sol [ 1 1 -3 -1 0 0 0 ] 16;
-dk_sol          dk_sol [ 1 1 -3 -2 0 0 0 ] 0.011;
-k_liq           k_liq [ 1 1 -3 -1 0 0 0 ] 28;
-dk_liq          dk_liq [ 1 1 -3 -2 0 0 0 ] 0.001;
-Cp_sol          Cp_sol [ 0 2 -2 -1 0 0 0 ] 470;
-dCp_sol         dCp_sol [ 0 2 -2 -2 0 0 0 ] 0.14;
-Cp_liq          Cp_liq [ 0 2 -2 -1 0 0 0 ] 830;
-dCp_liq         dCp_liq [ 0 2 -2 -2 0 0 0 ] 1e-06;
-T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1648;
+// https://www.engineersedge.com/physics/viscosity_of_air_dynamic_and_kinematic_14483.htm
+// C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
+
+k_gas           k_gas [ 1 1 -3 -1 0 0 0 ] 0.2; // 0.025 for 293K, 0.111 for 2000K
+k_sol           k_sol [ 1 1 -3 -1 0 0 0 ] 9.248;
+dk_sol          dk_sol [ 1 1 -3 -2 0 0 0 ] 1.571e-2;
+k_liq           k_liq [ 1 1 -3 -1 0 0 0 ] 12.41;
+dk_liq          dk_liq [ 1 1 -3 -2 0 0 0 ] 3.279e-3;
+
+Cp_gas          Cp_gas [ 0 2 -2 -1 0 0 0 ] 1007; // 1007 for 293K, 1264 for 2000K
+Cp_sol          Cp_sol [ 0 2 -2 -1 0 0 0 ] 459.0;
+dCp_sol         dCp_sol [ 0 2 -2 -2 0 0 0 ] 0.1328;
+Cp_liq          Cp_liq [ 0 2 -2 -1 0 0 0 ] 769.9;
+dCp_liq         dCp_liq [ 0 2 -2 -2 0 0 0 ] 0;
+
+T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1648; //1648;
 T_liquidus      T_liquidus [ 0 0 0 1 0 0 0 ] 1673;
 T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3086;
+
 enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 268000;
 enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+06;
 

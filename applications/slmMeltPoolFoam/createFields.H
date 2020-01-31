@@ -1,7 +1,7 @@
 #include "Read/thermalProperties.H"
 #include "Read/laserProperties.H"
-dimensionedScalar he_solidus = (0.5*T_solidus*(2*Cp_sol + dCp_sol*T_solidus));
-dimensionedScalar he_liquidus = enthalpyFusion + 0.5*T_solidus*(2*Cp_sol + dCp_sol*T_solidus);
+
+bool printProperties(runTime.controlDict().get<bool>("printProperties"));
 
 Info << "Reading field T\n" << endl;
 volScalarField T
@@ -27,8 +27,10 @@ volScalarField liquidFraction
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    tanhSmooth(T, (T_solidus + T_liquidus)/2, (T_liquidus - T_solidus)/2)
+    mesh,
+    dimless
 );
+calcLiquidFraction(liquidFraction, T, T_solidus, T_liquidus);
 
 volScalarField wasMelted
 (
@@ -51,27 +53,28 @@ volScalarField he
         "he",
         runTime.timeName(),
         mesh,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh
-);
-// Read only boundary conditions
-he = enthalpyCalc(T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
-
-volScalarField diffusivity
-(
-    IOobject
-    (
-        "diffusivity",
-        runTime.timeName(),
-        mesh,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
     mesh,
-    dimensionSet(1, -1, -1, 0, 0, 0, 0)
+    dimEnergy/dimMass,
+    T.primitiveField(),
+    T.boundaryField()
 );
+calcEnthalpy(he, T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
+
+volScalarField dLiquidFraction
+(
+    IOobject
+    (
+        "dLiquidFraction",
+        runTime.timeName(),
+        mesh
+    ),
+    mesh,
+    inv(he.dimensions())
+);
+calcLiquidFractionDer(dLiquidFraction, T, T_solidus, T_liquidus);
 
 #include "createRDeltaT.H"
 
@@ -124,6 +127,62 @@ Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() <
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 
+volScalarField heatCapacity
+(
+    IOobject
+    (
+        "heatCapacity",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimSpecificHeatCapacity
+);
+
+volScalarField thermalConductivity
+(
+    IOobject
+    (
+        "thermalConductivity",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimLength/dimTemperature
+);
+
+volScalarField laserHeatSource
+(
+    IOobject
+    (
+        "laserHeatSource",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
+// Used only for writing
+volScalarField kinematicViscosity
+(
+    IOobject
+    (
+        "kinematicViscosity",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mixture.nu()
+);
+
 const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
 
@@ -135,7 +194,8 @@ volScalarField rho
         "rho",
         runTime.timeName(),
         mesh,
-        IOobject::READ_IF_PRESENT
+        IOobject::READ_IF_PRESENT,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     alpha1*rho1 + alpha2*rho2
 );

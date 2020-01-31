@@ -45,7 +45,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-07;
+        tolerance       1e-08;
         relTol          0.01;
     }
 
@@ -55,7 +55,7 @@ solvers
         relTol          0;
     }
 
-    "U.*"
+    "(U|k|epsilon).*"
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
@@ -63,11 +63,11 @@ solvers
         relTol          0;
     }
 
-    he
+    "he.*"
     {
         solver          PBiCGStab;
         preconditioner  DILU;
-        tolerance       1e-6;
+        tolerance       1e-8;
         relTol          0;
     }
     "concentration.*"
@@ -83,8 +83,8 @@ PIMPLE
 {
     momentumPredictor   no; //yes;
     segregation         no;
-    nOuterCorrectors    1;
-    nCorrectors         4;
+    nOuterCorrectors    2;
+    nCorrectors         3;
     nNonOrthogonalCorrectors 0;
 }
 
