@@ -14,7 +14,8 @@
         fvm::ddt(rho, he)
         + fvm::div(rhoPhi, he)
         - fvm::laplacian(thermalConductivity / heatCapacity, he)
-        + enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
+        //+ enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
+        + enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dLiquidFraction, he)
         - fvc::div(rho * U & turbulence->devReff())
         - laserHeatSource
     );
