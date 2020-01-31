@@ -1,11 +1,12 @@
 {
-    vector beamDirection(0, 0, -1);
+    // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
+    // vector beamDirection(0, 0, -1);
     dimensionedVector laserCoordinate("laserCoordinate", coordStart + laserVelocity * mesh.time());
     dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
 
     heatCapacity = threePhaseParameter(T, liquidFraction, alpha2, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas);
     thermalConductivity = threePhaseParameter(T, liquidFraction, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
-    laserHeatSource = (runTime < timeStop) * mag(fvc::grad(alpha2) & beamDirection)
+    laserHeatSource = (runTime < timeStop) * mag(fvc::grad(alpha2))
         * absorptivity * laserPower * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
 
     fvScalarMatrix heEqn
