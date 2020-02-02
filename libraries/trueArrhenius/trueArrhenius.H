@@ -40,7 +40,6 @@ SourceFiles
 #define trueArrhenius_H
 
 #include "viscosityModel.H"
-#include "dimensionedScalar.H"
 #include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -107,14 +106,7 @@ public:
     // Member Functions
 
         //- Correct the laminar viscosity
-        virtual void correct()
-        {
-            // the temperature factor should be removed for viscous models without correction
-            this->nu_ /= temperatureFactor_;
-            ViscousModel::correct();
-            calcTemperatureFactor();
-            this->nu_ *= temperatureFactor_;
-        }
+        virtual void correct();
 
         //- Read transportProperties dictionary
         virtual bool read(const dictionary& viscosityProperties);

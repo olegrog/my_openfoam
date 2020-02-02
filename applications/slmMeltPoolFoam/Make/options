@@ -1,5 +1,4 @@
 EXE_INC = \
-    -I$(FOAM_SOLVERS)/multiphase/VoF \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \

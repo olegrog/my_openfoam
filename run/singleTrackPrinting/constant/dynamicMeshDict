@@ -15,20 +15,18 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dynamicFvMesh   staticFvMesh; //dynamicRefineFvMesh;
+dynamicFvMesh   staticFvMesh;
+//dynamicFvMesh   dynamicRefineFvMesh;
 
 // How often to refine
 refineInterval  1;
 
 // Field to be refinement on
-//field           alpha.metal;
-field           liquidFraction;
+field           alpha.metal;
 
 // Refine field in between lower..upper
-lowerRefineLevel 1e-2;
-upperRefineLevel 1;
-//lowerRefineLevel 0.001;
-//upperRefineLevel 0.999;
+lowerRefineLevel 0.1;
+upperRefineLevel 0.9;
 
 // If value < unrefineLevel unrefine
 unrefineLevel   10;
@@ -50,7 +48,7 @@ correctFluxes
     (phi none)
     (nHatf none)
     (rhoPhi none)
-    (alphaPhi0.metal none)
+    (alphaPhi none)
     (ghf none)
 );
 

@@ -55,11 +55,9 @@ Foam::viscosityModels::trueArrhenius<ViscousModel>::trueArrhenius
     (
         IOobject
         (
-            name,
+            name + "TemperatureFactor",
             U.time().timeName(),
-            U.db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
+            U.db()
         ),
         U.mesh(),
         dimless
@@ -75,6 +73,16 @@ Foam::viscosityModels::trueArrhenius<ViscousModel>::trueArrhenius
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+template<class ViscousModel>
+void Foam::viscosityModels::trueArrhenius<ViscousModel>::correct()
+{
+    // the temperature factor should be removed for viscous models without correction
+    this->nu_ /= temperatureFactor_;
+    ViscousModel::correct();
+    calcTemperatureFactor();
+    this->nu_ *= temperatureFactor_;
+}
 
 template<class ViscousModel>
 bool Foam::viscosityModels::trueArrhenius<ViscousModel>::read
