@@ -25,25 +25,22 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "argList.H"
-#include "Time.H"
-#include "fvMesh.H"
-#include "fvCFD.H"      // for tmp<...>
+#include "fvCFD.H"
+#include "isoCutCell.H"
 
-tmp<volScalarField> generateBall(
-    const volVectorField& coord,
-    const dimensionedVector& center,
-    const dimensionedScalar& radius)
+scalarField generateBall
+(
+    const vectorField& points,
+    const vector center,
+    const scalar radius
+)
 {
-    return min(
-        2 * Foam::exp(-magSqr((coord - center) / radius)),
-        scalar(1)
-    );
+    return mag(points - center) - radius;
 }
 
 int main(int argc, char *argv[])
 {
-    argList::addArgument("field");
+    Foam::argList::addArgument("field");
     #include "setRootCase.H"
     #include "createTime.H"
     #include "createNamedMesh.H"
@@ -59,17 +56,19 @@ int main(int argc, char *argv[])
             alphaName,
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
+            IOobject::MUST_READ
         ),
         mesh
     );
+    volScalarField dAlpha = alpha;  // increment of the alpha field
 
     // -- Read a dictionary
     const word dictName("powderBedProperties");
     Info<< "Reading " << dictName << endl;
-    IOdictionary powderBedProperties(
-        IOobject(
+    IOdictionary dict
+    (
+        IOobject
+        (
             dictName,
             runTime.constant(),
             mesh,
@@ -78,31 +77,69 @@ int main(int argc, char *argv[])
         )
     );
 
-    dimensionedScalar ballRadius("ballRadius", powderBedProperties);
-    dimensionedScalar substratePosition("substratePosition", powderBedProperties);
+    // Dimensionless parameters of the powder distribution
+    const label seed(dict.lookupOrDefault<label>("seed", 0));
+    const scalar amplitudeRadius(dict.lookupOrDefault<scalar>("amplitudeRadius", 0));
+    const scalar amplitudePosition(dict.lookupOrDefault<scalar>("amplitudePosition", 0));
+    const scalar latticeStep(dict.lookupOrDefault<scalar>("latticeStep", 2));
 
-    label seed(powderBedProperties.lookupOrDefault<label>("seed", 0));
-    scalar amplitudeRadius(powderBedProperties.lookupOrDefault<scalar>("amplitudeRadius", 0));
-    scalar amplitudePosition(powderBedProperties.lookupOrDefault<scalar>("amplitudePosition", 0));
-    scalar latticeStep(powderBedProperties.lookupOrDefault<scalar>("latticeStep", 2));
+    // Dimensioned parameters
+    const dimensionedScalar ballRadius("ballRadius", dict);
+    const dimensionedScalar substratePosition("substratePosition", dict);
 
+    // Auxiliary constants
+    const vector substrateNormal(0, 0, 1);
+    const scalar domainVolume = gSum(mesh.V());
+    const boundBox& bounds = mesh.bounds();
+
+    scalar volumeFraction = 0;  // for theoretical prediction
+
+    // -- Generate substrate
+    {
+        scalarField f = substratePosition.value() - (mesh.points() & substrateNormal);
+        isoCutCell icc(mesh, f);
+        icc.volumeOfFluid(alpha, Zero);
+        volumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
+    }
+    alpha += dAlpha;
+
+    // -- Generate balls
     Random random(seed);
-    for (int j = -2; j <= 2; j++) {
-        for (int i = -2; i < 15-2; i++) {
-            const dimensionedScalar& R = ballRadius * (1 + amplitudeRadius * random.position(-1, 1));
-            alpha += generateBall(mesh.C(), dimensionedVector("center", dimless, vector(
-                amplitudePosition * random.position(-1, 1) + latticeStep*i,
-                amplitudePosition * random.position(-1, 1) + latticeStep*j,
-                (substratePosition/R).value() + 1
-            )) * R, R);
+    for (int j = -2; j <= 2; j++)
+    {
+        for (int i = -2; i < 15-2; i++)
+        {
+            const scalar R = ballRadius.value() * (1 + amplitudeRadius * random.position(-1, 1));
+            const scalar X = (amplitudePosition * random.position(-1, 1) + latticeStep*i) * R;
+            const scalar Y = (amplitudePosition * random.position(-1, 1) + latticeStep*j) * R;
+            const scalar Z = substratePosition.value() + R;
+            scalarField f = -generateBall(mesh.points(), vector(X, Y, Z), R);
+            isoCutCell icc(mesh, f);
+            icc.volumeOfFluid(dAlpha, Zero);
+            alpha += dAlpha;
+            // -- Evaluate the volume of ball (full or cut)
+            // TODO(olegrog): improve accuracy by adding spherical caps
+            if (bounds.min().x() < X && X < bounds.max().x()
+                && bounds.min().y() < Y && Y < bounds.max().y())
+            {
+                volumeFraction += 4./3 * constant::mathematical::pi * pow(R, 3) / domainVolume;
+            }
         }
     }
-    alpha = min(max(alpha, scalar(0)), scalar(1));
 
+    // -- Save the result
+    alpha.clip(0, 1);
     Info<< "Writing field " << alphaName << endl;
+    ISstream::defaultPrecision(18);
     alpha.write();
 
-    Info<< "\nEnd\n" << endl;
+    // -- Analyze the result
+    Info<< nl << alphaName << ": volume fraction = "
+        << alpha.weightedAverage(mesh.Vsc()).value()
+        << " theoretical = " << volumeFraction
+        << nl << endl;
+
+    Info<< "End" << endl;
 
     return 0;
 }
