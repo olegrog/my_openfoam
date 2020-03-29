@@ -2,7 +2,6 @@
 
     volVectorField normal("normal", fvc::reconstruct(mixture.nHatf()));
     volTensorField I_nn("I_nn", tensor::one - normal*normal);
-    dimensionedScalar evapor = enthalpyBoiling * molarMass / constant::physicoChemical::R;
 
     fvVectorMatrix UEqn
     (
@@ -13,8 +12,7 @@
         fvOptions(rho, U)
       - fvm::Sp(permeability * sqr(1-liquidFraction) / pow(liquidFraction + SMALL, 3) * alpha1, U)
       + dsigma_dT * mag(fvc::grad(alpha2)) * (fvc::grad(T) & I_nn)
-//      - anisimov * ambientPressure * evapor * fvc::snGrad(T) *
-//        fvc::interpolate(exp(evapor * alpha2 * (1./T_boiling - 1./T)) / sqr(T))
+      - (3 - evaporationCoeff)/4 * vaporPressure * fvc::grad(alpha2)
     );
 
     UEqn.relax();

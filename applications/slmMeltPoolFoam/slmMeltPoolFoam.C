@@ -251,6 +251,9 @@ int main(int argc, char *argv[])
                 }
             }
 
+            vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
+                / constant::physicoChemical::R * (1/T_boiling - 1/T));
+
             #include "heEqn.H"
 
             #include "alphaControls.H"

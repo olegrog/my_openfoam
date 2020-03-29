@@ -169,6 +169,20 @@ volScalarField laserHeatSource
     dimPower/dimVolume
 );
 
+volScalarField evaporativeCooling
+(
+    IOobject
+    (
+        "evaporativeCooling",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
 // Used only for writing
 volScalarField kinematicViscosity
 (
@@ -284,6 +298,18 @@ IOdictionary problemProperties(
 );
 dimensionedScalar molarMass("molarMass", problemProperties);
 dimensionedScalar ambientPressure("ambientPressure", problemProperties);
+
+volScalarField vaporPressure
+(
+    IOobject
+    (
+        "vaporPressure",
+        runTime.timeName(),
+        mesh
+    ),
+    mesh,
+    ambientPressure
+);
 
 Switch segregation(
     pimple.dict().lookupOrDefault<Switch>("segregation", false)

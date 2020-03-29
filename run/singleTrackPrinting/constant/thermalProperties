@@ -33,6 +33,7 @@ dCp_liq         dCp_liq [ 0 2 -2 -2 0 0 0 ] 0;
 T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1648; //1648;
 T_liquidus      T_liquidus [ 0 0 0 1 0 0 0 ] 1673;
 T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3086;
+T_critical      T_critical [ 0 0 0 1 0 0 0 ] 8500; // for Iron (from wiki)
 
 enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 268000;
 enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+06;

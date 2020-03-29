@@ -1,2 +1,3 @@
-//scalar anisimov(problemProperties.lookupOrDefault<scalar>("anisimov", 0.54));
+// Define nondimensional constants here
 
+scalar evaporationCoeff(problemProperties.get<scalar>("evaporationCoeff"));

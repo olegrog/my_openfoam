@@ -27,6 +27,7 @@ dimensionedScalar Cp_gas("Cp_gas", thermalProperties);
 dimensionedScalar T_solidus("T_solidus", thermalProperties);
 dimensionedScalar T_liquidus("T_liquidus", thermalProperties);
 dimensionedScalar T_boiling("T_boiling", thermalProperties);
+dimensionedScalar T_critical("T_critical", thermalProperties);
 
 dimensionedScalar enthalpyFusion("enthalpyFusion", thermalProperties);
 dimensionedScalar enthalpyBoiling("enthalpyBoiling", thermalProperties);

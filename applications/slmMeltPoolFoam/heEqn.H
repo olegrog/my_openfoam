@@ -8,16 +8,21 @@
     thermalConductivity = threePhaseParameter(T, liquidFraction, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
     laserHeatSource = (runTime < timeStop) * mag(fvc::grad(alpha2))
         * absorptivity * laserPower * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+    evaporativeCooling = evaporationCoeff * vaporPressure * mag(fvc::grad(alpha2))
+        * Foam::sqrt(molarMass/2/constant::mathematical::pi/constant::physicoChemical::R/T)
+        * enthalpyBoiling * Foam::sqrt(1 - Foam::sqr(T/T_critical));
 
     fvScalarMatrix heEqn
     (
         fvm::ddt(rho, he)
-        + fvm::div(rhoPhi, he)
-        - fvm::laplacian(thermalConductivity / heatCapacity, he)
-        //+ enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
-        + enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dLiquidFraction, he)
-        - fvc::div(rho * U & turbulence->devReff())
-        - laserHeatSource
+      + fvm::div(rhoPhi, he)
+      - fvm::laplacian(thermalConductivity / heatCapacity, he)
+      + enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dLiquidFraction, he)
+     ==
+        laserHeatSource
+      - evaporativeCooling
+      //- enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
+      //+ fvc::div(rho * U & turbulence->devReff())
     );
     heEqn.solve();
 

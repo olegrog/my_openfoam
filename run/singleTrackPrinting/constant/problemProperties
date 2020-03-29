@@ -18,4 +18,6 @@ FoamFile
 molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  55.8e-3; // for iron
 ambientPressure ambientPressure [ 1 -1 -2 0 0 0 0 ] 101325;
 
+evaporationCoeff 0.82;
+
 // ************************************************************************* //
