@@ -42,48 +42,44 @@ Description
 #include "CorrectPhi.H"
 #include "fvcSmooth.H"
 
-#include "../solidificationFoam/multicomponentAlloy/multicomponentAlloy.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Func>
-void calcGeomField(volScalarField& f, Func calc) {
-    forAll(f, cellI) {
-        calc(f.primitiveFieldRef(), cellI);
+template<class Func, class... Args>
+void calcGeomField(volScalarField& f, Func calc, Args... args)
+{
+    forAll(f, cellI)
+    {
+        calc(f.primitiveFieldRef(), cellI, (args.primitiveFieldRef())...);
     }
-    forAll(f.boundaryFieldRef(), patchi) {
-        forAll(f.boundaryField()[patchi], faceI) {
-            calc(f.boundaryFieldRef(false)[patchi], faceI);
+    forAll(f.boundaryFieldRef(), patchi)
+    {
+        forAll(f.boundaryField()[patchi], faceI)
+        {
+            calc(f.boundaryFieldRef(false)[patchi], faceI,
+                (args.boundaryFieldRef(false)[patchi])...);
         }
     }
 }
 
 void calcLiquidFraction(
     volScalarField& lf,
-    const volScalarField& field,
-    const dimensionedScalar& solidus,
-    const dimensionedScalar& liquidus
+    const volScalarField& he,
+    const dimensionedScalar& enthalpyAtFusion,
+    const dimensionedScalar& enthalpyFusion,
+    const bool isDerivative = false
 )
 {
-    const scalar width = 0.5 * (liquidus - solidus).value();
-    const scalar field1 = 0.5 * (liquidus + solidus).value();
-    calcGeomField(lf, [&](scalarField& f, label i) {
-        f[i] = 0.5 * Foam::tanh((field[i] - field1) / width) + 0.5;
-    });
-}
-
-void calcLiquidFractionDer(
-    volScalarField& dlf,
-    const volScalarField& field,
-    const dimensionedScalar& solidus,
-    const dimensionedScalar& liquidus
-)
-{
-    const scalar width = 0.5 * (liquidus - solidus).value();
-    const scalar field1 = 0.5 * (liquidus + solidus).value();
-    calcGeomField(dlf, [&](scalarField& f, label i) {
-        f[i] = 0.5 / width / sqr(Foam::cosh((field[i] - field1) / width));
-    });
+    he + enthalpyAtFusion + enthalpyFusion; // to check dimensions
+    scalar he_M = enthalpyAtFusion.value();
+    scalar he_fus = enthalpyFusion.value();
+    calcGeomField(lf, [=](scalarField& f, label i, const scalarField& he)
+    {
+        if (!isDerivative) {
+            f[i] = 0.5 * (1 + Foam::tanh(2 * (he[i] - he_M) / he_fus));
+        } else {
+            f[i] = 1 / he_fus / sqr(Foam::cosh((he[i] - he_M) / he_fus));
+        }
+    }, he);
 }
 
 volScalarField surfaceGaussian(
@@ -98,71 +94,86 @@ volScalarField surfaceGaussian(
 }
 
 template<class T>
-auto threePhaseParameter(const T& temp, const T& phi, const T& alpha,
+auto threePhaseParameter(
+    const T& temp, const T& phi, const T& alpha,
     dimensionedScalar A_sol, dimensionedScalar A_liq,
     dimensionedScalar dA_sol, dimensionedScalar dA_liq,
     dimensionedScalar A_gas
-) -> decltype(
-    // can be removed in C++14
-    ((A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi)*(1-alpha) + A_gas*alpha
-)
+) -> decltype(A_gas*alpha) // can be removed in C++14
 {
     return ((A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi)*(1-alpha) + A_gas*alpha;
 }
 
-void calcEnthalpy(volScalarField& he, const volScalarField& temp, const volScalarField& phi,
-    dimensionedScalar Cp_sol, dimensionedScalar Cp_liq,
-    dimensionedScalar dCp_sol, dimensionedScalar dCp_liq,
-    dimensionedScalar T_solidus, dimensionedScalar T_liquidus,
+void calcEnthalpy(
+    volScalarField& he, const volScalarField& temp,
+    const volScalarField& phi, const volScalarField& alpha,
+    dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
+    dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
+    dimensionedScalar Cp_gas, dimensionedScalar T_melting,
     dimensionedScalar enthalpyFusion
 )
 {
-    const scalar T1 = (T_solidus + T_liquidus).value() / 2;
+    // // to check dimensions
+    (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    const scalar T_M = T_melting.value();
     auto he_S = [&](scalar temp) {
         return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
     };
     auto he_L = [&](scalar temp) {
-        return Cp_liq.value()*(temp-T1) + dCp_liq.value()*sqr(temp-T1)/2;
+        return Cp_liq.value()*temp + dCp_liq.value()*sqr(temp)/2;
     };
-    calcGeomField(he, [&](scalarField& f, label i) {
-        if (temp[i] <= T1) {
-            f[i] = he_S(temp[i]);
+    const volScalarField he_G = Cp_gas*temp;
+
+    calcGeomField(he, [=](scalarField& f, label i, const scalarField& temp,
+        const scalarField& phi, const scalarField& alpha, const scalarField& he_G)
+    {
+        scalar piecewise;
+        if (temp[i] <= T_M) {
+            piecewise = he_S(temp[i]);
         } else {
-            f[i] = he_S(T1) + he_L(temp[i]);
+            piecewise = he_S(T_M) + he_L(temp[i]) - he_L(T_M);
         }
-        f[i] += phi[i] * enthalpyFusion.value();
-    });
+        f[i] = alpha[i]*he_G[i] + (1 - alpha[i])*(phi[i]*enthalpyFusion.value() + piecewise);
+    }, temp, phi, alpha, he_G);
     he.correctBoundaryConditions();
 }
 
-void calcTemperature(volScalarField& temp, const volScalarField& he, const volScalarField& phi,
-    dimensionedScalar Cp_sol, dimensionedScalar Cp_liq,
-    dimensionedScalar dCp_sol, dimensionedScalar dCp_liq,
-    dimensionedScalar T_solidus, dimensionedScalar T_liquidus,
+void calcTemperature(
+    volScalarField& temp, const volScalarField& he,
+    const volScalarField& phi, const volScalarField& alpha,
+    dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
+    dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
+    dimensionedScalar Cp_gas, dimensionedScalar T_melting,
     dimensionedScalar enthalpyFusion
 )
 {
-    const dimensionedScalar T1 = (T_solidus + T_liquidus) / 2;
-    auto he_S = [=](dimensionedScalar temp) {
-        return Cp_sol*temp + dCp_sol*sqr(temp)/2;
+    // // to check dimensions
+    (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    const scalar T_M = T_melting.value();
+    auto he_S = [=](scalar temp) {
+        return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
     };
-    const dimensionedScalar he1 = he_S(T1) + enthalpyFusion/2;
-    forAll(temp, cellI) {
-        scalar A, B, C = he[cellI] - phi[cellI]*enthalpyFusion.value();
-        if (he[cellI] <= he1.value()) {
-            A = dCp_sol.value();
-            B = Cp_sol.value();
+    const scalar he_M = he_S(T_M) + enthalpyFusion.value()/2;
+
+    calcGeomField(temp, [=](scalarField& f, label i, const scalarField& he,
+        const scalarField& phi, const scalarField& alpha)
+    {
+        scalar A, B = alpha[i]*Cp_gas.value();
+        scalar C = he[i] - (1 - alpha[i])*phi[i]*enthalpyFusion.value();
+        if (he[i] < he_M) {
+            A = (1 - alpha[i])*dCp_sol.value();
+            B += (1 - alpha[i])*Cp_sol.value();
         } else {
-            A = dCp_liq.value();
-            B = (Cp_liq - dCp_liq*T1).value();
-            C += ((Cp_liq - Cp_sol)*T1 - (dCp_sol + dCp_liq)*sqr(T1)/2).value();
+            A = (1 - alpha[i])*dCp_liq.value();
+            B += (1 - alpha[i])*(Cp_liq.value() - dCp_liq.value()*T_M);
+            C += (1 - alpha[i])*(Cp_liq.value()*T_M - dCp_liq.value()*sqr(T_M)/2 - he_S(T_M));
         }
-        if (A > SMALL) {
-            temp[cellI] = (Foam::sqrt(sqr(B) + 2*A*C) - B) / A;
+        if (mag(A) > SMALL) {
+            f[i] = (Foam::sqrt(sqr(B) + 2*A*C) - B) / A;
         } else {
-            temp[cellI] = C / B;
+            f[i] = C / B;
         }
-    }
+    }, he, phi, alpha);
     temp.correctBoundaryConditions();
 }
 
@@ -191,15 +202,10 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-    calcTemperature(T, he, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
-
-    // -- Initial conditions for concentrations
-    if (segregation) {
-        forAllIter(PtrDictionary<alloyComponent>, pAlloy->components(), iter) {
-            alloyComponent& C = iter();
-            C == C.equilibrium(0, pAlloy->liquidus());
-        }
-    }
+    // For debug
+    auto pp = [](const volScalarField& f) {
+        Info<< f.name() << ": " << min(f).value() << " " << max(f).value() << endl;
+    };
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -254,7 +260,10 @@ int main(int argc, char *argv[])
             vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
                 / constant::physicoChemical::R * (1/T_boiling - 1/T));
 
-            #include "heEqn.H"
+            while (pimple.correctNonOrthogonal())
+            {
+                #include "heEqn.H"
+            }
 
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
@@ -278,10 +287,6 @@ int main(int argc, char *argv[])
             {
                 turbulence->correct();
             }
-        }
-
-        if (segregation) {
-            #include "CEqn.H"
         }
 
         kinematicViscosity = mixture.nu();

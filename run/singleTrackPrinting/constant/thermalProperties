@@ -15,27 +15,34 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// https://www.engineersedge.com/physics/viscosity_of_air_dynamic_and_kinematic_14483.htm
-// C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
+// Sources:
+// Air -- https://www.engineersedge.com/physics/viscosity_of_air_dynamic_and_kinematic_14483.htm
+// Argon -- J. Kestin et al. Equilibrium and Transport Properties of the Noble Gases and Their Mixtures at Low Density.
+//      Journal of Physical and Chemical Reference Data 13, 229 (1984).
+// SS316L -- C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
+// SS316L -- K. C. Mills. Recommended values of thermophysical properties for selected commercial alloys. Woodhead Publishing, 2002.
 
-k_gas           k_gas [ 1 1 -3 -1 0 0 0 ] 0.2; // 0.025 for 293K, 0.111 for 2000K
+k_gas           k_gas [ 1 1 -3 -1 0 0 0 ] 1; //1 // Argon: 6.16e-2 for liquidus
+// Air: 2.5e-2 for 293K, 1.1e-1 for 2000K
+Cp_gas          Cp_gas [ 0 2 -2 -1 0 0 0 ] 520; // = 2.5*R/M;
+// Air: 1200 for liquidus, 1007 for 293K, 1264 for 2000K
+
+// From Kim
 k_sol           k_sol [ 1 1 -3 -1 0 0 0 ] 9.248;
 dk_sol          dk_sol [ 1 1 -3 -2 0 0 0 ] 1.571e-2;
 k_liq           k_liq [ 1 1 -3 -1 0 0 0 ] 12.41;
 dk_liq          dk_liq [ 1 1 -3 -2 0 0 0 ] 3.279e-3;
 
-Cp_gas          Cp_gas [ 0 2 -2 -1 0 0 0 ] 1007; // 1007 for 293K, 1264 for 2000K
 Cp_sol          Cp_sol [ 0 2 -2 -1 0 0 0 ] 459.0;
 dCp_sol         dCp_sol [ 0 2 -2 -2 0 0 0 ] 0.1328;
 Cp_liq          Cp_liq [ 0 2 -2 -1 0 0 0 ] 769.9;
 dCp_liq         dCp_liq [ 0 2 -2 -2 0 0 0 ] 0;
 
-T_solidus       T_solidus [ 0 0 0 1 0 0 0 ] 1648; //1648;
-T_liquidus      T_liquidus [ 0 0 0 1 0 0 0 ] 1673;
-T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3086;
-T_critical      T_critical [ 0 0 0 1 0 0 0 ] 8500; // for Iron (from wiki)
+T_ambient       T_ambient [ 0 -0 0 1 0 0 0 ] 293;
+T_melting       T_melting [ 0 0 0 1 0 0 0 ] 1700; // Kim: 1700, Mills: solidus=1633, liquidus=1683
+T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3090; // Kim
 
-enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 268000;
-enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+06;
+enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 2.7e+5;
+enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+6;
 
 // ************************************************************************* //

@@ -17,65 +17,6 @@ volScalarField T
     mesh
 );
 
-volScalarField liquidFraction
-(
-    IOobject
-    (
-        "liquidFraction",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh,
-    dimless
-);
-calcLiquidFraction(liquidFraction, T, T_solidus, T_liquidus);
-
-volScalarField wasMelted
-(
-    IOobject
-    (
-        "wasMelted",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    liquidFraction
-);
-
-Info << "Reading field he\n" << endl;
-volScalarField he
-(
-    IOobject
-    (
-        "he",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh,
-    dimEnergy/dimMass,
-    T.primitiveField(),
-    T.boundaryField()
-);
-calcEnthalpy(he, T, liquidFraction, Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
-
-volScalarField dLiquidFraction
-(
-    IOobject
-    (
-        "dLiquidFraction",
-        runTime.timeName(),
-        mesh
-    ),
-    mesh,
-    inv(he.dimensions())
-);
-calcLiquidFractionDer(dLiquidFraction, T, T_solidus, T_liquidus);
-
 #include "createRDeltaT.H"
 
 Info<< "Reading field p_rgh\n" << endl;
@@ -122,10 +63,81 @@ dimensionedScalar dsigma_dT
     mixture.sigmaK()().dimensions() / dimTemperature * dimLength,
     pSigma->value(1) - pSigma->value(0)
 );
-Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() << ")*T" << endl;
+Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() << ")*T\n" << endl;
 
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
+
+volScalarField liquidFraction
+(
+    IOobject
+    (
+        "liquidFraction",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimless
+);
+calcLiquidFraction(liquidFraction, Cp_sol*T, he_melting, enthalpyFusion);
+
+volScalarField he
+(
+    IOobject
+    (
+        "he",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimEnergy/dimMass,
+    T.primitiveField(),
+    T.boundaryField()   // copy BC from the temperature field.
+);
+
+{ // TODO: use ODEsolver instead?
+    scalar phiError = GREAT, maxPhi = 0;
+    Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
+    while (phiError > 1e-10) {
+        phiError = mag(maxPhi - max(liquidFraction).value());
+        maxPhi = max(liquidFraction).value();
+        Info<< "Error in liquidFraction = " << phiError << ", maxPhi = " << maxPhi << endl;
+        calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
+            T_melting, enthalpyFusion);
+        calcLiquidFraction(liquidFraction, he, he_melting, enthalpyFusion);
+    }
+    Info<< endl;
+}
+
+volScalarField wasMelted
+(
+    IOobject
+    (
+        "wasMelted",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    liquidFraction
+);
+
+volScalarField dLiquidFraction
+(
+    IOobject
+    (
+        "dLiquidFraction",
+        runTime.timeName(),
+        mesh
+    ),
+    mesh,
+    inv(he.dimensions())
+);
+calcLiquidFraction(dLiquidFraction, he, he_melting, enthalpyFusion, true);
 
 volScalarField heatCapacity
 (
@@ -160,6 +172,20 @@ volScalarField laserHeatSource
     IOobject
     (
         "laserHeatSource",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
+volScalarField radiativeCooling
+(
+    IOobject
+    (
+        "radiativeCooling",
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
@@ -230,6 +256,20 @@ surfaceScalarField rhoPhi
     fvc::interpolate(rho)*phi
 );
 
+surfaceScalarField diffusivityf
+(
+    IOobject
+    (
+        "diffusivityf",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    thermalConductivity.dimensions() / heatCapacity.dimensions()
+);
+
 
 // Construct incompressible turbulence model
 autoPtr<incompressible::turbulenceModel> turbulence
@@ -237,6 +277,25 @@ autoPtr<incompressible::turbulenceModel> turbulence
     incompressible::turbulenceModel::New(U, phi, mixture)
 );
 
+// Thermal expansion coefficient [1/K]
+dimensionedScalar beta
+(
+    "beta",
+    dimless/dimTemperature,
+    mixture
+);
+
+// Density for buoyancy force
+volScalarField rhok
+(
+    IOobject
+    (
+        "rhok",
+        runTime.timeName(),
+        mesh
+    ),
+    rho*(1.0 - beta*(T - T_ambient))
+);
 
 #include "readGravitationalAcceleration.H"
 #include "readhRef.H"
@@ -253,7 +312,7 @@ volScalarField p
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    p_rgh + rho*gh
+    p_rgh + rhok*gh
 );
 
 label pRefCell = 0;
@@ -299,6 +358,12 @@ IOdictionary problemProperties(
 dimensionedScalar molarMass("molarMass", problemProperties);
 dimensionedScalar ambientPressure("ambientPressure", problemProperties);
 
+{
+    scalar factor = (molarMass * enthalpyBoiling / constant::physicoChemical::R).value();
+    Info<< "Vapor pressure = " << ambientPressure.value() << " * exp(" << factor/T_boiling.value()
+        << " - " << factor << "/T)\n" << endl;
+}
+
 volScalarField vaporPressure
 (
     IOobject
@@ -310,27 +375,4 @@ volScalarField vaporPressure
     mesh,
     ambientPressure
 );
-
-Switch segregation(
-    pimple.dict().lookupOrDefault<Switch>("segregation", false)
-);
-autoPtr<multicomponentAlloy> pAlloy;
-if (segregation) {
-    // This field is necessary for creating multicomponentAlloy
-    volScalarField phase
-    (
-        IOobject
-        (
-            "phase",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        ),
-        mesh, dimless, zeroGradientFvPatchField<scalar>::typeName
-    );
-
-    Info<< "Reading alloyProperties\n" << endl;
-    pAlloy = autoPtr<multicomponentAlloy>::New(mesh);
-}
 

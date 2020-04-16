@@ -29,7 +29,7 @@
     (
         (
             mixture.surfaceTensionForce()
-          - ghf*fvc::snGrad(rho)
+          - ghf*fvc::snGrad(rhok)
         )*rAUf*mesh.magSf()
     );
 
@@ -69,7 +69,7 @@
     // Make the fluxes relative to the mesh motion
     fvc::makeRelative(phi, U);
 
-    p == p_rgh + rho*gh;
+    p == p_rgh + rhok*gh;
 
     if (p_rgh.needReference())
     {
@@ -79,7 +79,7 @@
             p.dimensions(),
             pRefValue - getRefCellValue(p, pRefCell)
         );
-        p_rgh = p - rho*gh;
+        p_rgh = p - rhok*gh;
     }
 
     if (!correctPhi)

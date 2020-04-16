@@ -23,13 +23,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         2e-3;
+endTime         6e-4;
 
-deltaT          2e-5;
+deltaT          1e-7;
 
 writeControl    adjustableRunTime;  // use timeStep for debug
 
-writeInterval   4e-5;               // use 1 for debug
+writeInterval   5e-6; // 5e-6       // use 1 for debug
 
 purgeWrite      0;
 

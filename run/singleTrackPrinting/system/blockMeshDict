@@ -17,7 +17,7 @@ FoamFile
 convertToMeters .25e-3; //1e-3
 
 xmin -.5;
-xmax 3;
+xmax 1.9; //3;
 ymin -.5;
 ymax .5;
 zmin -.5;

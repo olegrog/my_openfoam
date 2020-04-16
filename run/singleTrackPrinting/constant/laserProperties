@@ -15,11 +15,11 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-laserPower      laserPower [ 1 2 -3 0 0 0 0 ] 100; // 150 for Trumpf TruPrint 1000
-absorptivity    absorptivity [ 0 0 0 0 0 0 0 ] 0.4;
-laserRadius     laserRadius [ 0 1 0 0 0 0 0 ] 5e-5; // 2.75e-5 for Trumpf TruPrint 1000
-laserVelocity   laserVelocity [ 0 1 -1 0 0 0 0 ] ( 0.5 0 0 ); // 0.6 for Trumpf TruPrint 1000
+laserPower      laserPower [ 1 2 -3 0 0 0 0 ] 113; // 113 for Trumpf TruPrint 1000
+absorptivity    absorptivity [ 0 0 0 0 0 0 0 ] 0.35;
+laserRadius     laserRadius [ 0 1 0 0 0 0 0 ] 2.75e-5; //5e-5; // 2.75e-5 for Trumpf TruPrint 1000
+laserVelocity   laserVelocity [ 0 1 -1 0 0 0 0 ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
 coordStart      coordStart [ 0 1 0 0 0 0 0 ] ( 0 0 0 );
-timeStop        timeStop [ 0 0 1 0 0 0 0 ] 0.003;
+timeStop        timeStop [ 0 0 1 0 0 0 0 ] 0.0005;
 
 // ************************************************************************* //

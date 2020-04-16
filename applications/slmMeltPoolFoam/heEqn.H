@@ -6,25 +6,31 @@
 
     heatCapacity = threePhaseParameter(T, liquidFraction, alpha2, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas);
     thermalConductivity = threePhaseParameter(T, liquidFraction, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
+    diffusivityf = fvc::interpolate(thermalConductivity/heatCapacity);
     laserHeatSource = (runTime < timeStop) * mag(fvc::grad(alpha2))
         * absorptivity * laserPower * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+    radiativeCooling = emissivity * constant::physicoChemical::sigma
+        * (pow4(T) - pow4(T_ambient))  * mag(fvc::grad(alpha2));
     evaporativeCooling = evaporationCoeff * vaporPressure * mag(fvc::grad(alpha2))
         * Foam::sqrt(molarMass/2/constant::mathematical::pi/constant::physicoChemical::R/T)
-        * enthalpyBoiling * Foam::sqrt(1 - Foam::sqr(T/T_critical));
+        * enthalpyBoiling;
 
     fvScalarMatrix heEqn
     (
         fvm::ddt(rho, he)
       + fvm::div(rhoPhi, he)
       - fvm::laplacian(thermalConductivity / heatCapacity, he)
-      + enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dLiquidFraction, he)
+      + alpha1 * enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dLiquidFraction, he)
      ==
         laserHeatSource
+      - radiativeCooling
       - evaporativeCooling
-      //- enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
-      //+ fvc::div(rho * U & turbulence->devReff())
+      //- alpha1 * enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, liquidFraction)
+      + fvc::div(rho * U & turbulence->devReff())
     );
     heEqn.solve();
+
+    pp(he);
 
     Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
         << ", laser input = " << fvc::domainIntegrate(laserHeatSource * runTime.deltaT()).value()
@@ -32,9 +38,13 @@
         << endl;
 
     // Update other variables
-    calcLiquidFraction(liquidFraction, he, he_sol, he_liq);
-    calcLiquidFractionDer(dLiquidFraction, he, he_sol, he_liq);
-    wasMelted = max(wasMelted, liquidFraction);
-    calcTemperature(T, he, liquidFraction,
-        Cp_sol, Cp_liq, dCp_sol, dCp_liq, T_solidus, T_liquidus, enthalpyFusion);
+    calcLiquidFraction(liquidFraction, he, he_melting, enthalpyFusion);
+    calcLiquidFraction(dLiquidFraction, he, he_melting, enthalpyFusion, true);
+    wasMelted = max(wasMelted, alpha1*liquidFraction);
+    calcTemperature(T, he, liquidFraction, alpha2,
+        Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
+    rhok = rho*(1.0 - beta*(T - T_ambient));
+
+    pp(liquidFraction);
+    pp(T);
 }

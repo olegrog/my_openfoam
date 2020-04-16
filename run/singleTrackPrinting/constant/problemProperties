@@ -15,9 +15,10 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  55.8e-3; // for iron
-ambientPressure ambientPressure [ 1 -1 -2 0 0 0 0 ] 101325;
+molarMass           molarMass           [ 1 0 0 0 -1 0 0 ]  55.95e-3; // for 0.691Fe + 0.183Cr + 0.114Ni + 0.012Mo
+ambientPressure     ambientPressure     [ 1 -1 -2 0 0 0 0 ] 101325;
 
-evaporationCoeff 0.82;
+emissivity          0.2;
+evaporationCoeff    0.82;
 
 // ************************************************************************* //

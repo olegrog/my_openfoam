@@ -85,10 +85,9 @@ solvers
 PIMPLE
 {
     momentumPredictor   no; //yes;
-    segregation         no;
     nOuterCorrectors    1;
     nCorrectors         3;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     correctPhi          yes;
 }
 
