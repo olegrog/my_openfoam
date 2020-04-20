@@ -68,11 +68,11 @@ Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() <
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 
-volScalarField liquidFraction
+volScalarField meltIndicator
 (
     IOobject
     (
-        "liquidFraction",
+        "meltIndicator",
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
@@ -81,7 +81,7 @@ volScalarField liquidFraction
     mesh,
     dimless
 );
-calcLiquidFraction(liquidFraction, Cp_sol*T, he_melting, enthalpyFusion);
+calcMeltIndicator(meltIndicator, Cp_sol*T, he_melting, enthalpyFusion);
 
 volScalarField he
 (
@@ -103,12 +103,12 @@ volScalarField he
     scalar phiError = GREAT, maxPhi = 0;
     Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
     while (phiError > 1e-10) {
-        phiError = mag(maxPhi - max(liquidFraction).value());
-        maxPhi = max(liquidFraction).value();
-        Info<< "Error in liquidFraction = " << phiError << ", maxPhi = " << maxPhi << endl;
-        calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
+        phiError = mag(maxPhi - max(meltIndicator).value());
+        maxPhi = max(meltIndicator).value();
+        Info<< "Error in meltIndicator = " << phiError << ", maxPhi = " << maxPhi << endl;
+        calcEnthalpy(he, T, meltIndicator, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
             T_melting, enthalpyFusion);
-        calcLiquidFraction(liquidFraction, he, he_melting, enthalpyFusion);
+        calcMeltIndicator(meltIndicator, he, he_melting, enthalpyFusion);
     }
     Info<< endl;
 }
@@ -123,21 +123,21 @@ volScalarField wasMelted
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    liquidFraction
+    meltIndicator
 );
 
-volScalarField dLiquidFraction
+volScalarField dMeltIndicator
 (
     IOobject
     (
-        "dLiquidFraction",
+        "dMeltIndicator",
         runTime.timeName(),
         mesh
     ),
     mesh,
     inv(he.dimensions())
 );
-calcLiquidFraction(dLiquidFraction, he, he_melting, enthalpyFusion, true);
+calcMeltIndicator(dMeltIndicator, he, he_melting, enthalpyFusion, true);
 
 volScalarField heatCapacity
 (

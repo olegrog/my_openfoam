@@ -61,12 +61,13 @@ void calcGeomField(volScalarField& f, Func calc, Args... args)
     }
 }
 
-void calcLiquidFraction(
+void calcMeltIndicator
+(
     volScalarField& lf,
     const volScalarField& he,
-    const dimensionedScalar& enthalpyAtFusion,
-    const dimensionedScalar& enthalpyFusion,
-    const bool isDerivative = false
+    dimensionedScalar enthalpyAtFusion,
+    dimensionedScalar enthalpyFusion,
+    bool isDerivative = false
 )
 {
     he + enthalpyAtFusion + enthalpyFusion; // to check dimensions
@@ -82,10 +83,11 @@ void calcLiquidFraction(
     }, he);
 }
 
-volScalarField surfaceGaussian(
+volScalarField surfaceGaussian
+(
     const volVectorField& x,
-    const dimensionedVector& x0,
-    const dimensionedScalar& radius
+    dimensionedVector x0,
+    dimensionedScalar radius
 )
 {
     volVectorField r = x - x0;
@@ -94,7 +96,8 @@ volScalarField surfaceGaussian(
 }
 
 template<class T>
-auto threePhaseParameter(
+auto threePhaseParameter
+(
     const T& temp, const T& phi, const T& alpha,
     dimensionedScalar A_sol, dimensionedScalar A_liq,
     dimensionedScalar dA_sol, dimensionedScalar dA_liq,
@@ -138,7 +141,8 @@ void calcEnthalpy(
     he.correctBoundaryConditions();
 }
 
-void calcTemperature(
+void calcTemperature
+(
     volScalarField& temp, const volScalarField& he,
     const volScalarField& phi, const volScalarField& alpha,
     dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
@@ -177,7 +181,8 @@ void calcTemperature(
     temp.correctBoundaryConditions();
 }
 
-tmp<volVectorField> calcNormal(const volVectorField& vField) {
+tmp<volVectorField> calcNormal(const volVectorField& vField)
+{
     dimensionedVector smallVector("small", vField.dimensions(), vector(0, 0, SMALL));
     return (vField + smallVector) / mag(vField + smallVector);
 }

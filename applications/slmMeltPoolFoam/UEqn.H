@@ -10,7 +10,7 @@
       + turbulence->divDevRhoReff(rho, U)
      ==
         fvOptions(rho, U)
-      - fvm::Sp(permeability * sqr(1 - liquidFraction) / pow(liquidFraction + SMALL, 3) * alpha1, U)
+      - fvm::Sp(permeability * sqr(1 - meltIndicator) / pow(meltIndicator + SMALL, 3) * alpha1, U)
       + dsigma_dT * mag(fvc::grad(alpha2)) * (fvc::grad(T) & I_nn)
       - (3 - evaporationCoeff)/4 * vaporPressure * fvc::grad(alpha2)
     );
