@@ -178,7 +178,7 @@ volScalarField laserHeatSource
         printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimPower/dimArea
 );
 
 volScalarField radiativeCooling
@@ -192,7 +192,7 @@ volScalarField radiativeCooling
         printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimPower/dimArea
 );
 
 volScalarField evaporativeCooling
@@ -206,7 +206,7 @@ volScalarField evaporativeCooling
         printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimPower/dimArea
 );
 
 // Used only for writing

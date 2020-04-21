@@ -87,7 +87,7 @@ PIMPLE
     momentumPredictor   no; //yes;
     nOuterCorrectors    1;
     nCorrectors         3;
-    nNonOrthogonalCorrectors 2;
+    nNonOrthogonalCorrectors 0;
     correctPhi          yes;
 }
 

@@ -45,25 +45,25 @@ Description
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class Func, class... Args>
-void calcGeomField(volScalarField& f, Func calc, Args... args)
+void calcGeomField(volScalarField& f, Func calc, const Args&... args)
 {
     forAll(f, cellI)
     {
-        calc(f.primitiveFieldRef(), cellI, (args.primitiveFieldRef())...);
+        calc(f.primitiveFieldRef(), cellI, (args.primitiveField())...);
     }
-    forAll(f.boundaryFieldRef(), patchi)
+    forAll(f.boundaryField(), patchi)
     {
         forAll(f.boundaryField()[patchi], faceI)
         {
             calc(f.boundaryFieldRef(false)[patchi], faceI,
-                (args.boundaryFieldRef(false)[patchi])...);
+                (args.boundaryField()[patchi])...);
         }
     }
 }
 
 void calcMeltIndicator
 (
-    volScalarField& lf,
+    volScalarField& mi,
     const volScalarField& he,
     dimensionedScalar enthalpyAtFusion,
     dimensionedScalar enthalpyFusion,
@@ -73,7 +73,7 @@ void calcMeltIndicator
     he + enthalpyAtFusion + enthalpyFusion; // to check dimensions
     scalar he_M = enthalpyAtFusion.value();
     scalar he_fus = enthalpyFusion.value();
-    calcGeomField(lf, [=](scalarField& f, label i, const scalarField& he)
+    calcGeomField(mi, [=](scalarField& f, label i, const scalarField& he)
     {
         if (!isDerivative) {
             f[i] = 0.5 * (1 + Foam::tanh(2 * (he[i] - he_M) / he_fus));
@@ -95,19 +95,20 @@ volScalarField surfaceGaussian
     return 2 * exp(-2*magSqr((x - x0) / radius)) / constant::mathematical::pi / sqr(radius);
 }
 
-template<class T>
+template<class T1, class T2, class T3>
 auto threePhaseParameter
 (
-    const T& temp, const T& phi, const T& alpha,
+    const T1& temp, const T2& phi, const T3& alpha,
     dimensionedScalar A_sol, dimensionedScalar A_liq,
     dimensionedScalar dA_sol, dimensionedScalar dA_liq,
     dimensionedScalar A_gas
-) -> decltype(A_gas*alpha) // can be removed in C++14
+) -> decltype(temp + phi + alpha) // can be removed in C++14
 {
     return ((A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi)*(1-alpha) + A_gas*alpha;
 }
 
-void calcEnthalpy(
+void calcEnthalpy
+(
     volScalarField& he, const volScalarField& temp,
     const volScalarField& phi, const volScalarField& alpha,
     dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
@@ -116,13 +117,13 @@ void calcEnthalpy(
     dimensionedScalar enthalpyFusion
 )
 {
-    // // to check dimensions
+    // To check dimensions
     (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
     const scalar T_M = T_melting.value();
-    auto he_S = [&](scalar temp) {
+    auto he_S = [=](scalar temp) {
         return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
     };
-    auto he_L = [&](scalar temp) {
+    auto he_L = [=](scalar temp) {
         return Cp_liq.value()*temp + dCp_liq.value()*sqr(temp)/2;
     };
     const volScalarField he_G = Cp_gas*temp;
@@ -151,7 +152,7 @@ void calcTemperature
     dimensionedScalar enthalpyFusion
 )
 {
-    // // to check dimensions
+    // to check dimensions
     (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
     const scalar T_M = T_melting.value();
     auto he_S = [=](scalar temp) {
@@ -183,8 +184,24 @@ void calcTemperature
 
 tmp<volVectorField> calcNormal(const volVectorField& vField)
 {
-    dimensionedVector smallVector("small", vField.dimensions(), vector(0, 0, SMALL));
+    const dimensionedVector smallVector("small", vField.dimensions(), vector(0, 0, SMALL));
     return (vField + smallVector) / mag(vField + smallVector);
+}
+
+template<class T>
+tmp<T> magModifiedGradAlpha
+(
+    const T& temp, const T& phi, const T& alpha,
+    dimensionedScalar A_sol, dimensionedScalar A_liq,
+    dimensionedScalar dA_sol, dimensionedScalar dA_liq,
+    dimensionedScalar A_gas
+)
+{
+    const dimensionedScalar zero(0), one(1);
+    return 2 * mag(fvc::grad(alpha)) *
+        threePhaseParameter(temp, phi, alpha, A_sol, A_liq, dA_sol, dA_liq, A_gas) / (
+        threePhaseParameter(temp, phi, zero, A_sol, A_liq, dA_sol, dA_liq, A_gas) +
+        threePhaseParameter(temp, phi, one, A_sol, A_liq, dA_sol, dA_liq, A_gas));
 }
 
 int main(int argc, char *argv[])
@@ -208,7 +225,8 @@ int main(int argc, char *argv[])
     #include "setInitialDeltaT.H"
 
     // For debug
-    auto pp = [](const volScalarField& f) {
+    auto pp = [](const volScalarField& f)
+    {
         Info<< f.name() << ": " << min(f).value() << " " << max(f).value() << endl;
     };
 
@@ -262,10 +280,7 @@ int main(int argc, char *argv[])
                 }
             }
 
-            vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
-                / constant::physicoChemical::R * (1/T_boiling - 1/T));
-
-            while (pimple.correctNonOrthogonal())
+            while (pimple.correct())
             {
                 #include "heEqn.H"
             }

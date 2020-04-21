@@ -7,13 +7,12 @@
     heatCapacity = threePhaseParameter(T, meltIndicator, alpha2, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas);
     thermalConductivity = threePhaseParameter(T, meltIndicator, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
     diffusivityf = fvc::interpolate(thermalConductivity/heatCapacity);
-    laserHeatSource = (runTime < timeStop) * mag(fvc::grad(alpha2))
+    laserHeatSource = (runTime < timeStop)
         * absorptivity * laserPower * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
     radiativeCooling = emissivity * constant::physicoChemical::sigma
-        * (pow4(T) - pow4(T_ambient))  * mag(fvc::grad(alpha2));
-    evaporativeCooling = evaporationCoeff * vaporPressure * mag(fvc::grad(alpha2))
-        * Foam::sqrt(molarMass/2/constant::mathematical::pi/constant::physicoChemical::R/T)
-        * enthalpyBoiling;
+        * (pow4(T) - pow4(T_ambient));
+    evaporativeCooling = evaporationCoeff * vaporPressure * enthalpyBoiling
+        * Foam::sqrt(molarMass/2/constant::mathematical::pi/constant::physicoChemical::R/T);
 
     fvScalarMatrix heEqn
     (
@@ -22,9 +21,12 @@
       - fvm::laplacian(thermalConductivity / heatCapacity, he)
       + alpha1 * enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dMeltIndicator, he)
      ==
-        laserHeatSource
-      - radiativeCooling
-      - evaporativeCooling
+        (
+            laserHeatSource
+          - radiativeCooling
+          - evaporativeCooling
+        ) * magModifiedGradAlpha(T, meltIndicator, alpha2, rho1*Cp_sol, rho1*Cp_liq,
+                rho1*dCp_sol, rho1*dCp_liq, rho2*Cp_gas)
       //- alpha1 * enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, meltIndicator)
       + fvc::div(rho * U & turbulence->devReff())
     );
@@ -44,6 +46,8 @@
     calcTemperature(T, he, meltIndicator, alpha2,
         Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
     rhok = rho*(1.0 - beta*(T - T_ambient));
+    vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
+        / constant::physicoChemical::R * (1/T_boiling - 1/T));
 
     pp(meltIndicator);
     pp(T);

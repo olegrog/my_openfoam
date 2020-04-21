@@ -2,6 +2,7 @@
 
     volVectorField normal("normal", fvc::reconstruct(mixture.nHatf()));
     volTensorField I_nn("I_nn", tensor::one - normal*normal);
+    const dimensionedScalar zeroT(dimDensity/dimTemperature);
 
     fvVectorMatrix UEqn
     (
@@ -11,8 +12,8 @@
      ==
         fvOptions(rho, U)
       - fvm::Sp(permeability * sqr(1 - meltIndicator) / pow(meltIndicator + SMALL, 3) * alpha1, U)
-      + dsigma_dT * mag(fvc::grad(alpha2)) * (fvc::grad(T) & I_nn)
-      - (3 - evaporationCoeff)/4 * vaporPressure * fvc::grad(alpha2)
+      + dsigma_dT * (fvc::grad(T) & I_nn)
+            * magModifiedGradAlpha(T, meltIndicator, alpha2, rho1, rho1, zeroT, zeroT, rho2)
     );
 
     UEqn.relax();
@@ -31,6 +32,7 @@
                     mixture.surfaceTensionForce()
                   - ghf*fvc::snGrad(rhok)
                   - fvc::snGrad(p_rgh)
+                  - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
                 ) * mesh.magSf()
             )
         );
