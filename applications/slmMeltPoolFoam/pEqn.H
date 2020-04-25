@@ -30,6 +30,7 @@
         (
             mixture.surfaceTensionForce()
           - ghf*fvc::snGrad(rhok)
+          - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
         )*rAUf*mesh.magSf()
     );
 

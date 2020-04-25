@@ -1,8 +1,6 @@
 {
     // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
-    // vector beamDirection(0, 0, -1);
-    dimensionedVector laserCoordinate("laserCoordinate", coordStart + laserVelocity * mesh.time());
-    dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
+    const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
 
     heatCapacity = threePhaseParameter(T, meltIndicator, alpha2, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas);
     thermalConductivity = threePhaseParameter(T, meltIndicator, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
@@ -19,7 +17,8 @@
         fvm::ddt(rho, he)
       + fvm::div(rhoPhi, he)
       - fvm::laplacian(thermalConductivity / heatCapacity, he)
-      + alpha1 * enthalpyFusion * fvm::laplacian(thermalConductivity / heatCapacity * dMeltIndicator, he)
+      + enthalpyFusion
+            * fvm::laplacian(alpha1 * thermalConductivity / heatCapacity * dMeltIndicator, he)
      ==
         (
             laserHeatSource
@@ -27,7 +26,6 @@
           - evaporativeCooling
         ) * magModifiedGradAlpha(T, meltIndicator, alpha2, rho1*Cp_sol, rho1*Cp_liq,
                 rho1*dCp_sol, rho1*dCp_liq, rho2*Cp_gas)
-      //- alpha1 * enthalpyFusion * fvc::laplacian(thermalConductivity / heatCapacity, meltIndicator)
       + fvc::div(rho * U & turbulence->devReff())
     );
     heEqn.solve();

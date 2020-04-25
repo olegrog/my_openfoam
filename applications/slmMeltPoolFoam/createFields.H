@@ -51,7 +51,7 @@ volVectorField U
 
 Info<< "Reading transportProperties\n" << endl;
 immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
-dimensionedScalar permeability("permeability", mixture);
+dimensionedScalar mushyCoeff("mushyCoeff", mixture);
 
 autoPtr<Function1<scalar>> pSigma
 (
@@ -79,9 +79,8 @@ volScalarField meltIndicator
         IOobject::AUTO_WRITE
     ),
     mesh,
-    dimless
+    dimensionedScalar()
 );
-calcMeltIndicator(meltIndicator, Cp_sol*T, he_melting, enthalpyFusion);
 
 volScalarField he
 (
@@ -373,6 +372,6 @@ volScalarField vaporPressure
         mesh
     ),
     mesh,
-    ambientPressure
+    dimensionedScalar(dimPressure)
 );
 

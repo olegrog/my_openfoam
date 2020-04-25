@@ -244,7 +244,13 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Pressure-velocity PIMPLE corrector loop
+        dimensionedVector laserCoordinate
+        (
+            "laserCoordinate", coordStart + laserVelocity * mesh.time()
+        );
+        // vector beamDirection(0, 0, -1);
+
+        // --- Enthalpy--pressure--velocity PIMPLE corrector loop
         while (pimple.loop())
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)

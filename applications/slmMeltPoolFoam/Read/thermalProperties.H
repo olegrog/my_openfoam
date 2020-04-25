@@ -37,6 +37,9 @@ auto he_S = [&](dimensionedScalar temp) {
 auto he_L = [&](dimensionedScalar temp) {
     return Cp_liq*temp + dCp_liq*sqr(temp)/2;
 };
+auto he_G = [&](dimensionedScalar temp) {
+    return Cp_gas*temp;
+};
 
 dimensionedScalar he_ambient = he_S(T_ambient);
 dimensionedScalar he_melting = he_S(T_melting) + enthalpyFusion/2;
@@ -45,6 +48,7 @@ dimensionedScalar zero(0), one(1);
 
 Info<< "Ambient enthalpy = " << he_ambient.value() << endl
     << "Melting enthalpy = " << he_melting.value() << endl
+    << "Gas enthalpy at the melting temperature = " << he_G(T_melting).value() << endl
     << "Pre-boiling enthalpy = " << he_preboiling.value() << endl
     << "Solidus heat capacity = " << threePhaseParameter(
             T_melting, zero, zero, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas).value() << endl

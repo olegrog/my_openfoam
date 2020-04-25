@@ -41,9 +41,8 @@ laplacianSchemes
     laplacian(rAUf,pcorr) Gauss linear orthogonal;
     laplacian((rho*nuEff),U) Gauss linear orthogonal;
     laplacian(rAUf,p_rgh) Gauss linear orthogonal;
-    laplacian(((thermalConductivity|heatCapacity)*dMeltIndicator),he) Gauss limitedLinear diffusivityf 1 orthogonal;
+    laplacian((((alpha.metal*thermalConductivity)|heatCapacity)*dMeltIndicator),he) Gauss limitedLinear diffusivityf 1 orthogonal;
     laplacian((thermalConductivity|heatCapacity),he) Gauss limitedLinear diffusivityf 1 orthogonal;
-    laplacian((thermalConductivity|heatCapacity),meltIndicator) Gauss limitedLinear diffusivityf 1 orthogonal;
 }
 
 interpolationSchemes
