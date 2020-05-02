@@ -98,17 +98,17 @@ volScalarField he
     T.boundaryField()   // copy BC from the temperature field.
 );
 
-{ // TODO: use ODEsolver instead?
-    scalar phiError = GREAT, maxPhi = 0;
+{
+    scalar error, maxError = pimple.dict().get<scalar>("meltIndicatorInitError");
     Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
-    while (phiError > 1e-10) {
-        phiError = mag(maxPhi - max(meltIndicator).value());
-        maxPhi = max(meltIndicator).value();
-        Info<< "Error in meltIndicator = " << phiError << ", maxPhi = " << maxPhi << endl;
+    do {
         calcEnthalpy(he, T, meltIndicator, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
             T_melting, enthalpyFusion);
+        meltIndicator.storePrevIter();
         calcMeltIndicator(meltIndicator, he, he_melting, enthalpyFusion);
-    }
+        error = Foam::max(mag(meltIndicator - meltIndicator.prevIter())).value();
+        Info<< "meltIndicator error = " << error << endl;
+    } while (error > maxError);
     Info<< endl;
 }
 
@@ -208,6 +208,48 @@ volScalarField evaporativeCooling
     dimPower/dimArea
 );
 
+volScalarField heatConvection
+(
+    IOobject
+    (
+        "heatConvection",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
+volScalarField heatConduction
+(
+    IOobject
+    (
+        "heatConduction",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
+volScalarField heatConduction2
+(
+    IOobject
+    (
+        "heatConduction2",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimVolume
+);
+
 // Used only for writing
 volScalarField kinematicViscosity
 (
@@ -254,21 +296,6 @@ surfaceScalarField rhoPhi
     ),
     fvc::interpolate(rho)*phi
 );
-
-surfaceScalarField diffusivityf
-(
-    IOobject
-    (
-        "diffusivityf",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::NO_WRITE
-    ),
-    mesh,
-    thermalConductivity.dimensions() / heatCapacity.dimensions()
-);
-
 
 // Construct incompressible turbulence model
 autoPtr<incompressible::turbulenceModel> turbulence

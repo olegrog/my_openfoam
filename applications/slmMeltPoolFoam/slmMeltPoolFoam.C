@@ -78,7 +78,7 @@ void calcMeltIndicator
         if (!isDerivative) {
             f[i] = 0.5 * (1 + Foam::tanh(2 * (he[i] - he_M) / he_fus));
         } else {
-            f[i] = 1 / he_fus / sqr(Foam::cosh((he[i] - he_M) / he_fus));
+            f[i] = 1 / he_fus / sqr(Foam::cosh(2 * (he[i] - he_M) / he_fus));
         }
     }, he);
 }

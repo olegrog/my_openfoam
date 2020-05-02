@@ -31,13 +31,13 @@ dimensionedScalar T_boiling("T_boiling", thermalProperties);
 dimensionedScalar enthalpyFusion("enthalpyFusion", thermalProperties);
 dimensionedScalar enthalpyBoiling("enthalpyBoiling", thermalProperties);
 
-auto he_S = [&](dimensionedScalar temp) {
+auto he_S = [=](dimensionedScalar temp) {
     return Cp_sol*temp + dCp_sol*sqr(temp)/2;
 };
-auto he_L = [&](dimensionedScalar temp) {
+auto he_L = [=](dimensionedScalar temp) {
     return Cp_liq*temp + dCp_liq*sqr(temp)/2;
 };
-auto he_G = [&](dimensionedScalar temp) {
+auto he_G = [=](dimensionedScalar temp) {
     return Cp_gas*temp;
 };
 

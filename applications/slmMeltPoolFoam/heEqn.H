@@ -4,7 +4,6 @@
 
     heatCapacity = threePhaseParameter(T, meltIndicator, alpha2, Cp_sol, Cp_liq, dCp_sol, dCp_liq, Cp_gas);
     thermalConductivity = threePhaseParameter(T, meltIndicator, alpha2, k_sol, k_liq, dk_sol, dk_liq, k_gas);
-    diffusivityf = fvc::interpolate(thermalConductivity/heatCapacity);
     laserHeatSource = (runTime < timeStop)
         * absorptivity * laserPower * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
     radiativeCooling = emissivity * constant::physicoChemical::sigma
@@ -12,13 +11,21 @@
     evaporativeCooling = evaporationCoeff * vaporPressure * enthalpyBoiling
         * Foam::sqrt(molarMass/2/constant::mathematical::pi/constant::physicoChemical::R/T);
 
+    auto he_sol = [=](const volScalarField& temp) {
+        return Cp_sol*temp + dCp_sol*sqr(temp)/2;
+    };
+    auto he_gas = [=](const volScalarField& temp) {
+        return Cp_gas*temp;
+    };
+
     fvScalarMatrix heEqn
     (
         fvm::ddt(rho, he)
       + fvm::div(rhoPhi, he)
-      - fvm::laplacian(thermalConductivity / heatCapacity, he)
-      + enthalpyFusion
-            * fvm::laplacian(alpha1 * thermalConductivity / heatCapacity * dMeltIndicator, he)
+      - fvm::laplacian(thermalConductivity / heatCapacity
+            * (1 - alpha1 * dMeltIndicator * enthalpyFusion), he)
+      + fvc::laplacian(thermalConductivity / heatCapacity
+            * (he_gas(T) - he_sol(T) - meltIndicator * enthalpyFusion), alpha2)
      ==
         (
             laserHeatSource
@@ -29,7 +36,6 @@
       + fvc::div(rho * U & turbulence->devReff())
     );
     heEqn.solve();
-
     pp(he);
 
     Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
@@ -46,6 +52,14 @@
     rhok = rho*(1.0 - beta*(T - T_ambient));
     vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
         / constant::physicoChemical::R * (1/T_boiling - 1/T));
+
+    // For debug: check that heatConduction is almost equal to heatConduction2
+    heatConvection = fvc::div(rhoPhi, he);
+    heatConduction = fvc::laplacian(thermalConductivity, T);
+    heatConduction2 = fvc::laplacian(thermalConductivity / heatCapacity
+            * (1 - alpha1 * dMeltIndicator * enthalpyFusion), he)
+      - fvc::laplacian(thermalConductivity / heatCapacity
+            * (he_gas(T) - he_sol(T) - meltIndicator * enthalpyFusion), alpha2);
 
     pp(meltIndicator);
     pp(T);

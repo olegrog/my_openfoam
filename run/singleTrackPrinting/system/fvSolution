@@ -41,7 +41,7 @@ solvers
         solver          GAMG;
         smoother        DIC;
         cacheAgglomeration no;
-        tolerance       1e-08;
+        tolerance       1e-8;
         relTol          0.01;
     }
 
@@ -49,7 +49,7 @@ solvers
     {
         $p_rgh;
         relTol          0;
-        tolerance       1e-9;
+        tolerance       1e-8;
     }
 
     "pcorr.*"
@@ -73,13 +73,6 @@ solvers
         tolerance       1e-8;
         relTol          0;
     }
-    "concentration.*"
-    {
-        solver          PBiCGStab;
-        preconditioner  DILU;
-        tolerance       1e-5;
-        relTol          0.01;
-    }
 }
 
 PIMPLE
@@ -89,6 +82,8 @@ PIMPLE
     nCorrectors         3;
     nNonOrthogonalCorrectors 0;
     correctPhi          yes;
+
+    meltIndicatorInitError 1e-17;
 }
 
 relaxationFactors

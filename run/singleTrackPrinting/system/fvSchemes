@@ -37,12 +37,11 @@ divSchemes
 
 laplacianSchemes
 {
-    //default         Gauss linear orthogonal; // orthogonal is used for Cartesian meshes
-    laplacian(rAUf,pcorr) Gauss linear orthogonal;
-    laplacian((rho*nuEff),U) Gauss linear orthogonal;
-    laplacian(rAUf,p_rgh) Gauss linear orthogonal;
-    laplacian((((alpha.metal*thermalConductivity)|heatCapacity)*dMeltIndicator),he) Gauss limitedLinear diffusivityf 1 orthogonal;
-    laplacian((thermalConductivity|heatCapacity),he) Gauss limitedLinear diffusivityf 1 orthogonal;
+    default         Gauss linear orthogonal; // orthogonal is used for Cartesian meshes
+    //laplacian(rAUf,pcorr) Gauss linear orthogonal;
+    //laplacian((rho*nuEff),U) Gauss linear orthogonal;
+    //laplacian(rAUf,p_rgh) Gauss linear orthogonal;
+    //laplacian(((thermalConductivity|heatCapacity)*(1-((alpha.metal*dMeltIndicator)*enthalpyFusion))),he) Gauss limitedLinear diffusivityf 1 orthogonal;
 }
 
 interpolationSchemes
