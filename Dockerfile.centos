@@ -1,4 +1,4 @@
-FROM openfoamplus/of_v1906_centos73:latest
+FROM openfoamplus/of_v1912_centos73:latest
 
 # boost-devel is used to build source-highlight from source
 RUN yum install -y epel-release \
@@ -6,7 +6,7 @@ RUN yum install -y epel-release \
  && yum clean all \
  && rm -rf /var/lib/apt/lists/*
 
-RUN echo "source /opt/OpenFOAM/setImage_v1906.sh" >> /etc/profile.d/openfoam.sh
+RUN echo "source $(ls /opt/OpenFOAM/setImage_*.sh)" >> /etc/profile.d/openfoam.sh
 
 RUN curl https://raw.githubusercontent.com/tpope/vim-pathogen/master/autoload/pathogen.vim \
     > /usr/share/vim/vimfiles/autoload/pathogen.vim
