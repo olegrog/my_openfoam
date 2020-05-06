@@ -42,12 +42,13 @@ auto he_G = [=](dimensionedScalar temp) {
 };
 
 dimensionedScalar he_ambient = he_S(T_ambient);
-dimensionedScalar he_melting = he_S(T_melting) + enthalpyFusion/2;
-dimensionedScalar he_preboiling = he_melting + enthalpyFusion/2 + he_L(T_boiling) - he_L(T_melting);
+dimensionedScalar he_M = he_S(T_melting) + enthalpyFusion/2;
+dimensionedScalar heAtFusionPrime = he_G(T_melting) - he_S(T_melting) - enthalpyFusion/2;
+dimensionedScalar he_preboiling = he_M + enthalpyFusion/2 + he_L(T_boiling) - he_L(T_melting);
 dimensionedScalar zero(0), one(1);
 
 Info<< "Ambient enthalpy = " << he_ambient.value() << endl
-    << "Melting enthalpy = " << he_melting.value() << endl
+    << "Melting enthalpy = " << he_M.value() << endl
     << "Gas enthalpy at the melting temperature = " << he_G(T_melting).value() << endl
     << "Pre-boiling enthalpy = " << he_preboiling.value() << endl
     << "Solidus heat capacity = " << threePhaseParameter(
@@ -59,3 +60,13 @@ Info<< "Ambient enthalpy = " << he_ambient.value() << endl
     << "Liquidus heat conductivity = " << threePhaseParameter(
             T_melting, one, zero, k_sol, k_liq, dk_sol, dk_liq, k_gas).value() << endl
     << endl;
+
+auto he_sol = [=](const volScalarField& temp) {
+    return Cp_sol*temp + dCp_sol*sqr(temp)/2;
+};
+auto he_gas = [=](const volScalarField& temp) {
+    return Cp_gas*temp;
+};
+auto he_melting = [=](const volScalarField& gasFraction) {
+    return gasFraction*he_G(T_melting) + (1 - gasFraction)*(he_S(T_melting) + enthalpyFusion/2);
+};

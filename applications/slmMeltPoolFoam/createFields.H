@@ -68,20 +68,6 @@ Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() <
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 
-volScalarField meltIndicator
-(
-    IOobject
-    (
-        "meltIndicator",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh,
-    dimensionedScalar()
-);
-
 volScalarField he
 (
     IOobject
@@ -95,48 +81,35 @@ volScalarField he
     mesh,
     dimEnergy/dimMass,
     T.primitiveField(),
-    T.boundaryField()   // copy BC from the temperature field.
+    T.boundaryField()   // copy BC from the temperature field
+);
+
+volScalarField heAtFusion(he_melting(alpha2));
+volScalarField heDAlpha(he);
+
+LiquidFraction liquidFraction
+(
+    alpha1, he, heAtFusion, enthalpyFusion, heAtFusionPrime, thermalProperties
 );
 
 {
-    scalar error, maxError = pimple.dict().get<scalar>("meltIndicatorInitError");
+    scalar error, maxError = pimple.dict().get<scalar>("liquidFractionInitError");
     Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
     do {
-        calcEnthalpy(he, T, meltIndicator, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
+        calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
             T_melting, enthalpyFusion);
-        meltIndicator.storePrevIter();
-        calcMeltIndicator(meltIndicator, he, he_melting, enthalpyFusion);
-        error = Foam::max(mag(meltIndicator - meltIndicator.prevIter())).value();
-        Info<< "meltIndicator error = " << error << endl;
+        liquidFraction.storePrevIter();
+        liquidFraction.update();
+        error = Foam::max(mag(liquidFraction - liquidFraction.prevIter())).value();
+        Info<< "liquidFraction error = " << error << endl;
     } while (error > maxError);
     Info<< endl;
 }
-
-volScalarField wasMelted
-(
-    IOobject
-    (
-        "wasMelted",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    meltIndicator
-);
-
-volScalarField dMeltIndicator
-(
-    IOobject
-    (
-        "dMeltIndicator",
-        runTime.timeName(),
-        mesh
-    ),
-    mesh,
-    inv(he.dimensions())
-);
-calcMeltIndicator(dMeltIndicator, he, he_melting, enthalpyFusion, true);
+// To debug calcTemperature & calcEnthalpy
+// he.write();
+// calcTemperature(T, he, liquidFraction, alpha2,
+//     Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
+// T.write();
 
 volScalarField heatCapacity
 (

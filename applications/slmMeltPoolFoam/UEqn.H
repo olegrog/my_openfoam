@@ -4,8 +4,8 @@
 
     const volVectorField normal(fvc::reconstruct(mixture.nHatf()));
     const volTensorField I_nn(tensor::one - normal*normal);
-    const volScalarField darcyDamping =
-        mushyCoeff * sqr(1 - meltIndicator) / pow(meltIndicator, 3) * alpha1;
+    const volScalarField darcyDamping = mushyCoeff
+        * sqr(alpha1 - liquidFraction) / pow(alpha2 + liquidFraction + SMALL, 2);
 
     fvVectorMatrix UEqn
     (
@@ -16,7 +16,7 @@
         fvOptions(rho, U)
       - fvm::Sp(darcyDamping, U)
       + dsigma_dT * (fvc::grad(T) & I_nn)
-            * magModifiedGradAlpha(T, meltIndicator, alpha2, rho1, rho1, zeroT, zeroT, rho2)
+            * magModifiedGradAlpha(T, liquidFraction, alpha2, rho1, rho1, zeroT, zeroT, rho2)
     );
 
     UEqn.relax();

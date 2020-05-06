@@ -8,6 +8,7 @@
                             | Copyright (C) 2011-2017 OpenFOAM Foundation
                 isoAdvector | Copyright (C) 2016 DHI
               Modified work | Copyright (C) 2018 Johan Roenby
+            slmMeltPoolFoam | Copyright (C) 2019-2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     OpenFOAM is free software: you can redistribute it and/or modify it
@@ -40,10 +41,14 @@ Description
 #include "pimpleControl.H"
 #include "fvOptions.H"
 #include "CorrectPhi.H"
-#include "fvcSmooth.H"
+
+#include "LiquidFraction.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+// We use this function instead of GeometricField::operator= to
+//  1) change boundary values along with internal ones,
+//  2) optimize piecewise functions
 template<class Func, class... Args>
 void calcGeomField(volScalarField& f, Func calc, const Args&... args)
 {
@@ -61,28 +66,6 @@ void calcGeomField(volScalarField& f, Func calc, const Args&... args)
     }
 }
 
-void calcMeltIndicator
-(
-    volScalarField& mi,
-    const volScalarField& he,
-    dimensionedScalar enthalpyAtFusion,
-    dimensionedScalar enthalpyFusion,
-    bool isDerivative = false
-)
-{
-    he + enthalpyAtFusion + enthalpyFusion; // to check dimensions
-    scalar he_M = enthalpyAtFusion.value();
-    scalar he_fus = enthalpyFusion.value();
-    calcGeomField(mi, [=](scalarField& f, label i, const scalarField& he)
-    {
-        if (!isDerivative) {
-            f[i] = 0.5 * (1 + Foam::tanh(2 * (he[i] - he_M) / he_fus));
-        } else {
-            f[i] = 1 / he_fus / sqr(Foam::cosh(2 * (he[i] - he_M) / he_fus));
-        }
-    }, he);
-}
-
 volScalarField surfaceGaussian
 (
     const volVectorField& x,
@@ -92,7 +75,7 @@ volScalarField surfaceGaussian
 {
     volVectorField r = x - x0;
     r.replace(2, 0);
-    return 2 * exp(-2*magSqr((x - x0) / radius)) / constant::mathematical::pi / sqr(radius);
+    return 2*exp(-2*magSqr((x - x0)/radius))/constant::mathematical::pi/sqr(radius);
 }
 
 template<class T1, class T2, class T3>
@@ -104,22 +87,23 @@ auto threePhaseParameter
     dimensionedScalar A_gas
 ) -> decltype(temp + phi + alpha) // can be removed in C++14
 {
-    return ((A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi)*(1-alpha) + A_gas*alpha;
+    return (A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi + A_gas*alpha;
 }
 
 void calcEnthalpy
 (
     volScalarField& he, const volScalarField& temp,
-    const volScalarField& phi, const volScalarField& alpha,
+    const LiquidFraction& phi, const volScalarField& alpha,
     dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
     dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
     dimensionedScalar Cp_gas, dimensionedScalar T_melting,
-    dimensionedScalar enthalpyFusion
+    dimensionedScalar enthalpyFusion, bool dAlpha = false
 )
 {
     // To check dimensions
-    (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
     const scalar T_M = T_melting.value();
+    const scalar he_fus = enthalpyFusion.value();
     auto he_S = [=](scalar temp) {
         return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
     };
@@ -137,7 +121,11 @@ void calcEnthalpy
         } else {
             piecewise = he_S(T_M) + he_L(temp[i]) - he_L(T_M);
         }
-        f[i] = alpha[i]*he_G[i] + (1 - alpha[i])*(phi[i]*enthalpyFusion.value() + piecewise);
+        if (!dAlpha) {
+            f[i] = alpha[i]*he_G[i] + he_fus*phi[i] + (1-alpha[i])*piecewise;
+        } else {
+            f[i] = he_G[i] - piecewise;
+        }
     }, temp, phi, alpha, he_G);
     he.correctBoundaryConditions();
 }
@@ -145,7 +133,7 @@ void calcEnthalpy
 void calcTemperature
 (
     volScalarField& temp, const volScalarField& he,
-    const volScalarField& phi, const volScalarField& alpha,
+    const LiquidFraction& phi, const volScalarField& alpha,
     dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
     dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
     dimensionedScalar Cp_gas, dimensionedScalar T_melting,
@@ -153,30 +141,38 @@ void calcTemperature
 )
 {
     // to check dimensions
-    (Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
     const scalar T_M = T_melting.value();
+    const scalar he_fus = enthalpyFusion.value();
     auto he_S = [=](scalar temp) {
         return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
     };
-    const scalar he_M = he_S(T_M) + enthalpyFusion.value()/2;
+    auto he_L = [=](scalar temp) {
+        return Cp_liq.value()*temp + dCp_liq.value()*sqr(temp)/2;
+    };
+    auto he_G = [=](scalar temp) {
+        return Cp_gas.value()*temp;
+    };
 
     calcGeomField(temp, [=](scalarField& f, label i, const scalarField& he,
         const scalarField& phi, const scalarField& alpha)
     {
         scalar A, B = alpha[i]*Cp_gas.value();
-        scalar C = he[i] - (1 - alpha[i])*phi[i]*enthalpyFusion.value();
+        scalar C = he[i] - he_fus*phi[i] - (1-alpha[i])*he_S(T_M);
+        scalar he_M = alpha[i]*he_G(T_M) + (1-alpha[i])*(he_S(T_M) + he_fus/2);
         if (he[i] < he_M) {
-            A = (1 - alpha[i])*dCp_sol.value();
-            B += (1 - alpha[i])*Cp_sol.value();
+            A = (1-alpha[i])*dCp_sol.value();
+            B += (1-alpha[i])*Cp_sol.value();
+            C += (1-alpha[i])*he_S(T_M);
         } else {
-            A = (1 - alpha[i])*dCp_liq.value();
-            B += (1 - alpha[i])*(Cp_liq.value() - dCp_liq.value()*T_M);
-            C += (1 - alpha[i])*(Cp_liq.value()*T_M - dCp_liq.value()*sqr(T_M)/2 - he_S(T_M));
+            A = (1-alpha[i])*dCp_liq.value();
+            B += (1-alpha[i])*Cp_liq.value();
+            C += (1-alpha[i])*he_L(T_M);
         }
         if (mag(A) > SMALL) {
-            f[i] = (Foam::sqrt(sqr(B) + 2*A*C) - B) / A;
+            f[i] = (Foam::sqrt(sqr(B) + 2*A*C) - B)/A;
         } else {
-            f[i] = C / B;
+            f[i] = C/B;
         }
     }, he, phi, alpha);
     temp.correctBoundaryConditions();
@@ -188,20 +184,22 @@ tmp<volVectorField> calcNormal(const volVectorField& vField)
     return (vField + smallVector) / mag(vField + smallVector);
 }
 
-template<class T>
-tmp<T> magModifiedGradAlpha
+tmp<volScalarField> magModifiedGradAlpha
 (
-    const T& temp, const T& phi, const T& alpha,
+    const volScalarField& temp, const LiquidFraction& phi, const volScalarField& alpha,
     dimensionedScalar A_sol, dimensionedScalar A_liq,
     dimensionedScalar dA_sol, dimensionedScalar dA_liq,
     dimensionedScalar A_gas
 )
 {
     const dimensionedScalar zero(0), one(1);
-    return 2 * mag(fvc::grad(alpha)) *
-        threePhaseParameter(temp, phi, alpha, A_sol, A_liq, dA_sol, dA_liq, A_gas) / (
-        threePhaseParameter(temp, phi, zero, A_sol, A_liq, dA_sol, dA_liq, A_gas) +
-        threePhaseParameter(temp, phi, one, A_sol, A_liq, dA_sol, dA_liq, A_gas));
+    return 2*mag(fvc::grad(alpha)) *
+        threePhaseParameter(temp, phi, alpha, A_sol, A_liq, dA_sol, dA_liq, A_gas)
+    / (
+        threePhaseParameter(temp, phi, zero, A_sol, A_liq, dA_sol, dA_liq, A_gas)
+        +
+        threePhaseParameter(temp, phi, one, A_sol, A_liq, dA_sol, dA_liq, A_gas)
+    );
 }
 
 int main(int argc, char *argv[])
@@ -286,15 +284,20 @@ int main(int argc, char *argv[])
                 }
             }
 
-            while (pimple.correct())
-            {
-                #include "heEqn.H"
-            }
-
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
+
+            // Enthalpy-independent quantities
+            heAtFusion = he_melting(alpha2);
+            laserHeatSource = (runTime < timeStop) * absorptivity * laserPower
+                * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+
+            while (pimple.correct())
+            {
+                #include "heEqn.H"
+            }
 
             if (pimple.frozenFlow())
             {
@@ -315,7 +318,10 @@ int main(int argc, char *argv[])
             }
         }
 
+        // Update passive quantities
         kinematicViscosity = mixture.nu();
+        liquidFraction.finalUpdate();
+
         runTime.write();
 
         runTime.printExecutionTime(Info);

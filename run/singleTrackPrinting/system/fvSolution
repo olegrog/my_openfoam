@@ -83,7 +83,7 @@ PIMPLE
     nNonOrthogonalCorrectors 0;
     correctPhi          yes;
 
-    meltIndicatorInitError 1e-17;
+    liquidFractionInitError 1e-17;
 }
 
 relaxationFactors

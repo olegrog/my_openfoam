@@ -1,4 +1,5 @@
 EXE_INC = \
+    -I./LiquidFraction/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
@@ -21,4 +22,5 @@ EXE_LIBS = \
     -lfvOptions \
     -lmeshTools \
     -L$(FOAM_USER_LIBBIN) \
+    -lliquidFraction \
     -ltrueArrhenius

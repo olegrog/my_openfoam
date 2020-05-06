@@ -45,4 +45,6 @@ T_boiling       T_boiling [ 0 0 0 1 0 0 0 ] 3090; // Kim
 enthalpyFusion  enthalpyFusion [ 0 2 -2 0 0 0 0 ] 2.7e+5;
 enthalpyBoiling enthalpyBoiling [ 0 2 -2 0 0 0 0 ] 7.41e+6;
 
+sigmoid         erf;//tanh;
+
 // ************************************************************************* //
