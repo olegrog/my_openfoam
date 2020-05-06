@@ -68,6 +68,9 @@ class LiquidFraction
         //- The sigmoid function
         autoPtr<sigmoidFunction> sigmoid_;
 
+        //- The liquid fraction in the metal
+        volScalarField inMetal_;
+
         //- The first derivative with respect to gas fraction
         volScalarField dAlpha_;
 
@@ -111,6 +114,12 @@ public:
         tmp<volScalarField> dEnthalpy() const
         {
             return dEnthalpy_;
+        }
+
+        //- Return the liquid fraction in the metal
+        tmp<volScalarField> inMetal() const
+        {
+            return inMetal_;
         }
 };
 

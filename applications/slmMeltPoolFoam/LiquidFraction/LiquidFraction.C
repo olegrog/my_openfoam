@@ -61,11 +61,24 @@ Foam::LiquidFraction::LiquidFraction
     enthalpyAtFusion_(enthalpyAtFusion),
     enthalpyAtFusionPrime_(enthalpyAtFusionPrime),
     sigmoid_(sigmoidFunction::New(thermalProperties)),
+    inMetal_
+    (
+        IOobject
+        (
+            "liquidFractionInMetal",
+            enthalpy.mesh().time().timeName(),
+            enthalpy.mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        enthalpy.mesh(),
+        dimless
+    ),
     dAlpha_
     (
         IOobject
         (
-            "dAlpha",
+            "liquidFractionDAlpha",
             enthalpy.mesh().time().timeName(),
             enthalpy.mesh(),
             IOobject::NO_READ,
@@ -78,7 +91,7 @@ Foam::LiquidFraction::LiquidFraction
     (
         IOobject
         (
-            "dEnthalpy",
+            "liquidFractionDEnthalpy",
             enthalpy.mesh().time().timeName(),
             enthalpy.mesh(),
             IOobject::NO_READ,
@@ -107,7 +120,8 @@ Foam::LiquidFraction::LiquidFraction
 void Foam::LiquidFraction::update()
 {
     volScalarField x(2*(enthalpy_ - enthalpyAtFusion_) / enthalpyFusion_);
-    *this == metalFraction_/2 * (1 + (*sigmoid_)(x));
+    inMetal_ = (1 + (*sigmoid_)(x))/2;
+    *this == metalFraction_ * inMetal_;
     dEnthalpy_ = metalFraction_ / enthalpyFusion_ * sigmoid_->der(x);
     dAlpha_ = -(1 + (*sigmoid_)(x))/2 - dEnthalpy_ * enthalpyAtFusionPrime_;
 }

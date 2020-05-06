@@ -4,8 +4,8 @@
 
     const volVectorField normal(fvc::reconstruct(mixture.nHatf()));
     const volTensorField I_nn(tensor::one - normal*normal);
-    const volScalarField darcyDamping = mushyCoeff
-        * sqr(alpha1 - liquidFraction) / pow(alpha2 + liquidFraction + SMALL, 2);
+    const volScalarField darcyDamping = mushyCoeff * alpha1
+        * sqr(1 - liquidFraction.inMetal()) / pow(liquidFraction.inMetal() + SMALL, 2);
 
     fvVectorMatrix UEqn
     (

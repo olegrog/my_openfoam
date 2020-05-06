@@ -242,11 +242,13 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        dimensionedVector laserCoordinate
+        const dimensionedVector laserCoordinate
         (
             "laserCoordinate", coordStart + laserVelocity * mesh.time()
         );
+        const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
         // vector beamDirection(0, 0, -1);
+        // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
 
         // --- Enthalpy--pressure--velocity PIMPLE corrector loop
         while (pimple.loop())
@@ -321,6 +323,12 @@ int main(int argc, char *argv[])
         // Update passive quantities
         kinematicViscosity = mixture.nu();
         liquidFraction.finalUpdate();
+
+        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
+            << ", laser input = "
+            << fvc::domainIntegrate(laserHeatSource * mag(fvc::grad(alpha2)) * runTime.deltaT()).value()
+            << ", theoretical value = " << (absorptivity * laserPower * runTime.deltaT()).value()
+            << endl;
 
         runTime.write();
 

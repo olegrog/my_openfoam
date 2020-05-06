@@ -1,7 +1,4 @@
 {
-    // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
-    const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
-
     // We have to update all alpha-dependent fields
     liquidFraction.update();
     calcTemperature(T, he, liquidFraction, alpha2,
@@ -41,11 +38,6 @@
     );
     heEqn.solve();
     pp(he);
-
-    Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
-        << ", laser input = " << fvc::domainIntegrate(laserHeatSource * runTime.deltaT()).value()
-        << ", theoretical value = " << (absorptivity * laserPower * runTime.deltaT()).value()
-        << endl;
 
     if (pimple.corrPISO() == pimple.nCorrPISO())
     {
