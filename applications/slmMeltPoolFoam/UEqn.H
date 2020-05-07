@@ -32,10 +32,12 @@
             fvc::reconstruct
             (
                 (
-                    mixture.surfaceTensionForce()
+                    (
+                        mixture.surfaceTensionForce()
+                      - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
+                    )*2*fvc::interpolate(rho)/(rho1 + rho2)
                   - ghf*fvc::snGrad(rhok)
                   - fvc::snGrad(p_rgh)
-                  - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
                 ) * mesh.magSf()
             )
         );

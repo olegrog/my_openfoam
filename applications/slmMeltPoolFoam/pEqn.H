@@ -9,6 +9,7 @@
     }
 
     surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU()));
+    surfaceScalarField rAUfModified("rAUfModified", fvc::interpolate(2*rho/(rho1 + rho2)/UEqn.A()));
     volVectorField HbyA(constrainHbyA(rAU()*UEqn.H(), U, p_rgh));
     surfaceScalarField phiHbyA
     (
@@ -28,10 +29,12 @@
     surfaceScalarField phig
     (
         (
-            mixture.surfaceTensionForce()
-          - ghf*fvc::snGrad(rhok)
-          - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
-        )*rAUf*mesh.magSf()
+            (
+                mixture.surfaceTensionForce()
+              - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
+            )*rAUfModified
+          - ghf*fvc::snGrad(rhok)*rAUf
+        )*mesh.magSf()
     );
 
     phiHbyA += phig;
