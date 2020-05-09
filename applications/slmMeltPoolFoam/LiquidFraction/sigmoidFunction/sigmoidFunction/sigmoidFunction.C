@@ -33,18 +33,23 @@ License
 namespace Foam
 {
     defineTypeName(sigmoidFunction);
-    defineRunTimeSelectionTable(sigmoidFunction, empty);
+    defineRunTimeSelectionTable(sigmoidFunction, interval);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::sigmoidFunction> Foam::sigmoidFunction::New(const dictionary& dict)
+Foam::autoPtr<Foam::sigmoidFunction> Foam::sigmoidFunction::New
+(
+    const dictionary& dict,
+    scalar a,
+    scalar b
+)
 {
     const word sigmoidType(dict.get<word>("sigmoid"));
 
     Info<< "Selecting sigmoid function " << sigmoidType << endl;
 
-    const auto cstrIter = emptyConstructorTablePtr_->cfind(sigmoidType);
+    const auto cstrIter = intervalConstructorTablePtr_->cfind(sigmoidType);
 
     if (!cstrIter.found())
     {
@@ -53,11 +58,31 @@ Foam::autoPtr<Foam::sigmoidFunction> Foam::sigmoidFunction::New(const dictionary
             dict,
             "sigmoid",
             sigmoidType,
-            *emptyConstructorTablePtr_
+            *intervalConstructorTablePtr_
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<sigmoidFunction>(cstrIter()());
+    return autoPtr<sigmoidFunction>(cstrIter()(a, b));
+}
+
+Foam::sigmoidFunction::sigmoidFunction(scalar a, scalar b) : a_(a), b_(b) {}
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::operator()
+(
+    const volScalarField& field
+) const
+{
+    return (b_-a_)/2 * value(2*field/(b_-a_)) + (a_+b_)/2;
+}
+
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::der
+(
+    const volScalarField& field
+) const
+{
+    return derivative1(2*field/(b_-a_));
 }
 
 // ************************************************************************* //

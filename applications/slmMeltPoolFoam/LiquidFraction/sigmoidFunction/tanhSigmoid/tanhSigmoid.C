@@ -39,26 +39,26 @@ namespace Foam
     (
         sigmoidFunction,
         tanhSigmoid,
-        empty
+        interval
     );
 }
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::operator()
+Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::value
 (
-    const volScalarField& field
+    const tmp<volScalarField>& tfield
 ) const
 {
-    return tanh(field);
+    return tanh(tfield);
 }
 
-Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::der
+Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::derivative1
 (
-    const volScalarField& field
+    const tmp<volScalarField>& tfield
 ) const
 {
-    return 1/sqr(cosh(field));
+    return 1/sqr(cosh(tfield));
 };
 
 // ************************************************************************* //

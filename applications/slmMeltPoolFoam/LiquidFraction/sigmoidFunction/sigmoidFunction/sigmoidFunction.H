@@ -43,6 +43,21 @@ namespace Foam
 class sigmoidFunction
 {
 
+    // Private data
+
+        //- Minimum value of sigmoid
+        const scalar a_;
+
+        //- Maximum value of sigmoid
+        const scalar b_;
+
+    // Private Member Functions
+
+        //- Apply the normalized sigmoid function to a field (range between -1 and 1)
+        virtual tmp<volScalarField> value(const tmp<volScalarField>& tfield) const = 0;
+
+        //- Apply the first derivative of the normalized sigmoid function to a field
+        virtual tmp<volScalarField> derivative1(const tmp<volScalarField>& tfield) const = 0;
 public:
 
     //- Runtime type information
@@ -53,16 +68,16 @@ public:
     (
         autoPtr,
         sigmoidFunction,
-        empty,
-        (),
-        ()
+        interval,
+        (scalar a, scalar b),
+        (a, b)
     );
 
     //- Constructor
-    sigmoidFunction() = default;
+    sigmoidFunction(scalar a, scalar b);
 
     //- Selector
-    static autoPtr<sigmoidFunction> New(const dictionary& dict);
+    static autoPtr<sigmoidFunction> New(const dictionary& dict, scalar a, scalar b);
 
     //- Destructor
     virtual ~sigmoidFunction() = default;
@@ -70,10 +85,10 @@ public:
     // Member Functions
 
         //- Apply the sigmoid function to a field
-        virtual tmp<volScalarField> operator()(const volScalarField& field) const = 0;
+        tmp<volScalarField> operator()(const volScalarField& field) const;
 
-        //- Apply the first derivative of sigmoid function to a field
-        virtual tmp<volScalarField> der(const volScalarField& field) const = 0;
+        //- Apply the first derivative of the sigmoid function to a field
+        tmp<volScalarField> der(const volScalarField& field) const;
 };
 
 } // End namespace Foam

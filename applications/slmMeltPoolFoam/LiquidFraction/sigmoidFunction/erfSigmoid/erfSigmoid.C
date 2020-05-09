@@ -39,27 +39,28 @@ namespace Foam
     (
         sigmoidFunction,
         erfSigmoid,
-        empty
+        interval
     );
 }
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::operator()
+Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::value
 (
-    const volScalarField& field
-) const
-{
-    return erf(field);
-}
-
-Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::der
-(
-    const volScalarField& field
+    const tmp<volScalarField>& tfield
 ) const
 {
     using constant::mathematical::pi;
-    return 2/sqrt(pi)*exp(-sqr(field));
+    return erf(sqrt(pi)/2*tfield);
+}
+
+Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::derivative1
+(
+    const tmp<volScalarField>& tfield
+) const
+{
+    using constant::mathematical::pi;
+    return exp(-sqr(sqrt(pi)/2*tfield));
 };
 
 // ************************************************************************* //

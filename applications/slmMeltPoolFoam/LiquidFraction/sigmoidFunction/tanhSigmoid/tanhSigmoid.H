@@ -44,18 +44,21 @@ class tanhSigmoid
     public sigmoidFunction
 {
 
+    // Private Member Functions
+
+        //- Apply the normalized sigmoid function to a field (range between -1 and 1)
+        tmp<volScalarField> value(const tmp<volScalarField>& tfield) const;
+
+        //- Apply the first derivative of the normalized sigmoid function to a field
+        tmp<volScalarField> derivative1(const tmp<volScalarField>& tfield) const;
+
 public:
 
     //- Runtime type information
     TypeName("tanh");
 
-    // Member Functions
-
-        //- Apply the sigmoid function to a field
-        virtual tmp<volScalarField> operator()(const volScalarField& field) const;
-
-        //- Apply the first derivative of sigmoid function to a field
-        virtual tmp<volScalarField> der(const volScalarField& field) const;
+    //- Constructor
+    tanhSigmoid(scalar a, scalar b) : sigmoidFunction(a, b) {}
 };
 
 } // End namespace Foam
