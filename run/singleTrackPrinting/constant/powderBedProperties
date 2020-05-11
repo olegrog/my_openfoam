@@ -15,8 +15,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ballRadius          ballRadius          [ 0 1 0 0 0 0 0 ]   2e-5;
-substratePosition   substratePosition   [ 0 1 0 0 0 0 0 ]   0;
+ballRadius          ballRadius          [ m ]   2e-5;
+substratePosition   substratePosition   [ m ]   0;
 
 seed                123;
 amplitudeRadius     0.1;
