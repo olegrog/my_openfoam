@@ -1,7 +1,6 @@
 LiquidFraction.C
 
 sigmoidFunction/sigmoidFunction/sigmoidFunction.C
-sigmoidFunction/tanhSigmoid/tanhSigmoid.C
-sigmoidFunction/erfSigmoid/erfSigmoid.C
+sigmoidFunction/Sigmoid/makeSigmoids.C
 
 LIB = $(FOAM_USER_LIBBIN)/libliquidFraction

@@ -23,42 +23,41 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::sigmoid::tanh
+
+Description
+    Hyperbolic tangent.
+
 \*---------------------------------------------------------------------------*/
 
-#include "tanhSigmoid.H"
-#include "addToRunTimeSelectionTable.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#ifndef tanh_H
+#define tanh_H
 
 namespace Foam
 {
-
-    defineTypeName(tanhSigmoid);
-
-    addToRunTimeSelectionTable
-    (
-        sigmoidFunction,
-        tanhSigmoid,
-        interval
-    );
-}
-
-// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
-
-Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::value
-(
-    const tmp<volScalarField>& tfield
-) const
+namespace sigmoid
 {
-    return tanh(tfield);
-}
 
-Foam::tmp<Foam::volScalarField> Foam::tanhSigmoid::derivative1
-(
-    const tmp<volScalarField>& tfield
-) const
+struct tanh
 {
-    return 1/sqr(cosh(tfield));
+    template<int nPrimes>
+    static scalar value(scalar x);
 };
 
-// ************************************************************************* //
+template<>
+scalar tanh::value<0>(scalar x)
+{
+    return Foam::tanh(x);
+}
+
+template<>
+scalar tanh::value<1>(scalar x)
+{
+    return 1/sqr(std::cosh(x));
+}
+
+} // End namespace sigmoid
+} // End namespace Foam
+
+#endif

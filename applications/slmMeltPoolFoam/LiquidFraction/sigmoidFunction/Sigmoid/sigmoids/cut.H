@@ -24,43 +24,40 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::tanhSigmoid
+    Foam::sigmoid::cut
 
 Description
-    Hyperbolic tangent.
+    Linear piecewise (cut) function.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tanhSigmoid_H
-#define tanhSigmoid_H
-
-#include "sigmoidFunction.H"
+#ifndef cut_H
+#define cut_H
 
 namespace Foam
 {
-
-class tanhSigmoid
-:
-    public sigmoidFunction
+namespace sigmoid
 {
 
-    // Private Member Functions
-
-        //- Apply the normalized sigmoid function to a field (range between -1 and 1)
-        tmp<volScalarField> value(const tmp<volScalarField>& tfield) const;
-
-        //- Apply the first derivative of the normalized sigmoid function to a field
-        tmp<volScalarField> derivative1(const tmp<volScalarField>& tfield) const;
-
-public:
-
-    //- Runtime type information
-    TypeName("tanh");
-
-    //- Constructor
-    tanhSigmoid(scalar a, scalar b) : sigmoidFunction(a, b) {}
+struct cut
+{
+    template<int nPrimes>
+    static scalar value(scalar x);
 };
 
+template<>
+scalar cut::value<0>(scalar x)
+{
+    return x > 1 ? 1 : x < -1 ? -1 : x;
+}
+
+template<>
+scalar cut::value<1>(scalar x)
+{
+    return x > 1 ? 0 : x < -1 ? 0 : 1;
+}
+
+} // End namespace sigmoid
 } // End namespace Foam
 
 #endif

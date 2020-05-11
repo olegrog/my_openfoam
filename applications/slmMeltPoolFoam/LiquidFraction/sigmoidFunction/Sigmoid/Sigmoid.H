@@ -24,22 +24,23 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::erfSigmoid
+    Foam::sigmoid
 
 Description
-    Error function.
+    Class template for arbitrary sigmoid function with internal checks.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef erfSigmoid_H
-#define erfSigmoid_H
+#ifndef Sigmoid_H
+#define Sigmoid_H
 
 #include "sigmoidFunction.H"
 
 namespace Foam
 {
 
-class erfSigmoid
+template<class Function>
+class Sigmoid
 :
     public sigmoidFunction
 {
@@ -47,20 +48,28 @@ class erfSigmoid
     // Private Member Functions
 
         //- Apply the normalized sigmoid function to a field (range between -1 and 1)
-        tmp<volScalarField> value(const tmp<volScalarField>& tfield) const;
+        tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const override;
 
         //- Apply the first derivative of the normalized sigmoid function to a field
-        tmp<volScalarField> derivative1(const tmp<volScalarField>& tfield) const;
+        tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const override;
+
+        //- Auxiliary function for an arbitrary derivative
+        template<label nPrimes>
+        tmp<volScalarField> value(const tmp<volScalarField>& tfield) const;
 
 public:
 
     //- Runtime type information
-    TypeName("erf");
+    TypeName("Sigmoid");
 
     //- Constructor
-    erfSigmoid(scalar a, scalar b) : sigmoidFunction(a, b) {}
+    Sigmoid(scalar a, scalar b);
 };
 
 } // End namespace Foam
+
+#ifdef NoRepository
+#   include "Sigmoid.C"
+#endif
 
 #endif

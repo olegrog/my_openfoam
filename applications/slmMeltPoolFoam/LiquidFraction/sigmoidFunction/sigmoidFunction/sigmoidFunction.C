@@ -74,7 +74,7 @@ Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::operator()
     const volScalarField& field
 ) const
 {
-    return (b_-a_)/2 * value(2*field/(b_-a_)) + (a_+b_)/2;
+    return (b_-a_)/2 * value0(2*field/(b_-a_)) + (a_+b_)/2;
 }
 
 Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::der
@@ -82,7 +82,7 @@ Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::der
     const volScalarField& field
 ) const
 {
-    return derivative1(2*field/(b_-a_));
+    return value1(2*field/(b_-a_));
 }
 
 // ************************************************************************* //

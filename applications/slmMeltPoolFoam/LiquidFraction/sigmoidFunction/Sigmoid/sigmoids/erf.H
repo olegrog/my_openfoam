@@ -23,44 +23,43 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::sigmoid::erf
+
+Description
+    Error function.
+
 \*---------------------------------------------------------------------------*/
 
-#include "erfSigmoid.H"
-#include "addToRunTimeSelectionTable.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#ifndef erf_H
+#define erf_H
 
 namespace Foam
 {
-
-    defineTypeName(erfSigmoid);
-
-    addToRunTimeSelectionTable
-    (
-        sigmoidFunction,
-        erfSigmoid,
-        interval
-    );
-}
-
-// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
-
-Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::value
-(
-    const tmp<volScalarField>& tfield
-) const
+namespace sigmoid
 {
-    using constant::mathematical::pi;
-    return erf(sqrt(pi)/2*tfield);
-}
 
-Foam::tmp<Foam::volScalarField> Foam::erfSigmoid::derivative1
-(
-    const tmp<volScalarField>& tfield
-) const
+struct erf
 {
-    using constant::mathematical::pi;
-    return exp(-sqr(sqrt(pi)/2*tfield));
+    template<int nPrimes>
+    static scalar value(scalar x);
 };
 
-// ************************************************************************* //
+template<>
+scalar erf::value<0>(scalar x)
+{
+    using constant::mathematical::pi;
+    return Foam::erf(sqrt(pi)/2*x);
+}
+
+template<>
+scalar erf::value<1>(scalar x)
+{
+    using constant::mathematical::pi;
+    return exp(-sqr(sqrt(pi)/2*x));
+}
+
+} // End namespace sigmoid
+} // End namespace Foam
+
+#endif
