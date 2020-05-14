@@ -339,9 +339,6 @@ if (p_rgh.needReference())
 mesh.setFluxRequired(p_rgh.name());
 mesh.setFluxRequired(alpha1.name());
 
-#include "createMRF.H"
-#include "createFvOptions.H"
-
 isoAdvection advector(alpha1, phi, U);
 
 Info<< "Reading problemProperties\n" << endl;

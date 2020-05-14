@@ -39,7 +39,6 @@ Description
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
-#include "fvOptions.H"
 #include "CorrectPhi.H"
 
 #include "LiquidFraction.H"
@@ -261,8 +260,6 @@ int main(int argc, char *argv[])
                 {
                     gh = (g & mesh.C()) - ghRef;
                     ghf = (g & mesh.Cf()) - ghRef;
-
-                    MRF.update();
 
                     if (correctPhi)
                     {

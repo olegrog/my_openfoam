@@ -15,9 +15,8 @@
     (
         "phiHbyA",
         fvc::flux(HbyA)
-      + MRF.zeroFilter(fvc::interpolate(rho*rAU())*fvc::ddtCorr(U, phi, Uf))
+      + fvc::interpolate(rho*rAU())*fvc::ddtCorr(U, phi, Uf)
     );
-    MRF.makeRelative(phiHbyA);
 
     if (p_rgh.needReference())
     {
@@ -40,7 +39,7 @@
     phiHbyA += phig;
 
     // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p_rgh, U, phiHbyA, rAUf, MRF);
+    constrainPressure(p_rgh, U, phiHbyA, rAUf);
 
     while (pimple.correctNonOrthogonal())
     {
@@ -61,7 +60,6 @@
 
             U = HbyA + rAU()*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
             U.correctBoundaryConditions();
-            fvOptions.correct(U);
         }
     }
 

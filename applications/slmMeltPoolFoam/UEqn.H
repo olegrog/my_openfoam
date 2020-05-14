@@ -1,5 +1,3 @@
-    MRF.correctBoundaryVelocity(U);
-
     const dimensionedScalar zeroT(dimDensity/dimTemperature);
 
     const volVectorField normal(fvc::reconstruct(mixture.nHatf()));
@@ -9,19 +7,16 @@
 
     fvVectorMatrix UEqn
     (
-        fvm::ddt(rho, U) + fvm::div(rhoPhi, U)
-      + MRF.DDt(rho, U)
+        fvm::ddt(rho, U)
+      + fvm::div(rhoPhi, U)
       + turbulence->divDevRhoReff(rho, U)
      ==
-        fvOptions(rho, U)
       - fvm::Sp(darcyDamping, U)
       + dsigma_dT * (fvc::grad(T) & I_nn)
             * magModifiedGradAlpha(T, liquidFraction, alpha2, rho1, rho1, zeroT, zeroT, rho2)
     );
 
     UEqn.relax();
-
-    fvOptions.constrain(UEqn);
 
     if (pimple.momentumPredictor())
     {
@@ -41,6 +36,4 @@
                 ) * mesh.magSf()
             )
         );
-
-        fvOptions.correct(U);
     }

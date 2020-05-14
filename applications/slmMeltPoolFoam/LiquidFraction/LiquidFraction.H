@@ -71,10 +71,10 @@ class LiquidFraction
         //- The liquid fraction in the metal
         volScalarField inMetal_;
 
-        //- The first derivative with respect to gas fraction
+        //- The first derivative w. r. t. gas fraction
         volScalarField dAlpha_;
 
-        //- The first derivative with respect to enthalpy
+        //- The first derivative w. r. t. enthalpy
         volScalarField dEnthalpy_;
 
         //- The melt indicator (the maximum liquid fraction in time)
@@ -104,13 +104,13 @@ public:
         //- Update the passive internal fields
         void finalUpdate();
 
-        //- Return the first derivative with respect to gas fraction
+        //- Return the first derivative w. r. t. gas fraction
         tmp<volScalarField> dAlpha() const
         {
             return dAlpha_;
         }
 
-        //- Return the first derivative with respect to enthalpy
+        //- Return the first derivative w. r. t. enthalpy
         tmp<volScalarField> dEnthalpy() const
         {
             return dEnthalpy_;
