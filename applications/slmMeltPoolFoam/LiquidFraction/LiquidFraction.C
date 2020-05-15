@@ -41,7 +41,13 @@ Foam::LiquidFraction::LiquidFraction
     const dictionary& thermalProperties
 )
 :
-    volScalarField
+    metalFraction_(metalFraction),
+    enthalpy_(enthalpy),
+    enthalpyFusion_(enthalpyFusion),
+    enthalpyAtFusion_(enthalpyAtFusion),
+    enthalpyAtFusionPrime_(enthalpyAtFusionPrime),
+    sigmoid_(sigmoidFunction::New(thermalProperties, 0, 1)),
+    liquidFraction_
     (
         IOobject
         (
@@ -55,12 +61,6 @@ Foam::LiquidFraction::LiquidFraction
         dimensionedScalar(),
         zeroGradientFvPatchField<scalar>::typeName
     ),
-    metalFraction_(metalFraction),
-    enthalpy_(enthalpy),
-    enthalpyFusion_(enthalpyFusion),
-    enthalpyAtFusion_(enthalpyAtFusion),
-    enthalpyAtFusionPrime_(enthalpyAtFusionPrime),
-    sigmoid_(sigmoidFunction::New(thermalProperties, 0, 1)),
     inMetal_
     (
         IOobject
@@ -100,6 +100,19 @@ Foam::LiquidFraction::LiquidFraction
         enthalpy.mesh(),
         inv(enthalpy.dimensions())
     ),
+    sharp_
+    (
+        IOobject
+        (
+            "liquidFractionSharp",
+            enthalpy.mesh().time().timeName(),
+            enthalpy.mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        enthalpy.mesh(),
+        dimless
+    ),
     wasMelted_
     (
         IOobject
@@ -117,18 +130,18 @@ Foam::LiquidFraction::LiquidFraction
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::LiquidFraction::update()
+void Foam::LiquidFraction::correct()
 {
-    volScalarField x(2*(enthalpy_ - enthalpyAtFusion_) / enthalpyFusion_);
+    volScalarField x(2*(enthalpy_ - enthalpyAtFusion_)/enthalpyFusion_);
     inMetal_ = (*sigmoid_)(x);
-    volScalarField _ = sigmoid_->der(x);
-    *this == metalFraction_ * inMetal_;
-    dEnthalpy_ = metalFraction_ / enthalpyFusion_ * sigmoid_->der(x);
-    dAlpha_ = -(*sigmoid_)(x) - dEnthalpy_ * enthalpyAtFusionPrime_;
+    liquidFraction_ =  metalFraction_*inMetal_;
+    dEnthalpy_ = metalFraction_/enthalpyFusion_*sigmoid_->der(x);
+    dAlpha_ = -(*sigmoid_)(x) - dEnthalpy_*enthalpyAtFusionPrime_;
+    sharp_ = metalFraction_*pos(inMetal_ - 0.5);
 }
 
-void Foam::LiquidFraction::finalUpdate()
+void Foam::LiquidFraction::finalCorrect()
 {
-    wasMelted_ = Foam::max(wasMelted_, *this);
+    wasMelted_ = Foam::max(wasMelted_, liquidFraction_);
 }
 

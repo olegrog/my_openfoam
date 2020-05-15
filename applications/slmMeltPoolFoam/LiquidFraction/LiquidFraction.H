@@ -45,8 +45,6 @@ namespace Foam
 {
 
 class LiquidFraction
-:
-    public volScalarField
 {
     // Private data
 
@@ -68,6 +66,9 @@ class LiquidFraction
         //- The sigmoid function
         autoPtr<sigmoidFunction> sigmoid_;
 
+        //- Liquid fraction field
+        volScalarField liquidFraction_;
+
         //- The liquid fraction in the metal
         volScalarField inMetal_;
 
@@ -76,6 +77,9 @@ class LiquidFraction
 
         //- The first derivative w. r. t. enthalpy
         volScalarField dEnthalpy_;
+
+        //- The discrete value of liquid fraction (0 or metalFraction)
+        volScalarField sharp_;
 
         //- The melt indicator (the maximum liquid fraction in time)
         volScalarField wasMelted_;
@@ -98,28 +102,40 @@ public:
 
     // Member Functions
 
-        //- Update the active internal fields
-        void update();
+        //- Correct the active internal fields
+        void correct();
 
-        //- Update the passive internal fields
-        void finalUpdate();
+        //- Correct the passive internal fields
+        void finalCorrect();
+
+        //- Return the value of liquidFraction
+        const volScalarField& operator()() const
+        {
+            return liquidFraction_;
+        }
 
         //- Return the first derivative w. r. t. gas fraction
-        tmp<volScalarField> dAlpha() const
+        const volScalarField& dAlpha() const
         {
             return dAlpha_;
         }
 
         //- Return the first derivative w. r. t. enthalpy
-        tmp<volScalarField> dEnthalpy() const
+        const volScalarField& dEnthalpy() const
         {
             return dEnthalpy_;
         }
 
         //- Return the liquid fraction in the metal
-        tmp<volScalarField> inMetal() const
+        const volScalarField& inMetal() const
         {
             return inMetal_;
+        }
+
+        //- Return the discrete value of liquid fraction
+        const volScalarField& sharp() const
+        {
+            return sharp_;
         }
 };
 

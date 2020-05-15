@@ -68,6 +68,20 @@ Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() <
 volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 
+// Uncomment this to analyze the difference in implementations of |\grad\alpha|
+/*{
+    Info<< "Write magGradAlpha fields\n" << endl;
+    word name = "magGradAlpha";
+    std::vector<volScalarField> magGradAlphaFields
+    {
+        volScalarField(name + "1", mag(fvc::grad(alpha1))),
+        volScalarField(name + "2", mag(fvc::reconstruct(fvc::snGrad(alpha1) * mesh.magSf()))),
+        volScalarField(name + "3", 3*mag(fvc::average(fvc::snGrad(alpha1)))),
+        volScalarField(name + "4", mag(fvc::reconstructMag(fvc::snGrad(alpha1) * mesh.magSf()))),
+    };
+    for (const auto& f : magGradAlphaFields) f.write();
+}*/
+
 volScalarField he
 (
     IOobject
@@ -85,7 +99,7 @@ volScalarField he
 );
 
 volScalarField heAtFusion(he_melting(alpha2));
-volScalarField heDAlpha(he);
+volScalarField hePrimeAlpha(he);
 
 LiquidFraction liquidFraction
 (
@@ -98,9 +112,9 @@ LiquidFraction liquidFraction
     do {
         calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
             T_melting, enthalpyFusion);
-        liquidFraction.storePrevIter();
-        liquidFraction.update();
-        error = Foam::max(mag(liquidFraction - liquidFraction.prevIter())).value();
+        liquidFraction().storePrevIter();
+        liquidFraction.correct();
+        error = Foam::max(mag(liquidFraction() - liquidFraction().prevIter())).value();
         Info<< "liquidFraction error = " << error << endl;
     } while (error > maxError);
     Info<< endl;

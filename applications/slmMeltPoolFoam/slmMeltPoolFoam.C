@@ -100,7 +100,7 @@ void calcEnthalpy
 )
 {
     // To check dimensions
-    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he + enthalpyFusion) + alpha;
     const scalar T_M = T_melting.value();
     const scalar he_fus = enthalpyFusion.value();
     auto he_S = [=](scalar temp) {
@@ -112,7 +112,8 @@ void calcEnthalpy
     const volScalarField he_G = Cp_gas*temp;
 
     calcGeomField(he, [=](scalarField& f, label i, const scalarField& temp,
-        const scalarField& phi, const scalarField& alpha, const scalarField& he_G)
+        const scalarField& phi, const scalarField& phiPrimeAlpha,
+        const scalarField& alpha, const scalarField& he_G)
     {
         scalar piecewise;
         if (temp[i] <= T_M) {
@@ -123,9 +124,9 @@ void calcEnthalpy
         if (!dAlpha) {
             f[i] = alpha[i]*he_G[i] + he_fus*phi[i] + (1-alpha[i])*piecewise;
         } else {
-            f[i] = he_G[i] - piecewise;
+            f[i] = he_G[i] + he_fus*phiPrimeAlpha[i] - piecewise;
         }
-    }, temp, phi, alpha, he_G);
+    }, temp, phi(), phi.dAlpha(), alpha, he_G);
     he.correctBoundaryConditions();
 }
 
@@ -140,7 +141,7 @@ void calcTemperature
 )
 {
     // to check dimensions
-    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he+enthalpyFusion) + phi + alpha;
+    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he + enthalpyFusion) + alpha;
     const scalar T_M = T_melting.value();
     const scalar he_fus = enthalpyFusion.value();
     auto he_S = [=](scalar temp) {
@@ -173,7 +174,7 @@ void calcTemperature
         } else {
             f[i] = C/B;
         }
-    }, he, phi, alpha);
+    }, he, phi(), alpha);
     temp.correctBoundaryConditions();
 }
 
@@ -181,24 +182,6 @@ tmp<volVectorField> calcNormal(const volVectorField& vField)
 {
     const dimensionedVector smallVector("small", vField.dimensions(), vector(0, 0, SMALL));
     return (vField + smallVector) / mag(vField + smallVector);
-}
-
-tmp<volScalarField> magModifiedGradAlpha
-(
-    const volScalarField& temp, const LiquidFraction& phi, const volScalarField& alpha,
-    dimensionedScalar A_sol, dimensionedScalar A_liq,
-    dimensionedScalar dA_sol, dimensionedScalar dA_liq,
-    dimensionedScalar A_gas
-)
-{
-    const dimensionedScalar zero(0), one(1);
-    return 2*mag(fvc::grad(alpha)) *
-        threePhaseParameter(temp, phi, alpha, A_sol, A_liq, dA_sol, dA_liq, A_gas)
-    / (
-        threePhaseParameter(temp, phi, zero, A_sol, A_liq, dA_sol, dA_liq, A_gas)
-        +
-        threePhaseParameter(temp, phi, one, A_sol, A_liq, dA_sol, dA_liq, A_gas)
-    );
 }
 
 int main(int argc, char *argv[])
@@ -319,7 +302,7 @@ int main(int argc, char *argv[])
 
         // Update passive quantities
         kinematicViscosity = mixture.nu();
-        liquidFraction.finalUpdate();
+        liquidFraction.finalCorrect();
 
         Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
             << ", laser input = "

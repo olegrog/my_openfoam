@@ -51,7 +51,7 @@ Foam::Sigmoid<Function>::Sigmoid(scalar a, scalar b)
     };
     if (sigActive) sigFpe::set();
 
-    for (auto pair : actualVsExpected)
+    for (const auto& pair : actualVsExpected)
     {
         if (notEqual(pair.first(), pair.second()))
         {

@@ -12,8 +12,8 @@
       + turbulence->divDevRhoReff(rho, U)
      ==
       - fvm::Sp(darcyDamping, U)
-      + dsigma_dT * (fvc::grad(T) & I_nn)
-            * magModifiedGradAlpha(T, liquidFraction, alpha2, rho1, rho1, zeroT, zeroT, rho2)
+      + dsigma_dT * (fvc::grad(T) & I_nn) * 2*rho / (rho1 + rho2)
+            * mag(fvc::reconstruct(fvc::snGrad(alpha2) * mesh.magSf()))
     );
 
     UEqn.relax();
@@ -33,7 +33,7 @@
                     )*2*fvc::interpolate(rho)/(rho1 + rho2)
                   - ghf*fvc::snGrad(rhok)
                   - fvc::snGrad(p_rgh)
-                ) * mesh.magSf()
+                )*mesh.magSf()
             )
         );
     }

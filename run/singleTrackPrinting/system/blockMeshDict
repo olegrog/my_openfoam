@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters .25e-3; //1e-3
+scale .25e-3; //1e-3
 
 xmin -.5;
 xmax 1.9; //3;
