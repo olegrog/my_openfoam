@@ -83,6 +83,7 @@ PIMPLE
     nNonOrthogonalCorrectors 0;
     correctPhi          yes;
 
+    nEnthalpyCorrectors 3;
     liquidFractionInitError 1e-17;
 }
 

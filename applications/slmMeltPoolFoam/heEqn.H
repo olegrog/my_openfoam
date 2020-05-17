@@ -28,38 +28,41 @@
     (
         fvm::ddt(rho, he)
       + fvm::div(rhoPhi, he)
-      - fvm::laplacian(thermalConductivity / heatCapacity
-            * (1 - enthalpyFusion * liquidFraction.dEnthalpy()), he)
-      + fvc::laplacian(thermalConductivity / heatCapacity * hePrimeAlpha, alpha2)
      ==
-        (
+        fvm::laplacian(thermalConductivity / heatCapacity
+            * (1 - enthalpyFusion * liquidFraction.dEnthalpy()), he)
+      + fvc::laplacian(thermalConductivity / heatCapacity * hePrimeAlpha, alpha1)
+      + (
             laserHeatSource
           - radiativeCooling
           - evaporativeCooling
-        ) * 2*rho*heatCapacity / (rho1*Cp1 + rho2*Cp2)
-            * mag(fvc::reconstructMag(fvc::snGrad(alpha2) * mesh.magSf()))
+        ) * 2*rho*heatCapacity / (rho1*Cp1 + rho2*Cp2) * mag(fvc::grad(alpha1))
       + fvc::div(rho * U & turbulence->devReff())
     );
     heEqn.solve();
     pp(he);
 
-    if (pimple.corrPISO() == pimple.nCorrPISO())
+    if (corrEnthalpy == nCorrEnthalpy)
     {
         // Update alpha-dependent quantities that are used in the momentum equation
         liquidFraction.correct();
         calcTemperature(T, he, liquidFraction, alpha2,
             Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
-        pp(liquidFraction());
-        pp(T);
+        // fvc::grad(T) is a less smooth version
+        gradT = (1 - enthalpyFusion*liquidFraction.dEnthalpy()) * fvc::grad(he) / heatCapacity
+            + hePrimeAlpha / heatCapacity * fvc::grad(alpha1);
         rhok = rho*(1.0 - beta*(T - T_ambient));
         vaporPressure = ambientPressure * exp(molarMass * enthalpyBoiling
             / constant::physicoChemical::R * (1/T_boiling - 1/T));
+
+        pp(liquidFraction());
+        pp(T);
 
         // For debug: check that heatConduction is almost equal to heatConduction2
         heatConvection = fvc::div(rhoPhi, he);
         heatConduction = fvc::laplacian(thermalConductivity, T);
         heatConduction2 = fvc::laplacian(thermalConductivity / heatCapacity
                 * (1 - enthalpyFusion * liquidFraction.dEnthalpy()), he)
-            - fvc::laplacian(thermalConductivity / heatCapacity * hePrimeAlpha, alpha2);
+            + fvc::laplacian(thermalConductivity / heatCapacity * hePrimeAlpha, alpha1);
     }
 }

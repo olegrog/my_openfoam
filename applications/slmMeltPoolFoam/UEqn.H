@@ -1,7 +1,7 @@
     const dimensionedScalar zeroT(dimDensity/dimTemperature);
 
     const volVectorField normal(fvc::reconstruct(mixture.nHatf()));
-    const volTensorField I_nn(tensor::one - normal*normal);
+    const volTensorField I_nn(tensor::one - sqr(normal));
     const volScalarField darcyDamping = mushyCoeff * alpha1
         * sqr(1 - liquidFraction.inMetal()) / (sqr(liquidFraction.inMetal()) + SMALL);
 
@@ -12,7 +12,7 @@
       + turbulence->divDevRhoReff(rho, U)
      ==
       - fvm::Sp(darcyDamping, U)
-      + dsigma_dT * (fvc::grad(T) & I_nn) * 2*rho / (rho1 + rho2)
+      + dsigma_dT * (gradT & I_nn) * 2*rho / (rho1 + rho2)
             * mag(fvc::reconstruct(fvc::snGrad(alpha2) * mesh.magSf()))
     );
 

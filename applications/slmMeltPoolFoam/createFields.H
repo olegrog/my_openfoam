@@ -1,7 +1,7 @@
 #include "Read/thermalProperties.H"
 #include "Read/laserProperties.H"
 
-bool printProperties(runTime.controlDict().get<bool>("printProperties"));
+bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
 
 Info << "Reading field T\n" << endl;
 volScalarField T
@@ -16,8 +16,6 @@ volScalarField T
     ),
     mesh
 );
-
-#include "createRDeltaT.H"
 
 Info<< "Reading field p_rgh\n" << endl;
 volScalarField p_rgh
@@ -108,6 +106,7 @@ LiquidFraction liquidFraction
 
 {
     scalar error, maxError = pimple.dict().get<scalar>("liquidFractionInitError");
+    // TODO(olegrog): Use Newton's iterations for boosting
     Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
     do {
         calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
@@ -125,6 +124,19 @@ LiquidFraction liquidFraction
 //     Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
 // T.write();
 
+volVectorField gradT
+(
+    IOobject
+    (
+        "gradT",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    fvc::grad(T)
+);
+
 volScalarField heatCapacity
 (
     IOobject
@@ -133,7 +145,7 @@ volScalarField heatCapacity
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimSpecificHeatCapacity
@@ -147,7 +159,7 @@ volScalarField thermalConductivity
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimLength/dimTemperature
@@ -161,7 +173,7 @@ volScalarField laserHeatSource
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimArea
@@ -175,7 +187,7 @@ volScalarField radiativeCooling
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimArea
@@ -189,7 +201,7 @@ volScalarField evaporativeCooling
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimArea
@@ -203,7 +215,7 @@ volScalarField heatConvection
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -217,7 +229,7 @@ volScalarField heatConduction
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -231,7 +243,7 @@ volScalarField heatConduction2
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -246,7 +258,7 @@ volScalarField kinematicViscosity
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mixture.nu()
 );
@@ -263,7 +275,7 @@ volScalarField rho
         runTime.timeName(),
         mesh,
         IOobject::READ_IF_PRESENT,
-        printProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     alpha1*rho1 + alpha2*rho2
 );

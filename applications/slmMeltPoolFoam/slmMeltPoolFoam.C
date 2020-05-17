@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     // For debug
     auto pp = [](const volScalarField& f)
     {
-        Info<< f.name() << ": " << min(f).value() << " " << max(f).value() << endl;
+        Info<< f.name() << ": " << gMin(f) << " " << gMax(f) << endl;
     };
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -276,7 +276,8 @@ int main(int argc, char *argv[])
             laserHeatSource = (runTime < timeStop) * absorptivity * laserPower
                 * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
 
-            while (pimple.correct())
+            label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
+            for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
             {
                 #include "heEqn.H"
             }
