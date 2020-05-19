@@ -28,6 +28,8 @@ License
 #include "error.H"
 #include "sigFpe.H"
 
+#include "updateGeometricField.H"
+
 #include "Sigmoid.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -92,18 +94,14 @@ Foam::tmp<Foam::volScalarField> Foam::Sigmoid<Function>::value
 
     volScalarField& res = tres.ref();
 
-    forAll(field, cellI)
-    {
-        res[cellI] = Function::template value<nPrimes>(field[cellI]);
-    }
-    forAll(field.boundaryField(), patchi)
-    {
-        forAll(field.boundaryField()[patchi], faceI)
+    updateGeometricField
+    (
+        res, [=](scalar& res, scalar field)
         {
-            res.boundaryFieldRef(false)[patchi][faceI] = Function::template value<nPrimes>
-                (field.boundaryField()[patchi][faceI]);
-        }
-    }
+            res = Function::template value<nPrimes>(field);
+        },
+        field
+    );
 
     return tres;
 }
