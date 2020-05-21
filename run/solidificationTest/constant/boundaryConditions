@@ -26,8 +26,15 @@ boundaryField {
     top {
         type        zeroGradient;
     }
-    leftAndRight {
-        type        cyclic;
+    left
+    {
+        type cyclic;
+        neighbourPatch right;
+    }
+    right
+    {
+        type cyclic;
+        neighbourPatch left;
     }
     frontAndBack {
         type        empty;

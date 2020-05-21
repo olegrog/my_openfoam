@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 6e-6;
+scale 6e-6;
 
 vertices
 (
@@ -55,12 +55,21 @@ boundary
             (3 7 6 2)
         );
     }
-    leftAndRight
+    left
     {
         type cyclic;
+        neighbourPatch right;
         faces
         (
             (0 4 7 3)
+        );
+    }
+    right
+    {
+        type cyclic;
+        neighbourPatch left;
+        faces
+        (
             (1 2 6 5)
         );
     }
