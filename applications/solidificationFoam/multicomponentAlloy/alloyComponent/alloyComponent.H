@@ -1,25 +1,27 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
-  \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
-    \\  /    A nd           | Web:         http://www.foam-extend.org
-     \\/     M anipulation  | For copyright notice see file Copyright
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author(s)
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+                            | Copyright (C) 2019-2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of foam-extend.
+    This file is part of solidificationFoam.
 
-    foam-extend is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation, either version 3 of the License, or (at your
-    option) any later version.
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    foam-extend is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    General Public License for more details.
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
 
     You should have received a copy of the GNU General Public License
-    along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
     Foam::alloyComponent
@@ -39,108 +41,135 @@ SourceFiles
 #include "volFields.H"
 #include "dictionaryEntry.H"
 
-namespace Foam {
+namespace Foam
+{
 
-class alloyComponent : public volScalarField {
+class alloyComponent
+:
+    public volScalarField
+{
+    // Private data
+
+        word name_;
+        dictionary alloyComponentDict_;
+        dimensionedScalar rhoMelting_;
+        dimensionedScalar molarMass_;
+        dimensionedScalar equilibriumS_;
+        dimensionedScalar equilibriumL_;
+        dimensionedScalar slopeS_;
+        dimensionedScalar slopeL_;
+        dimensionedScalar diffusionS_;
+        dimensionedScalar diffusionL_;
+        dimensionedScalar Tmelting_;
+
 public:
     // Constructors
 
-    //- Construct from components
-    alloyComponent(
-        const word& name,
-        const dictionary& alloyComponentDict,
-        const fvMesh& mesh,
-        const dimensionedScalar& meltingTemp
-    );
-
-    //- Return a pointer to a new alloy component created on freestore from Istream
-    class iNew {
-    public:
-        iNew(
+        //- Construct from components
+        alloyComponent
+        (
+            const word& name,
+            const dictionary& alloyComponentDict,
             const fvMesh& mesh,
-            const dimensionedScalar& meltingTemp
-        ) :
-            mesh_(mesh),
-            meltingTemp_(meltingTemp)
-        {}
-        autoPtr<alloyComponent> operator()(Istream& is) const {
-            dictionaryEntry ent(dictionary::null, is);
-            return autoPtr<alloyComponent>(new alloyComponent(
-                ent.keyword(), ent, mesh_, meltingTemp_));
-        }
-    private:
-        const fvMesh& mesh_;
-        const dimensionedScalar& meltingTemp_;
-    };
+            const dimensionedScalar& Tmelting
+        );
 
-    //- Return clone
-    autoPtr<alloyComponent> clone() const;
+        //- Return a pointer to a new alloy component created on freestore from Istream
+        class iNew
+        {
+            const fvMesh& mesh_;
+            const dimensionedScalar& Tmelting_;
+
+        public:
+
+            iNew
+            (
+                const fvMesh& mesh,
+                const dimensionedScalar& Tmelting
+            )
+            :
+                mesh_(mesh),
+                Tmelting_(Tmelting)
+            {}
+
+            autoPtr<alloyComponent> operator()(Istream& is) const
+            {
+                dictionaryEntry ent(dictionary::null, is);
+                return autoPtr<alloyComponent>
+                (
+                    new alloyComponent(ent.keyword(), ent, mesh_, Tmelting_)
+                );
+            }
+        };
+
+        //- Return clone (need for PtrList)
+        autoPtr<alloyComponent> clone() const
+        {
+            notImplemented("alloyComponent::clone() const");
+            return autoPtr<alloyComponent>();
+        }
 
     // Member Functions
 
-    const word& name() const { return name_; }
+        // Access
 
-    const word& keyword() const { return name_; }
+            const word& name() const
+            {
+                return name_;
+            }
 
-    //- Return limited concentration
-    tmp<volScalarField> limitedConcentration() const {
-        const volScalarField& concentration = *this;
-        return Foam::min(Foam::max(concentration, scalar(0)), scalar(1));
-    }
+            const word& keyword() const
+            {
+                return name_;
+            }
 
-    //- Return the equilibrium concentration
-    tmp<volScalarField> equilibrium(
-        const volScalarField& phase,
-        const volScalarField& T
-    ) const {
-        return (equilibriumS_ + (T - meltingTemp_) / slopeS_) * phase
-             + (equilibriumL_ + (T - meltingTemp_) / slopeL_) * (1 - phase);
-    }
+                //- Return limited concentration
+            tmp<volScalarField> limitedConcentration() const
+            {
+                const volScalarField& concentration = *this;
+                return Foam::min(Foam::max(concentration, scalar(0)), scalar(1));
+            }
 
-    dimensionedScalar equilibrium(
-        const scalar phase,
-        const dimensionedScalar& T
-    ) const {
-        return (equilibriumS_ + (T - meltingTemp_) / slopeS_) * phase
-             + (equilibriumL_ + (T - meltingTemp_) / slopeL_) * (1 - phase);
-    }
+            //- Return the equilibrium concentration
+            template<class T1, class T2>
+            auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
+            {
+                return (equilibriumS_ + (T - Tmelting_)/slopeS_)*phase
+                     + (equilibriumL_ + (T - Tmelting_)/slopeL_)*(1 - phase);
+            }
 
-    //- Return the diffusion coefficient
-    tmp<volScalarField> diffusion(const volScalarField& phase) const {
-        return diffusionS_ * phase + diffusionL_ * (1 - phase);
-    }
+            //- Return the diffusion coefficient
+            tmp<volScalarField> diffusion(const volScalarField& phase) const
+            {
+                return diffusionS_ * phase + diffusionL_ * (1 - phase);
+            }
 
-    //- Return the slopes along the solidification path (solid and liquid)
-    template<label Phase> dimensionedScalar slope() const {
-        return Phase ? slopeL_ : slopeS_;
-    }
+            //- Return the slopes along the solidification path (solid and liquid)
+            template<label Phase>
+            dimensionedScalar slope() const
+            {
+                return Phase ? slopeL_ : slopeS_;
+            }
 
-    //- Return the diffusion coefficients (solid and liquid)
-    template<label Phase> dimensionedScalar diffusion() const {
-        return Phase ? diffusionL_ : diffusionS_;
-    }
+            //- Return the diffusion coefficients (solid and liquid)
+            template<label Phase>
+            dimensionedScalar diffusion() const
+            {
+                return Phase ? diffusionL_ : diffusionS_;
+            }
 
-    //- Return the difference of the equilibrium concentrations
-    dimensionedScalar deltaA() const {
-        return equilibriumS_ - equilibriumL_;
-    }
+            //- Return the difference of the equilibrium concentrations
+            dimensionedScalar deltaA() const
+            {
+                return equilibriumS_ - equilibriumL_;
+            }
 
-    dimensionedScalar molarVolume() const {
-        return molarMass_ / densityMelting_;
-    }
+            //- Return the molar volume
+            dimensionedScalar molarVolume() const
+            {
+                return molarMass_ / rhoMelting_;
+            }
 
-private:
-    word name_;
-    dictionary alloyComponentDict_;
-    dimensionedScalar densityMelting_;
-    dimensionedScalar molarMass_;
-    dimensionedScalar equilibriumS_;
-    dimensionedScalar equilibriumL_;
-    dimensionedScalar slopeS_;
-    dimensionedScalar slopeL_;
-    dimensionedScalar diffusionS_;
-    dimensionedScalar diffusionL_;
-    dimensionedScalar meltingTemp_;
 };
 
 } // End namespace Foam

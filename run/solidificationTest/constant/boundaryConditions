@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
-| \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.0                                |
-|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -15,15 +15,18 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
+dimensions          [ ];
 
 internalField       uniform 0;
 
-boundaryField {
-    bottom {
+boundaryField
+{
+    bottom
+    {
         type        zeroGradient;
     }
-    top {
+    top
+    {
         type        zeroGradient;
     }
     left
@@ -36,7 +39,8 @@ boundaryField {
         type cyclic;
         neighbourPatch left;
     }
-    frontAndBack {
+    frontAndBack
+    {
         type        empty;
     }
 }

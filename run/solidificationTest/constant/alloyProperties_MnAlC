@@ -15,9 +15,11 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-components (
-    Mn {
-        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  5950;
+components
+(
+    Mn
+    {
+        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  5950;
         molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  5.5e-2;
         equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.1462;
         equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.185;
@@ -26,8 +28,10 @@ components (
         diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-14;
         diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  3.0e-9;
     }
-    Al {
-        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  2375;
+
+    Al
+    {
+        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  2375;
         molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  2.7e-2;
         equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0106;
         equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.01;
@@ -36,8 +40,10 @@ components (
         diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-14;
         diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.7e-9;
     }
-    C {
-        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  2000;
+
+    C
+    {
+        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  2000;
         molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  1.2e-2;
         equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0011;
         equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.0033;

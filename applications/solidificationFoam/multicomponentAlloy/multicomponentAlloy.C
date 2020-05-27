@@ -1,8 +1,8 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
-  \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
-    \\  /    A nd           | Web:         http://www.foam-extend.org
+  \\     / F ield         | foam-extend: Open Source CFD
+   \\   /  O peration     | Version:     4.0
+    \\ /   A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
 License
@@ -25,12 +25,12 @@ License
 
 #include "multicomponentAlloy.H"
 
-namespace Foam {
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh) :
-    IOdictionary(
+Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
+:
+    IOdictionary
+    (
         IOobject
         (
             "alloyProperties",
@@ -49,45 +49,71 @@ multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh) :
     factorL_(calcFactor<1>())
 {}
 
+
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-dimensionedScalar multicomponentAlloy::relaxationTime() const {
-    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    dimensionedScalar result = sqr(iter().deltaA()) / iter().diffusion<1>();
-    for (++iter; iter != components_.end(); ++iter) {
-        result += sqr(iter().deltaA()) / iter().diffusion<1>();
+Foam::dimensionedScalar Foam::multicomponentAlloy::relaxationTime() const
+{
+    auto iter = components_.begin();
+
+    dimensionedScalar result = sqr(iter().deltaA())/iter().diffusion<1>();
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result += sqr(iter().deltaA())/iter().diffusion<1>();
     }
-    return result * factorL_ / interfaceEnergy_;
+
+    return result*factorL_/interfaceEnergy_;
 }
 
-dimensionedScalar multicomponentAlloy::capillaryLength() const {
-    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
+
+Foam::dimensionedScalar Foam::multicomponentAlloy::capillaryLength() const
+{
+    auto iter = components_.begin();
+
     dimensionedScalar result = iter().diffusion<1>();
-    for (++iter; iter != components_.end(); ++iter) {
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
         result += iter().diffusion<1>();
     }
-    return 1. / result / relaxationTime();
+
+    return 1./result/relaxationTime();
 }
 
-dimensionedScalar multicomponentAlloy::diffusionL() const {
-    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
+
+Foam::dimensionedScalar Foam::multicomponentAlloy::diffusionL() const
+{
+    auto iter = components_.begin();
+
     dimensionedScalar result = sqr(iter().deltaA());
-    for (++iter; iter != components_.end(); ++iter) {
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
         result += sqr(iter().deltaA());
     }
-    return result * factorL_ / relaxationTime() / interfaceEnergy_;
+
+    return result*factorL_/relaxationTime()/interfaceEnergy_;
 }
 
-tmp<volScalarField> multicomponentAlloy::chemicalDrivingForce(
+
+Foam::tmp<Foam::volScalarField> Foam::multicomponentAlloy::chemicalDrivingForce
+(
     const volScalarField& phase,
     const volScalarField& T
-) const {
-    PtrDictionary<alloyComponent>::const_iterator iter = components_.begin();
-    tmp<volScalarField> result = iter().deltaA() * (iter() - iter().equilibrium(phase, T));
-    for (++iter; iter != components_.end(); ++iter) {
+) const
+{
+    auto iter = components_.begin();
+
+    tmp<volScalarField> result = iter().deltaA()*(iter() - iter().equilibrium(phase, T));
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
         result = result() + iter().deltaA() * (iter() - iter().equilibrium(phase, T));
     }
-    return result() * factorL_ / partition(phase);
+
+    return result()*factorL_/partition(phase);
 }
 
-} // End namespace Foam
+
+// ************************************************************************* //

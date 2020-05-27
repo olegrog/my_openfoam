@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
-| \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.0                                |
-|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -21,18 +21,20 @@ startTime           0;
 stopAt              endTime;
 endTime             10e-3; //5e-3
 deltaT              .2e-5; //.2e-5
-writeControl        runTime;
-writeInterval       2e-5; //2e-5
+writeControl        adjustableRunTime; //adjustableRunTime; // use timeStep for debug
+writeInterval       1e-6; //2e-5; // use 1 for debug
 purgeWrite          0;
-writeFormat         ascii;
-writePrecision      8;
-writeCompression    on;
-timeFormat          fixed;
+writeFormat         binary;
+writePrecision      6;
+writeCompression    off;
+timeFormat          general; //fixed;
 timePrecision       7;
 adjustTimeStep      yes;
-maxCo               0.02;
+maxCo               0.5;
+maxPhaseCo          0.02;
 minDeltaT           1e-12;
 //maxDeltaT           1e-6;
+minSigmaW           1.0;
 runTimeModifiable   yes;
 
 // ************************************************************************* //

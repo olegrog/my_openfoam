@@ -14,70 +14,90 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "dynamicFvMesh.H"
+#include "singlePhaseTransportModel.H"
 #include "pimpleControl.H"
+#include "CorrectPhi.H"
+#include "zeroGradientFvPatchField.H"
 
 #include "multicomponentAlloy/multicomponentAlloy.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-tmp<volScalarField> fPrime(const volScalarField& phase) {
-    return 2 * phase * (1 - phase) * (1 - 2 * phase);
+using constant::mathematical::pi;
+
+tmp<volScalarField> fPrime(const volScalarField& phase)
+{
+    return 2*phase*(1 - phase)*(1 - 2*phase);
 }
 
-tmp<volScalarField> gPrime(const volScalarField& phase) {
-    return 30 * sqr(phase) * sqr(1 - phase);
+tmp<volScalarField> gPrime(const volScalarField& phase)
+{
+    return 30*sqr(phase)*sqr(1 - phase);
 }
 
-tmp<volScalarField> generateSeed(
+tmp<volScalarField> generateSeed
+(
     const volVectorField& coord,
     const dimensionedVector& center,
-    const dimensionedScalar& radius)
+    const dimensionedScalar& radius
+)
 {
-    return min(
-        2 * Foam::exp(-magSqr((coord - center) / radius)),
+    return min
+    (
+        2*Foam::exp(-magSqr((coord - center)/radius)),
         scalar(1)
     );
 }
 
-void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains) {
-    forAll(grain, cellI) {
-        scalar argument = 2 * constant::mathematical::pi * sign(phase[cellI]) * nGrain / nGrains;
+void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains)
+{
+    forAll(grain, cellI)
+    {
+        scalar argument = 2*pi*sign(phase[cellI])*nGrain/nGrains;
         scalar magnitude = fabs(phase[cellI]);
-        grain[cellI].x() += magnitude * Foam::cos(argument);
-        grain[cellI].y() += magnitude * Foam::sin(argument);
+        grain[cellI].x() += magnitude*Foam::cos(argument);
+        grain[cellI].y() += magnitude*Foam::sin(argument);
     }
 }
 
-void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains) {
-    forAll(grain, cellI) {
-        nGrain[cellI] = Foam::atan2(grain[cellI].y(), grain[cellI].x())
-            / 2 / constant::mathematical::pi * nGrains;
+void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains)
+{
+    forAll(grain, cellI)
+    {
+        nGrain[cellI] = Foam::atan2(grain[cellI].y(), grain[cellI].x())/2/pi*nGrains;
     }
 }
 
-tmp<volVectorField> calcNormal(const volVectorField& vField) {
-    dimensionedVector smallVector("small", vField.dimensions(), vector(0, 1e-20, 0));
-    return (vField + smallVector) / mag(vField + smallVector);
+tmp<volVectorField> calcNormal(const volVectorField& vField)
+{
+    dimensionedVector smallVector("small", vField.dimensions(), vector(0, SMALL, 0));
+    return (vField + smallVector)/mag(vField + smallVector);
 }
 
 int main(int argc, char *argv[])
 {
+    #include "postProcess.H"
+
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createMesh.H"
+    #include "createDynamicFvMesh.H"
+    #include "initContinuityErrs.H"
+    #include "createDyMControls.H"
     #include "createFields.H"
+    #include "createFieldRefs.H"
+    #include "CourantNo.H"
+    #include "setInitialDeltaT.H"
 
-    /** Additional variables */
+    // --- Additional variables
 
-    pimpleControl pimple(mesh);
-    multicomponentAlloy alloy(mesh);
-    volScalarField theta = 0 * phase;
-    volScalarField theta0 = 0 * phase;
-    tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
+    volScalarField theta = 0*phase;
+    volScalarField theta0 = 0*phase;
+    const tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
 
     // Derived quantities
-    const dimensionedScalar tau = a1 * a2 * pow3(interfaceWidth) * alloy.relaxationTime();
-    dimensionedScalar tipVelocity = coolingRate / tempGradient;
+    const dimensionedScalar tau = a1*a2*pow3(interfaceWidth)*alloy.relaxationTime();
+    dimensionedScalar tipVelocity = coolingRate/tempGradient;
     const label nGrains = crystallographicAngles.size();
 
     // Coordinates-related constants and variables
@@ -89,250 +109,172 @@ int main(int argc, char *argv[])
     const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
     const dimensionedScalar height("height", ymax - ymin);
     const dimensionedScalar width("width", xmax - xmin);
-    const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min()) / 2);
-    const dimensionedScalar frontPosition = ymin + frontPositionRel * height;
-    const dimensionedScalar initialWidth = interfaceWidth / interfaceNarrowing;
+    const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min())/2);
+    const dimensionedScalar frontPosition = ymin + frontPositionRel*height;
+    const dimensionedScalar initialWidth = interfaceWidth/interfaceNarrowing;
     dimensionedScalar tipPosition = frontPosition;
     dimensionedScalar tipPositionPrev = tipPosition;
     label tipCell(0), tipCellPrev(0);
     dimensionedScalar tipTimeInterval("tipTimeInterval", dimTime, 0);
 
-    /** Initial conditions */
+    // --- Initial conditions
 
     // phase + grain
-    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y)) / initialWidth)) / constant::mathematical::pi + .5;
-    const dimensionedScalar radius = width / nSeeds / seedNarrowing;
-    for (int i = 0; i < nSeeds; i++) {
+    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y))/initialWidth))/pi + .5;
+    const dimensionedScalar radius = width/nSeeds/seedNarrowing;
+    for (int i = 0; i < nSeeds; i++)
+    {
         dimensionedVector position = center;
-        position.replace(vector::X, xmin + (i+.5)/nSeeds * width);
+        position.replace(vector::X, xmin + (i+.5)/nSeeds*width);
         position.replace(vector::Y, frontPosition);
-        phase += generateSeed(coord, position, radius);
+        phase = max(phase, generateSeed(coord, position, radius));
     }
+    phase.clip(0, 1);
 
-    phase = min(max(phase, scalar(0)), scalar(1));
-    addGrain(grain, phase * sign((coord.component(vector::X) - center.component(vector::X)) / width), 1, nGrains);
+    const volScalarField grainNumber
+    (
+        sign((coord.component(vector::X) - center.component(vector::X))/width)
+    );
+    addGrain(grain, phase*grainNumber, 1, nGrains);
+
     if (addRandomSeeds) {
         dimensionedVector position = center;
         position.replace(vector::Y, ymin/3 + 2*ymax/3);
-        volScalarField seed = generateSeed(coord, position, radius / 2);
+        volScalarField seed = generateSeed(coord, position, radius/2);
         phase += seed;
         addGrain(grain, seed, 0, nGrains);
     }
 
     // number of grain
     calcNGrain(nGrain, grain, nGrains);
+    grain.write();
+    phase.write();
 
     // temperature
-    T = alloy.liquidus() - undercooling + tempGradient * (coord.component(vector::Y) - ymin/3 - 2*ymax/3);
+    T = alloy.liquidus() - undercooling
+        + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3);
+    T.write();
 
     // concentrations
-    forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
+    forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
+    {
         alloyComponent& C = iter();
-        C == C.equilibrium(phase, alloy.solidus() * phase + alloy.liquidus() * (1 - phase));
+        const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
+        C == C.equilibrium(phase, temp);
+        C.write();
     }
 
-    runTime.writeNow();
+    // --- Print reference parameters
 
-    /** Print reference parameters */
+    const scalar minMeshStep = 1/gMax(mesh.surfaceInterpolation::deltaCoeffs());
+    const scalar sigmaW =
+    (
+        alloy.diffusionL()*alloy.capillaryLength()/tipVelocity/sqr(interfaceWidth)
+    ).value();
+    const scalar minSigmaW(runTime.controlDict().get<scalar>("minSigmaW"));
+    const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
+    const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
 
     Info<< "Dimensionless parameters:" << endl
         << " -- minimal undercooling = "
-        << alloy.undercooling(Foam::min(T)).value() << endl
+        << alloy.undercooling(Tmin).value() << endl
         << " -- maximum undercooling = "
-        << alloy.undercooling(Foam::max(T)).value() << endl
+        << alloy.undercooling(Tmax).value() << endl
         << " -- interface width / capillary length = "
-        << (interfaceWidth / alloy.capillaryLength()).value() << endl
+        << (interfaceWidth/alloy.capillaryLength()).value() << endl
         << " -- mesh step / interface width = "
-        << (1./ interfaceWidth / Foam::max(mesh.surfaceInterpolation::deltaCoeffs())).value() << endl
+        << (minMeshStep/interfaceWidth).value() << endl
         << " -- theoretical tip velocity = "
-        << (tipVelocity * alloy.capillaryLength() / alloy.diffusionL()).value() << endl
-        << " -- interface stability parameter = "
-        << (alloy.diffusionL() * alloy.capillaryLength() / tipVelocity / sqr(interfaceWidth)).value() << nl << endl;
+        << (tipVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
+        << " -- interface stability parameter = " << sigmaW << endl
+        << nl;
 
     Info<< "Dimensioned parameters:" << endl
         << " -- theoretical tip velocity (m/s) = "
         << tipVelocity.value() << endl
         << " -- characteristic velocity (m/s) = "
-        << (alloy.diffusionL() / alloy.capillaryLength()).value() << endl
+        << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
         << " -- relaxation time (s) = "
         << tau.value() << endl;
 
-    /** Time evolution loop */
+    if (sigmaW < minSigmaW)
+    {
+        FatalError
+            << "Interface stability parameter is too low:" << endl
+            << sigmaW << " < " << minSigmaW
+            << abort(FatalError);
+    }
 
     Info<< "\nStarting time loop\n" << endl;
-    while (runTime.loop()) {
-        Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        /** Calculate tip velocity */
+    while (runTime.run())
+    {
+        #include "readDyMControls.H"
+        #include "CourantNo.H"
+        #include "phaseCourantNo.H"
+        #include "setDeltaT.H"
 
-        tipTimeInterval += runTime.deltaT();
-
-        // Find the current tip position and the corresponding cell
-        tipPosition = ymin;
-        forAll(phase, cellI) {
-            if (phase[cellI] > .5) {
-                dimensionedScalar tipPositionNew = dimensionedScalar("y", dimLength, coord[cellI].y())
-                    + constant::mathematical::pi * (phase[cellI] - .5) * interfaceWidth;
-                if (tipPositionNew > tipPosition) {
-                    tipPosition = tipPositionNew;
-                    tipCell = cellI;
-                }
-            }
-        }
-
-        if (tipCell != tipCellPrev) {
-            dimensionedScalar tipVelocity = (tipPosition - tipPositionPrev) / tipTimeInterval;
-            Info<< "Tip position(m) = " << (tipPosition).value()
-                << " relative = " << ((tipPosition - ymin) / height).value()
-                << " tip velocity(m/s) = " << tipVelocity.value()
-                << " dimless = "
-                << (tipVelocity * alloy.capillaryLength() / alloy.diffusionL()).value()
-                << " tip undercooling(K) = " << alloy.liquidus().value() - T[tipCell]
-                << " relative = "
-                << alloy.undercooling(dimensionedScalar("T", dimTemperature, T[tipCell])).value()
-                << endl;
-            tipPositionPrev = tipPosition;
-            tipCellPrev = tipCell;
-            tipTimeInterval *= 0;
-        }
-
-        /** Calculate temperature */
-
-        T = alloy.liquidus() - undercooling
-            + tempGradient * (coord.component(vector::Y) - ymin/3 - 2*ymax/3)
-            - coolingRate * runTime;
-
-        /** Adapt time step */
-
-#       include "createTimeControls.H" // read adjustTimeStep, maxCo, maxDeltaT from controlDict
         scalar minDeltaT =
             runTime.controlDict().lookupOrDefault<scalar>("minDeltaT", 0);
-        if (adjustTimeStep) {
-            // Estimate the interface velocity via rhs
-            volScalarField rhsPhase = (sqr(interfaceWidth) * fvc::laplacian(phase) - fPrime(phase)
-                + a1 * interfaceWidth / alloy.interfaceEnergy()
-                    * gPrime(phase) * alloy.chemicalDrivingForce(phase, T)) / tau;
-            Info<< "Max interface change = "
-                << max(mag(rhsPhase) * runTime.deltaT()).value() << endl;
-            Co = mag(rhsPhase) * runTime.deltaT();
-            // Estimate evolution of concentration via rhs
-            forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
-                alloyComponent& C = iter();
-                volScalarField h = alloy.partition(phase);
-                volVectorField normal = calcNormal(fvc::grad(phase));
-                volScalarField rhsC = (
-                    fvc::laplacian(C.diffusion(phase), (C - C.equilibrium(phase, T)) / h)
-                    + fvc::div(interfaceWidth / Foam::sqrt(2.) * C.deltaA() * normal * rhsPhase)
-                ) / C.equilibrium(phase, T);
-                Info<< "Max relative change of " << C.name() << " = "
-                    << max(mag(rhsC)* runTime.deltaT()).value() << endl;
-                Co = max(Co, mag(rhsC) * runTime.deltaT());
-            }
-
-            // Reset the timestep to maintain a constant maximum courant Number.
-            // Reduction of time-step is immediate, but increase is damped to avoid
-            // unstable oscillations.
-            scalar maxDeltaTFact = maxCo/(max(Co).value() + SMALL);
-            scalar deltaTFact = min(min(maxDeltaTFact, 1.0 + 0.1*maxDeltaTFact), 1.2);
-
-            runTime.setDeltaT(min(
-                deltaTFact*runTime.deltaT().value(),
-                maxDeltaT
-            ));
-            if (deltaTFact*runTime.deltaT().value() < minDeltaT) {
-                Info<< "Time step becomes too small!" << endl;
-                runTime.writeAndEnd();
-            }
-
-            Info<< "Time = " << runTime.timeName()
-                << " deltaT = " <<  runTime.deltaT().value()
-                << " deltaTFact = " << deltaTFact
-                << endl;
+        if (runTime.deltaTValue() < minDeltaT)
+        {
+            Info<< "Time step becomes too small!" << endl;
+            runTime.writeAndEnd();
         }
-        while (pimple.loop()) {
 
-            /** Calculate phase field */
+        ++runTime;
 
-            if (epsilon4 > 0) {
-                volVectorField gradPhase = fvc::grad(phase);
-                volVectorField normal = calcNormal(gradPhase);
-                forAll(theta, cellI) {
-                    theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y()) - theta0[cellI];
+        Info<< "Time = " << runTime.timeName() << nl << endl;
+
+        #include "tipVelocity.H"
+
+        // --- Calculate temperature
+
+        T = alloy.liquidus() - undercooling
+            + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3)
+            - coolingRate*runTime;
+
+        while (pimple.loop())
+        {
+            if (pimple.firstIter() || moveMeshOuterCorrectors)
+            {
+                // Do any mesh changes
+                mesh.controlledUpdate();
+
+                if (mesh.changing())
+                {
+                    if (correctPhi)
+                    {
+                        #include "correctPhi.H"
+                    }
+
+                    if (checkMeshCourantNo)
+                    {
+                        #include "meshCourantNo.H"
+                    }
                 }
-                volScalarField a_s = 1 + epsilon4 * Foam::cos(4 * theta);
+            }
 
-                volVectorField A = 4 * epsilon4 * a_s * mag(gradPhase) * vector::one;
-                forAll(A, cellI) {
-                    A[cellI].x() *= - Foam::sin(4 * theta[cellI]) * Foam::cos(theta[cellI]);
-                    A[cellI].y() *= + Foam::sin(4 * theta[cellI]) * Foam::sin(theta[cellI]);
+            #include "phaseEqn.H"
+
+            if (!pimple.frozenFlow())
+            {
+                #include "UEqn.H"
+
+                while (pimple.correct())
+                {
+                    #include "pEqn.H"
                 }
-
-                fvScalarMatrix phaseEqn(
-                    tau * sqr(a_s) * fvm::ddt(phase)
-                    == sqr(interfaceWidth) * fvm::laplacian(sqr(a_s), phase)
-                    + sqr(interfaceWidth) * fvc::div(A) - fPrime(phase)
-                    + a1 * interfaceWidth / alloy.interfaceEnergy()
-                        * gPrime(phase) * alloy.chemicalDrivingForce(phase, T)
-                );
-                phaseEqn.solve();
-            } else {
-                fvScalarMatrix phaseEqn(
-                    tau * fvm::ddt(phase)
-                    == sqr(interfaceWidth) * fvm::laplacian(phase) - fPrime(phase)
-                    + a1 * interfaceWidth / alloy.interfaceEnergy()
-                        * gPrime(phase) * alloy.chemicalDrivingForce(phase, T)
-                );
-                phaseEqn.solve();
             }
 
-            /** Calculate concentrations */
-
-            // Recompute normal
-            volVectorField normal = calcNormal(fvc::grad(phase));
-
-            volScalarField h = alloy.partition(phase);
-            forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter) {
-                alloyComponent& C = iter();
-
-                surfaceScalarField phi = fvc::snGrad(phase) * mesh.magSf()
-                    * fvc::interpolate(C.diffusion(phase) / sqr(h)) * alloy.partitionPrime();
-                fvScalarMatrix CEqn(
-                    fvm::ddt(C) == fvm::laplacian(C.diffusion(phase) / h, C) - fvm::div(phi, C)
-                    - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T) / h)
-                    + fvc::div(interfaceWidth / Foam::sqrt(2.) * C.deltaA() * normal * fvc::ddt(phase))
-                );
-                CEqn.solve(mesh.solverDict("concentration"));
-            }
+            #include "CEqn.H"
         }
 
-        /** Calculate grain number and crystallographic orientation */
-
-        volVectorField gNormal = calcNormal(grain);
-        volVectorField gTangent = rot & gNormal;
-
-        fvVectorMatrix grainEqn(
-            tau * fvm::ddt(grain) + a3 * phase * (
-                gNormal * (mag(grain) - 1)
-                + gTangent * sin(2 * constant::mathematical::pi * nGrain)
-            ) == a4 * pow3(interfaceWidth) * fvm::laplacian(mag(fvc::grad(phase)), grain)
-        );
-        grainEqn.solve();
-
-        calcNGrain(nGrain, grain, nGrains);
-        forAll(theta0, cellI) {
-            theta0[cellI] = crystallographicAngles.lookupOrDefault(name(lround(nGrain[cellI])), 0)
-                * constant::mathematical::pi / 180;
-        }
-
-        /** Finalize iteration */
+        #include "grainEqn.H"
 
         runTime.write();
-        if (!adjustTimeStep) {
-            Info<< "deltaT = " <<  runTime.deltaT().value() << endl;
-        }
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
+
+        runTime.printExecutionTime(Info);
     }
 
     Info<< "End\n" << endl;

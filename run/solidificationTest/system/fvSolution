@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
-| \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.0                                |
-|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -17,12 +17,34 @@ FoamFile
 
 solvers
 {
+    p
+    {
+        solver          GAMG;
+        smoother        DIC;
+        tolerance       1e-6;
+        relTol          0.05;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    U
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+    }
+
     "phase.*"
     {
         solver          PCG;
         preconditioner  DIC;
         tolerance       1e-6;
-        relTol          0.01;
+        relTol          0.1;
     }
     grain
     {
@@ -35,14 +57,20 @@ solvers
         solver          PBiCG;
         preconditioner  DILU;
         tolerance       1e-5;
-        relTol          0.01;
+        relTol          0.1;
     }
+
 }
 
 PIMPLE
 {
-    nOuterCorrectors         20;
+    momentumPredictor   no;
+    nOuterCorrectors    20;
+    nCorrectors         1;
     nNonOrthogonalCorrectors 0;
+    correctPhi          no;
+    pRefCell            0;
+    pRefValue           0;
 
     residualControl
     {
@@ -57,6 +85,14 @@ PIMPLE
             relTol      0;
         }
      }
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*"   1;
+    }
 }
 
 // ************************************************************************* //
