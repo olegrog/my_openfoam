@@ -31,9 +31,19 @@ tmp<volScalarField> fPrime(const volScalarField& phase)
     return 2*phase*(1 - phase)*(1 - 2*phase);
 }
 
+tmp<volScalarField> fPrime2(const volScalarField& phase)
+{
+    return 3*sqr(1 - 2*phase) - 1;
+}
+
 tmp<volScalarField> gPrime(const volScalarField& phase)
 {
     return 30*sqr(phase)*sqr(1 - phase);
+}
+
+tmp<volScalarField> gPrime2(const volScalarField& phase)
+{
+    return 30*fPrime(phase);
 }
 
 tmp<volScalarField> generateSeed
@@ -190,6 +200,8 @@ int main(int argc, char *argv[])
         << tipVelocity.value() << endl
         << " -- characteristic velocity (m/s) = "
         << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
+        << " -- capillary length (m) = "
+        << alloy.capillaryLength().value() << endl
         << " -- relaxation time (s) = "
         << tau.value() << endl;
 
@@ -251,7 +263,21 @@ int main(int argc, char *argv[])
                 }
             }
 
-            #include "phaseEqn.H"
+            label nCorrPhase(readLabel(pimple.dict().lookup("nPhaseCorrectors")));
+            for (label corrPhase = 1; corrPhase <= nCorrPhase; ++corrPhase)
+            {
+                #include "phaseEqn.H"
+            }
+
+            Info<< "Solid fraction: min = " << gMin(phase)
+                << " max = 1 + " << gMax(phase) - 1 << endl;
+
+            if (gMin(phase) < 0 || gMax(phase) > 1)
+            {
+                FatalError
+                    << "Phase is out of bounds."
+                    << abort(FatalError);
+            }
 
             if (!pimple.frozenFlow())
             {

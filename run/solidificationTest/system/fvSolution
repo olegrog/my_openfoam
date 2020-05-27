@@ -39,6 +39,12 @@ solvers
         relTol          0.1;
     }
 
+    UFinal
+    {
+        $U;
+        relTol          0;
+    }
+
     "phase.*"
     {
         solver          PCG;
@@ -56,8 +62,8 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-5;
-        relTol          0.1;
+        tolerance       1e-6;
+        relTol          0.01;
     }
 
 }
@@ -65,12 +71,14 @@ solvers
 PIMPLE
 {
     momentumPredictor   no;
-    nOuterCorrectors    20;
-    nCorrectors         1;
+    nOuterCorrectors    10;
+    nCorrectors         3;
     nNonOrthogonalCorrectors 0;
     correctPhi          no;
     pRefCell            0;
     pRefValue           0;
+
+    nPhaseCorrectors    3;
 
     residualControl
     {

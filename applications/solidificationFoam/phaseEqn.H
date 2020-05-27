@@ -1,3 +1,5 @@
+const dimensionedScalar zero(0), one(1);
+
 if (epsilon4 > 0)
 {
     volVectorField gradPhase = fvc::grad(phase);
@@ -22,6 +24,7 @@ if (epsilon4 > 0)
         sqr(interfaceWidth)*fvm::laplacian(sqr(a_s), phase)
       + sqr(interfaceWidth)*fvc::div(A)
       - fPrime(phase)
+      - fPrime2(phase)*(fvm::Sp(one, phase) - phase)
       + a1*interfaceWidth/alloy.interfaceEnergy()*gPrime(phase)
             *alloy.chemicalDrivingForce(phase, T)
     );
@@ -35,13 +38,10 @@ else
      ==
         sqr(interfaceWidth)*fvm::laplacian(phase)
       - fPrime(phase)
+      - fPrime2(phase)*(fvm::Sp(one, phase) - phase)
       + a1*interfaceWidth/alloy.interfaceEnergy()*gPrime(phase)
             *alloy.chemicalDrivingForce(phase, T)
     );
     phaseEqn.solve();
 }
 
-Info<< "Solid fraction before clip: min = " << gMin(phase)
-    << " max = 1 + " << gMax(phase) - 1 << endl;
-
-phase.clip(0, 1);
