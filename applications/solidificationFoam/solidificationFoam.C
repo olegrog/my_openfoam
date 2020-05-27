@@ -147,13 +147,10 @@ int main(int argc, char *argv[])
 
     // number of grain
     calcNGrain(nGrain, grain, nGrains);
-    grain.write();
-    phase.write();
 
     // temperature
     T = alloy.liquidus() - undercooling
         + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3);
-    T.write();
 
     // concentrations
     forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
@@ -161,7 +158,6 @@ int main(int argc, char *argv[])
         alloyComponent& C = iter();
         const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
         C == C.equilibrium(phase, temp);
-        C.write();
     }
 
     // --- Print reference parameters
