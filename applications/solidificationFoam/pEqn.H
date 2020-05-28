@@ -1,5 +1,5 @@
-volScalarField rAU("rAU", 1.0/UEqn.A());
-volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p));
+volScalarField rAU("rAU", liquidFraction/UlEqn.A());
+volVectorField HbyA(constrainHbyA(rAU*UlEqn.H(), U, p));
 surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
 
 adjustPhi(phiHbyA, U, p);
@@ -8,7 +8,7 @@ tmp<volScalarField> rAtU(rAU);
 
 if (pimple.consistent())
 {
-    rAtU = 1.0/max(1.0/rAU - UEqn.H1(), 0.1/rAU);
+    rAtU = 1.0/max(1.0/rAU - UlEqn.H1()/liquidFraction, 0.1/rAU);
     phiHbyA += liquidFractionf*fvc::interpolate(rAtU() - rAU)*fvc::snGrad(p)*mesh.magSf();
     HbyA -= liquidFraction*(rAU - rAtU())*fvc::grad(p);
 }
@@ -39,6 +39,7 @@ while (pimple.correctNonOrthogonal())
 // Explicitly relax pressure for momentum corrector
 p.relax();
 
-U = HbyA - rAtU*liquidFraction*fvc::grad(p);
-U.correctBoundaryConditions();
+Ul = HbyA - rAtU*liquidFraction*fvc::grad(p);
+Ul.correctBoundaryConditions();
+U = liquidFraction*Ul;
 

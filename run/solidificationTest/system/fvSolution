@@ -31,7 +31,7 @@ solvers
         relTol          0;
     }
 
-    U
+    Ul
     {
         solver          smoothSolver;
         smoother        symGaussSeidel;
@@ -39,7 +39,7 @@ solvers
         relTol          0.1;
     }
 
-    UFinal
+    UlFinal
     {
         $U;
         relTol          0;
@@ -88,6 +88,11 @@ PIMPLE
             relTol      0;
         }
         concentrationMn
+        {
+            tolerance   1e-3;
+            relTol      0;
+        }
+        p
         {
             tolerance   1e-3;
             relTol      0;

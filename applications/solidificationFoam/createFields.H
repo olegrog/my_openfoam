@@ -12,12 +12,12 @@ volScalarField p
     mesh
 );
 
-Info<< "Reading field U\n" << endl;
-volVectorField U
+Info<< "Reading field Ul\n" << endl;
+volVectorField Ul
 (
     IOobject
     (
-        "U",
+        "Ul",
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
@@ -26,10 +26,23 @@ volVectorField U
     mesh
 );
 
+volVectorField U
+(
+    IOobject
+    (
+        "U",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    Ul
+);
+
 #include "createPhi.H"
 
 Info<< "Reading transport properties\n" << endl;
-singlePhaseTransportModel laminarTransport(U, phi);
+singlePhaseTransportModel laminarTransport(Ul, phi);
 
 label pRefCell = 0;
 scalar pRefValue = 0.0;

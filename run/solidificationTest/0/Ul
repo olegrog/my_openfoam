@@ -11,7 +11,7 @@ FoamFile
     format      ascii;
     class       volVectorField;
     location    "0";
-    object      p;
+    object      Ul;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -29,7 +29,7 @@ boundaryField
     top
     {
         type        fixedValue;
-        value       uniform (1e-2 0 0);
+        value       uniform (5e-2 0 0);
     }
     left
     {

@@ -2,18 +2,21 @@ const volScalarField liquidFraction("liquidFraction", 1 - phase + SMALL);
 const surfaceScalarField liquidFractionf(fvc::interpolate(liquidFraction));
 const volScalarField& nu = laminarTransport.nu();
 
-fvVectorMatrix UEqn
+fvVectorMatrix UlEqn
 (
-    fvm::ddt(U)
-  + fvm::div(phi/liquidFractionf, U)
+    fvm::ddt(liquidFraction, Ul)
+  + fvm::div(phi*liquidFractionf, Ul)
  ==
-    fvm::laplacian(nu, U)
-  - fvm::Sp(nu*hStar/sqr(interfaceWidth)*phase*(1-phase), U)
+    fvm::laplacian(nu*liquidFraction, Ul)
+  - nu*fvm::div(fvc::snGrad(phase)*mesh.magSf(), Ul)
+  - fvm::Sp(nu*hStar*sqr(phase/interfaceWidth)*liquidFraction, Ul)
 );
 
-UEqn.relax();
+UlEqn.relax();
 
 if (pimple.momentumPredictor())
 {
-    solve(UEqn == -liquidFraction*fvc::grad(p));
+    solve(UlEqn == -liquidFraction*fvc::grad(p));
 }
+
+U = liquidFraction*Ul;

@@ -272,12 +272,14 @@ int main(int argc, char *argv[])
             Info<< "Solid fraction: min = " << gMin(phase)
                 << " max = 1 + " << gMax(phase) - 1 << endl;
 
-            if (gMin(phase) < 0 || gMax(phase) > 1)
+            if (gMin(phase) < -ROOTSMALL || gMax(phase) > 1 + ROOTSMALL)
             {
                 FatalError
                     << "Phase is out of bounds."
                     << abort(FatalError);
             }
+
+            phase.clip(0, 1);
 
             if (!pimple.frozenFlow())
             {
