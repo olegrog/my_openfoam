@@ -2,5 +2,12 @@
 
 from paraview.simple import *
 
-ReloadFiles(GetSources().items()[0][1])
+# Find the original source and reload it
+for key, value in GetSources().iteritems():
+    if key[0].endswith('foam'):
+        print("Reload " + key[0]);
+        ReloadFiles(value[0])
+
+# Go to the last time step
+GetAnimationScene().GoToLast()
 
