@@ -180,6 +180,7 @@ int main(int argc, char *argv[])
     const scalar minSigmaW(runTime.controlDict().get<scalar>("minSigmaW"));
     const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
     const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
+    const dimensionedScalar PDAS = (xmax - xmin)/nSeeds;
 
     Info<< "Dimensionless parameters:" << endl
         << " -- minimal undercooling = "
@@ -192,10 +193,15 @@ int main(int argc, char *argv[])
         << (minMeshStep/interfaceWidth).value() << endl
         << " -- theoretical tip velocity = "
         << (tipVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
-        << " -- interface stability parameter = " << sigmaW << endl
+        << " -- interface stability parameter = "
+        << sigmaW << endl
+        << " -- Reynolds number = "
+        << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
         << nl;
 
     Info<< "Dimensioned parameters:" << endl
+        << " -- generated PDAS = "
+        << PDAS.value() << endl
         << " -- theoretical tip velocity (m/s) = "
         << tipVelocity.value() << endl
         << " -- characteristic velocity (m/s) = "
