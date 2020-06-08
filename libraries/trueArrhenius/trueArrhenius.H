@@ -70,14 +70,17 @@ class trueArrhenius
         //- Name of the field used as temperature
         const word TName_;
 
-        //- Reference to the temperature field
-        const volScalarField& T_;
+        //- Reference to mesh
+        const fvMesh& mesh_;
+
+        //- Flag to indicate whether the viscosity field is multiplied by a temperature factor
+        bool isCorrected_;
 
 
     // Private Member Functions
 
         //- Calculate the temperature factor for laminar viscosity
-        void calcTemperatureFactor();
+        void calcTemperatureFactor(const volScalarField& T);
 
 
 public:
@@ -99,17 +102,16 @@ public:
 
 
     //- Destructor
-    virtual ~trueArrhenius()
-    {}
+    ~trueArrhenius() override;
 
 
     // Member Functions
 
         //- Correct the laminar viscosity
-        virtual void correct();
+        void correct() override;
 
         //- Read transportProperties dictionary
-        virtual bool read(const dictionary& viscosityProperties);
+        bool read(const dictionary& viscosityProperties) override;
 };
 
 

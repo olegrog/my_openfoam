@@ -29,9 +29,12 @@ License
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
 template<class ViscousModel>
-void Foam::viscosityModels::trueArrhenius<ViscousModel>::calcTemperatureFactor()
+void Foam::viscosityModels::trueArrhenius<ViscousModel>::calcTemperatureFactor
+(
+    const volScalarField& T
+)
 {
-    temperatureFactor_ = min(exp(alpha_*(1/T_ - 1/Talpha_)), scalar(1));
+    temperatureFactor_ = min(exp(alpha_*(1/T - 1/Talpha_)), scalar(1));
 }
 
 
@@ -65,10 +68,17 @@ Foam::viscosityModels::trueArrhenius<ViscousModel>::trueArrhenius
     alpha_("alpha", dimTemperature, trueArrheniusCoeffs_),
     Talpha_("Talpha", dimTemperature, trueArrheniusCoeffs_),
     TName_(trueArrheniusCoeffs_.lookupOrDefault<word>("field", "T")),
-    T_(U.mesh().lookupObject<volScalarField>(TName_))
+    mesh_(U.mesh()),
+    isCorrected_(false)
 {
-    calcTemperatureFactor();
-    this->nu_ *= temperatureFactor_;
+    const auto* TPtr = mesh_.findObject<volScalarField>(TName_);
+
+    if (TPtr)
+    {
+        calcTemperatureFactor(*TPtr);
+        this->nu_ *= temperatureFactor_;
+        isCorrected_ = true;
+    }
 }
 
 
@@ -77,12 +87,24 @@ Foam::viscosityModels::trueArrhenius<ViscousModel>::trueArrhenius
 template<class ViscousModel>
 void Foam::viscosityModels::trueArrhenius<ViscousModel>::correct()
 {
-    // the temperature factor should be removed for viscous models without correction
-    this->nu_ /= temperatureFactor_;
-    ViscousModel::correct();
-    calcTemperatureFactor();
-    this->nu_ *= temperatureFactor_;
+    const auto* TPtr = mesh_.findObject<volScalarField>(TName_);
+
+    if (TPtr)
+    {
+        if (isCorrected_)
+        {
+            // the temperature factor should be removed for viscous models without correction
+            this->nu_ /= temperatureFactor_;
+        }
+
+        ViscousModel::correct();
+
+        calcTemperatureFactor(*TPtr);
+        this->nu_ *= temperatureFactor_;
+        isCorrected_ = true;
+    }
 }
+
 
 template<class ViscousModel>
 bool Foam::viscosityModels::trueArrhenius<ViscousModel>::read
@@ -101,5 +123,19 @@ bool Foam::viscosityModels::trueArrhenius<ViscousModel>::read
     return true;
 }
 
+
+template<class ViscousModel>
+Foam::viscosityModels::trueArrhenius<ViscousModel>::~trueArrhenius()
+{
+    const auto* TPtr = mesh_.findObject<volScalarField>(TName_);
+
+    if (!TPtr)
+    {
+        FatalError
+            << "Temperature field '" << TName_ << "' is not found." << endl
+            << "The Arrhenius temperature model was not used."
+            << exit(FatalError);
+    }
+}
 
 // ************************************************************************* //
