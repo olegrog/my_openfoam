@@ -41,29 +41,9 @@ Description
 #include "pimpleControl.H"
 #include "CorrectPhi.H"
 
-#include "LiquidFraction.H"
+#include "gasMetalMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// We use this function instead of GeometricField::operator= to
-//  1) change boundary values along with internal ones,
-//  2) optimize piecewise functions
-template<class Func, class... Args>
-void calcGeomField(volScalarField& f, Func calc, const Args&... args)
-{
-    forAll(f, cellI)
-    {
-        calc(f.primitiveFieldRef(), cellI, (args.primitiveField())...);
-    }
-    forAll(f.boundaryField(), patchi)
-    {
-        forAll(f.boundaryField()[patchi], faceI)
-        {
-            calc(f.boundaryFieldRef(false)[patchi], faceI,
-                (args.boundaryField()[patchi])...);
-        }
-    }
-}
 
 volScalarField surfaceGaussian
 (
@@ -72,117 +52,20 @@ volScalarField surfaceGaussian
     dimensionedScalar radius
 )
 {
+    using constant::mathematical::pi;
     volVectorField r = x - x0;
     r.replace(2, 0);
-    return 2*exp(-2*magSqr((x - x0)/radius))/constant::mathematical::pi/sqr(radius);
+    return 2*exp(-2*magSqr(r/radius))/pi/sqr(radius);
 }
 
-template<class T1, class T2, class T3>
-auto threePhaseParameter
-(
-    const T1& temp, const T2& phi, const T3& alpha,
-    dimensionedScalar A_sol, dimensionedScalar A_liq,
-    dimensionedScalar dA_sol, dimensionedScalar dA_liq,
-    dimensionedScalar A_gas
-) -> decltype(temp + phi + alpha) // can be removed in C++14
+// For debug
+auto pp = [](const volScalarField& f)
 {
-    return (A_sol + dA_sol*temp)*(1-phi) + (A_liq + dA_liq*temp)*phi + A_gas*alpha;
-}
-
-void calcEnthalpy
-(
-    volScalarField& he, const volScalarField& temp,
-    const LiquidFraction& phi, const volScalarField& alpha,
-    dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
-    dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
-    dimensionedScalar Cp_gas, dimensionedScalar T_melting,
-    dimensionedScalar enthalpyFusion, bool dAlpha = false
-)
-{
-    // To check dimensions
-    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he + enthalpyFusion) + alpha;
-    const scalar T_M = T_melting.value();
-    const scalar he_fus = enthalpyFusion.value();
-    auto he_S = [=](scalar temp) {
-        return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
-    };
-    auto he_L = [=](scalar temp) {
-        return Cp_liq.value()*temp + dCp_liq.value()*sqr(temp)/2;
-    };
-    const volScalarField he_G = Cp_gas*temp;
-
-    calcGeomField(he, [=](scalarField& f, label i, const scalarField& temp,
-        const scalarField& phi, const scalarField& phiPrimeAlpha,
-        const scalarField& alpha, const scalarField& he_G)
-    {
-        scalar piecewise;
-        if (temp[i] <= T_M) {
-            piecewise = he_S(temp[i]);
-        } else {
-            piecewise = he_S(T_M) + he_L(temp[i]) - he_L(T_M);
-        }
-        if (!dAlpha) {
-            f[i] = alpha[i]*he_G[i] + he_fus*phi[i] + (1-alpha[i])*piecewise;
-        } else {
-            f[i] = he_G[i] + he_fus*phiPrimeAlpha[i] - piecewise;
-        }
-    }, temp, phi(), phi.dAlpha(), alpha, he_G);
-    he.correctBoundaryConditions();
-}
-
-void calcTemperature
-(
-    volScalarField& temp, const volScalarField& he,
-    const LiquidFraction& phi, const volScalarField& alpha,
-    dimensionedScalar Cp_sol, dimensionedScalar dCp_sol,
-    dimensionedScalar Cp_liq, dimensionedScalar dCp_liq,
-    dimensionedScalar Cp_gas, dimensionedScalar T_melting,
-    dimensionedScalar enthalpyFusion
-)
-{
-    // to check dimensions
-    (Cp_gas + Cp_sol + Cp_liq + temp*(dCp_sol + dCp_liq))*T_melting/(he + enthalpyFusion) + alpha;
-    const scalar T_M = T_melting.value();
-    const scalar he_fus = enthalpyFusion.value();
-    auto he_S = [=](scalar temp) {
-        return Cp_sol.value()*temp + dCp_sol.value()*sqr(temp)/2;
-    };
-    auto he_L = [=](scalar temp) {
-        return Cp_liq.value()*temp + dCp_liq.value()*sqr(temp)/2;
-    };
-    auto he_G = [=](scalar temp) {
-        return Cp_gas.value()*temp;
-    };
-
-    calcGeomField(temp, [=](scalarField& f, label i, const scalarField& he,
-        const scalarField& phi, const scalarField& alpha)
-    {
-        scalar A, B = alpha[i]*Cp_gas.value();
-        scalar C = he[i] - he_fus*phi[i] - (1-alpha[i])*he_S(T_M);
-        scalar he_M = alpha[i]*he_G(T_M) + (1-alpha[i])*(he_S(T_M) + he_fus/2);
-        if (he[i] < he_M) {
-            A = (1-alpha[i])*dCp_sol.value();
-            B += (1-alpha[i])*Cp_sol.value();
-            C += (1-alpha[i])*he_S(T_M);
-        } else {
-            A = (1-alpha[i])*dCp_liq.value();
-            B += (1-alpha[i])*Cp_liq.value();
-            C += (1-alpha[i])*he_L(T_M);
-        }
-        if (mag(A) > SMALL) {
-            f[i] = (Foam::sqrt(sqr(B) + 2*A*C) - B)/A;
-        } else {
-            f[i] = C/B;
-        }
-    }, he, phi(), alpha);
-    temp.correctBoundaryConditions();
-}
-
-tmp<volVectorField> calcNormal(const volVectorField& vField)
-{
-    const dimensionedVector smallVector("small", vField.dimensions(), vector(0, 0, SMALL));
-    return (vField + smallVector) / mag(vField + smallVector);
-}
+    Info<< f.name() << ": " << min(f).value() << " " << max(f).value() << endl;
+    // The following methods works only for internal field but globally
+    // f.writeMinMax(Info);
+    // Info<< f.name() << ": " << gMin(f) << " " << gMax(f) << endl;
+};
 
 int main(int argc, char *argv[])
 {
@@ -204,11 +87,9 @@ int main(int argc, char *argv[])
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
 
-    // For debug
-    auto pp = [](const volScalarField& f)
-    {
-        Info<< f.name() << ": " << gMin(f) << " " << gMax(f) << endl;
-    };
+    using constant::mathematical::pi;
+    using constant::physicoChemical::R;     // universal gas constant
+    using constant::physicoChemical::sigma; // Stefan--Boltzmann constant
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -226,9 +107,9 @@ int main(int argc, char *argv[])
 
         const dimensionedVector laserCoordinate
         (
-            "laserCoordinate", coordStart + laserVelocity * mesh.time()
+            "laserCoordinate", coordStart + laserVelocity*mesh.time()
         );
-        const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*he);
+        const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
         // vector beamDirection(0, 0, -1);
         // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
 
@@ -272,15 +153,23 @@ int main(int argc, char *argv[])
             mixture.correct();
 
             // Enthalpy-independent quantities
-            heAtFusion = he_melting(alpha2);
-            laserHeatSource = (runTime < timeStop) * absorptivity * laserPower
-                * surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+            laserHeatSource = (runTime < timeStop)*absorptivity*laserPower
+                *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
 
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
             for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
             {
-                #include "heEqn.H"
+                #include "hEqn.H"
             }
+
+            rhok = rho*(1.0 - beta*(T - ambientTemperature));
+            vaporPressure = ambientPressure*exp(molarMass*Hvapour/R*(1/Tboiling - 1/T));
+
+            // For debug: check that heatConduction is almost equal to heatConduction2
+            heatConvection = fvc::div(rhoPhi, h);
+            heatConduction = fvc::laplacian(k, T);
+            heatConduction2 = fvc::laplacian(k/Cp*(1 - Hfusion*liquidFraction.dEnthalpy()), h)
+                + fvc::laplacian(k/Cp*hPrimeGasFraction, alpha1);
 
             if (pimple.frozenFlow())
             {
@@ -302,13 +191,12 @@ int main(int argc, char *argv[])
         }
 
         // Update passive quantities
-        kinematicViscosity = mixture.nu();
-        liquidFraction.finalCorrect();
+        mixture.finalCorrect();
 
-        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*he) - totalEnthalpy).value()
+        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
             << ", laser input = "
-            << fvc::domainIntegrate(laserHeatSource * mag(fvc::grad(alpha2)) * runTime.deltaT()).value()
-            << ", theoretical value = " << (absorptivity * laserPower * runTime.deltaT()).value()
+            << fvc::domainIntegrate(laserHeatSource*mag(fvc::grad(alpha2))*runTime.deltaT()).value()
+            << ", theoretical value = " << (absorptivity*laserPower*runTime.deltaT()).value()
             << endl;
 
         runTime.write();

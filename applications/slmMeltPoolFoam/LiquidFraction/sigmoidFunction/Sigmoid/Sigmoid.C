@@ -65,6 +65,7 @@ Foam::Sigmoid<Function>::Sigmoid(scalar a, scalar b)
     }
 }
 
+
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
 template<class Function>

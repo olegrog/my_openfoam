@@ -1,21 +1,6 @@
-#include "Read/thermalProperties.H"
 #include "Read/laserProperties.H"
 
 bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
-
-Info << "Reading field T\n" << endl;
-volScalarField T
-(
-    IOobject
-    (
-        "T",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh
-);
 
 Info<< "Reading field p_rgh\n" << endl;
 volScalarField p_rgh
@@ -47,82 +32,35 @@ volVectorField U
 
 #include "createPhi.H"
 
-Info<< "Reading transportProperties\n" << endl;
-immiscibleIncompressibleTwoPhaseMixture mixture(U, phi);
-dimensionedScalar mushyCoeff("mushyCoeff", mixture);
+Info<< "Reading transport and thermal properties\n" << endl;
+gasMetalMixture mixture(U, phi);
 
-autoPtr<Function1<scalar>> pSigma
-(
-    Function1<scalar>::New("sigma", mixture.subDict("sigma"))
-);
-dimensionedScalar dsigma_dT
-(
-    "dsigma_dT",
-    mixture.sigmaK()().dimensions() / dimTemperature * dimLength,
-    pSigma->value(1) - pSigma->value(0)
-);
-Info<< "Surface tension = " << pSigma->value(0) << " + (" << dsigma_dT.value() << ")*T\n" << endl;
+volScalarField& rho = mixture.rho();
+const volScalarField& T = mixture.T();
 
-volScalarField& alpha1(mixture.alpha1());
-volScalarField& alpha2(mixture.alpha2());
+const gasMetalThermo& thermo = mixture.thermo();
+const dimensionedScalar molarMass = thermo.metalM();
+const dimensionedScalar Hfusion = thermo.Hfusion();
+const dimensionedScalar Hvapour = thermo.Hvapour();
+const dimensionedScalar Tmelting = thermo.Tmelting();
+const dimensionedScalar Tboiling = thermo.Tboiling();
 
 // Uncomment this to analyze the difference in implementations of |\grad\alpha|
-/*{
+/*
+{
     Info<< "Write magGradAlpha fields\n" << endl;
     word name = "magGradAlpha";
+    volScalarField& alpha = mixture.alpha1();
     std::vector<volScalarField> magGradAlphaFields
     {
-        volScalarField(name + "1", mag(fvc::grad(alpha1))),
-        volScalarField(name + "2", mag(fvc::reconstruct(fvc::snGrad(alpha1) * mesh.magSf()))),
-        volScalarField(name + "3", 3*mag(fvc::average(fvc::snGrad(alpha1)))),
-        volScalarField(name + "4", mag(fvc::reconstructMag(fvc::snGrad(alpha1) * mesh.magSf()))),
+        volScalarField(name + "1", mag(fvc::grad(alpha))),
+        volScalarField(name + "2", mag(fvc::reconstruct(fvc::snGrad(alpha)*mesh.magSf()))),
+        volScalarField(name + "3", 3*mag(fvc::average(fvc::snGrad(alpha)))),
+        volScalarField(name + "4", mag(fvc::reconstructMag(fvc::snGrad(alpha)*mesh.magSf()))),
     };
     for (const auto& f : magGradAlphaFields) f.write();
-}*/
-
-volScalarField he
-(
-    IOobject
-    (
-        "he",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
-    ),
-    mesh,
-    dimEnergy/dimMass,
-    T.primitiveField(),
-    T.boundaryField()   // copy BC from the temperature field
-);
-
-volScalarField heAtFusion(he_melting(alpha2));
-volScalarField hePrimeAlpha(he);
-
-LiquidFraction liquidFraction
-(
-    alpha1, he, heAtFusion, enthalpyFusion, heAtFusionPrime, thermalProperties
-);
-
-{
-    scalar error, maxError = pimple.dict().get<scalar>("liquidFractionInitError");
-    // TODO(olegrog): Use Newton's iterations for boosting
-    Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
-    do {
-        calcEnthalpy(he, T, liquidFraction, alpha2, Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas,
-            T_melting, enthalpyFusion);
-        liquidFraction().storePrevIter();
-        liquidFraction.correct();
-        error = Foam::max(mag(liquidFraction() - liquidFraction().prevIter())).value();
-        Info<< "liquidFraction error = " << error << endl;
-    } while (error > maxError);
-    Info<< endl;
 }
-// To debug calcTemperature & calcEnthalpy
-// he.write();
-// calcTemperature(T, he, liquidFraction, alpha2,
-//     Cp_sol, dCp_sol, Cp_liq, dCp_liq, Cp_gas, T_melting, enthalpyFusion);
-// T.write();
+*/
 
 volVectorField gradT
 (
@@ -135,34 +73,6 @@ volVectorField gradT
         writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     fvc::grad(T)
-);
-
-volScalarField heatCapacity
-(
-    IOobject
-    (
-        "heatCapacity",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    dimSpecificHeatCapacity
-);
-
-volScalarField thermalConductivity
-(
-    IOobject
-    (
-        "thermalConductivity",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    dimPower/dimLength/dimTemperature
 );
 
 volScalarField laserHeatSource
@@ -249,38 +159,39 @@ volScalarField heatConduction2
     dimPower/dimVolume
 );
 
-// Used only for writing
-volScalarField kinematicViscosity
+Info<< "Reading problemProperties\n" << endl;
+IOdictionary problemProperties
 (
     IOobject
     (
-        "kinematicViscosity",
-        runTime.timeName(),
+        "problemProperties",
+        runTime.constant(),
         mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mixture.nu()
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+    )
 );
+dimensionedScalar ambientPressure("ambientPressure", problemProperties);
+dimensionedScalar ambientTemperature("ambientTemperature", problemProperties);
 
-const dimensionedScalar& rho1 = mixture.rho1();
-const dimensionedScalar& rho2 = mixture.rho2();
+{
+    scalar factor = (molarMass*Hvapour/constant::physicoChemical::R).value();
+    Info<< "Vapor pressure = " << ambientPressure.value()
+        << "*exp(" << factor/Tboiling.value()
+        << " - " << factor << "/T)\n" << endl;
+}
 
-// Need to store rho for ddt(rho, U)
-volScalarField rho
+volScalarField vaporPressure
 (
     IOobject
     (
-        "rho",
+        "vaporPressure",
         runTime.timeName(),
-        mesh,
-        IOobject::READ_IF_PRESENT,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        mesh
     ),
-    alpha1*rho1 + alpha2*rho2
+    mesh,
+    dimensionedScalar(dimPressure)
 );
-rho.oldTime();
-
 
 // Mass flux
 surfaceScalarField rhoPhi
@@ -319,7 +230,7 @@ volScalarField rhok
         runTime.timeName(),
         mesh
     ),
-    rho*(1.0 - beta*(T - T_ambient))
+    rho*(1.0 - beta*(T - ambientTemperature))
 );
 
 #include "readGravitationalAcceleration.H"
@@ -363,38 +274,7 @@ if (p_rgh.needReference())
 }
 
 mesh.setFluxRequired(p_rgh.name());
-mesh.setFluxRequired(alpha1.name());
+mesh.setFluxRequired(mixture.phase1Name());
 
-isoAdvection advector(alpha1, phi, U);
-
-Info<< "Reading problemProperties\n" << endl;
-IOdictionary problemProperties(
-    IOobject(
-        "problemProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-    )
-);
-dimensionedScalar molarMass("molarMass", problemProperties);
-dimensionedScalar ambientPressure("ambientPressure", problemProperties);
-
-{
-    scalar factor = (molarMass * enthalpyBoiling / constant::physicoChemical::R).value();
-    Info<< "Vapor pressure = " << ambientPressure.value() << " * exp(" << factor/T_boiling.value()
-        << " - " << factor << "/T)\n" << endl;
-}
-
-volScalarField vaporPressure
-(
-    IOobject
-    (
-        "vaporPressure",
-        runTime.timeName(),
-        mesh
-    ),
-    mesh,
-    dimensionedScalar(dimPressure)
-);
+isoAdvection advector(mixture.alpha1(), phi, U);
 

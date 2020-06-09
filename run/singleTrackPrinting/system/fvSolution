@@ -1,9 +1,9 @@
 /*--------------------------------*- C++ -*----------------------------------*\
-  =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  7  
-     \\/     M anipulation  |
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -66,12 +66,18 @@ solvers
         relTol          0;
     }
 
-    "he.*"
+    "h.*"
     {
         solver          PBiCGStab;
         preconditioner  DILU;
         tolerance       1e-8;
         relTol          0;
+    }
+
+    // for initial conditions only
+    liquidFraction
+    {
+        tolerance       1e-17;
     }
 }
 
@@ -84,7 +90,15 @@ PIMPLE
     correctPhi          yes;
 
     nEnthalpyCorrectors 3;
-    liquidFractionInitError 1e-17;
+
+    residualControl
+    {
+        "(h|U|alpha|p)"
+        {
+            tolerance   1e-4;
+            relTol      0;
+        }
+    }
 }
 
 relaxationFactors

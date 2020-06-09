@@ -27,7 +27,7 @@ Class
     Foam::LiquidFraction
 
 Description
-    Class for calculation of liquid fraction in a gas-metal medium.
+    Class for calculation of liquid fraction in a gas-metal mixture.
 
 SourceFiles
     LiquidFraction.C
@@ -48,41 +48,44 @@ class LiquidFraction
 {
     // Private data
 
-        //- Reference to the gas fraction field
-        const volScalarField& metalFraction_;
-
-        //- Reference to the enthalpy field
-        const volScalarField& enthalpy_;
-
-        //- Reference to the enthalpy of fusion
-        const dimensionedScalar& enthalpyFusion_;
-
-        //- Reference to the enthalpy at fusion point
-        const volScalarField& enthalpyAtFusion_;
-
-        //- Reference to the first derivative of enthalpy at fusion point
-        const dimensionedScalar& enthalpyAtFusionPrime_;
-
         //- The sigmoid function
-        autoPtr<sigmoidFunction> sigmoid_;
+        autoPtr<sigmoidFunction> pSigmoid_;
 
-        //- Liquid fraction field
-        volScalarField liquidFraction_;
+        // References to fields
 
-        //- The liquid fraction in the metal
-        volScalarField inMetal_;
+            //- Metal fraction
+            const volScalarField& metalFraction_;
 
-        //- The first derivative w. r. t. gas fraction
-        volScalarField dAlpha_;
+            //- Enthalpy
+            const volScalarField& h_;
 
-        //- The first derivative w. r. t. enthalpy
-        volScalarField dEnthalpy_;
+            //- Enthalpy at the melting temperature (depends on gas fraction)
+            const volScalarField& hAtMelting_;
 
-        //- The discrete value of liquid fraction (0 or metalFraction)
-        volScalarField sharp_;
+        // Dimensioned constants
 
-        //- The melt indicator (the maximum liquid fraction in time)
-        volScalarField wasMelted_;
+            //- Latent heat of fusion
+            const dimensionedScalar Hfusion_;
+
+            //- Derivative of enthalpy w.r.t. gas fraction at the melting point
+            const dimensionedScalar hAtMeltingPrime_;
+
+        // Internal fields
+
+            //- Liquid fraction in gas-metal mixture
+            volScalarField liquidFraction_;
+
+            //- Liquid fraction in metal
+            volScalarField inMetal_;
+
+            //- Derivative w.r.t. gas fraction
+            volScalarField dGasFraction_;
+
+            //- Derivative w.r.t. enthalpy
+            volScalarField dEnthalpy_;
+
+            //- Melt indicator (the maximum liquid fraction in time)
+            volScalarField wasMelted_;
 
 public:
 
@@ -90,11 +93,11 @@ public:
     LiquidFraction
     (
         const volScalarField& metalFraction,
-        const volScalarField& enthalpy,
-        const volScalarField& enthalpyAtFusion,
-        const dimensionedScalar& enthalpyFusion,
-        const dimensionedScalar& enthalpyAtFusionPrime,
-        const dictionary& thermalProperties
+        const volScalarField& h,
+        const volScalarField& hAtFusion,
+        const dimensionedScalar& hFusion,
+        const dimensionedScalar& hAtFusionPrime,
+        const dictionary& dict
     );
 
     //- Destructor
@@ -102,25 +105,25 @@ public:
 
     // Member Functions
 
-        //- Correct the active internal fields
+        //- Correct active internal fields
         void correct();
 
-        //- Correct the passive internal fields
+        //- Correct passive internal fields
         void finalCorrect();
 
-        //- Return the value of liquidFraction
+        //- Return the liquid fraction in gas-metal mixture
         const volScalarField& operator()() const
         {
             return liquidFraction_;
         }
 
-        //- Return the first derivative w. r. t. gas fraction
-        const volScalarField& dAlpha() const
+        //- Return the derivative w.r.t. gas fraction
+        const volScalarField& dGasFraction() const
         {
-            return dAlpha_;
+            return dGasFraction_;
         }
 
-        //- Return the first derivative w. r. t. enthalpy
+        //- Return the derivative w.r.t. enthalpy
         const volScalarField& dEnthalpy() const
         {
             return dEnthalpy_;
@@ -132,11 +135,6 @@ public:
             return inMetal_;
         }
 
-        //- Return the discrete value of liquid fraction
-        const volScalarField& sharp() const
-        {
-            return sharp_;
-        }
 };
 
 } // End namespace Foam

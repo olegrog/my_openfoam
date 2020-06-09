@@ -50,7 +50,7 @@ class Sigmoid
         //- Apply the normalized sigmoid function to a field (range between -1 and 1)
         tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const override;
 
-        //- Apply the first derivative of the normalized sigmoid function to a field
+        //- Apply the derivative of the normalized sigmoid function to a field
         tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const override;
 
         //- Auxiliary function for an arbitrary derivative

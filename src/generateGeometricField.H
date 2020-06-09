@@ -24,23 +24,29 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Description
-    Function for updating GeometricField<Type> based on Type functor.
+    Function for generating GeometricField<Type> based on Type functor.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef updateGeometricField_H
-#define updateGeometricField_H
+#ifndef generateGeometricField_H
+#define generateGeometricField_H
+
+#include "tmp.H"
+#include "dimensionSet.H"
 
 namespace Foam
 {
 
-    //- Update internal and boundary fields.
+    //- Generate internal and boundary fields.
     //  Typical usage:
-    //      updateGeometricField
+    //      generateGeometricField
     //      (
-    //          f, [](scalar& f, scalar p1, scalar p2)
+    //          "field",
+    //          mesh,
+    //          dimless,
+    //          [](scalar p1, scalar p2)
     //          {
-    //              f = Op(p1, p2);
+    //              return Op(p1, p2);
     //          },
     //          p1, p2
     //      );
@@ -52,16 +58,21 @@ namespace Foam
         class Func,
         class... Args
     >
-    void updateGeometricField
+    tmp<Field> generateGeometricField
     (
-        Field& f,
+        const word& name,
+        const typename Field::Mesh& mesh,
+        const dimensionSet& ds,
         Func calc,
         const Args&... args
     )
     {
+        auto tres = Field::New(name, mesh, ds);
+
+        auto& f = tres.ref();
         forAll(f, cellI)
         {
-            calc(f[cellI], (args[cellI])...);
+            f[cellI] = calc((args[cellI])...);
         }
 
         auto& fBf = f.boundaryFieldRef();
@@ -69,9 +80,11 @@ namespace Foam
         {
             forAll(fBf[patchi], faceI)
             {
-                calc(fBf[patchi][faceI], (args.boundaryField()[patchi][faceI])...);
+                fBf[patchi][faceI] = calc((args.boundaryField()[patchi][faceI])...);
             }
         }
+
+        return tres;
     }
 
 } // End namespace Foam

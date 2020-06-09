@@ -1,91 +1,89 @@
+if (correctPhi)
 {
-    if (correctPhi)
-    {
-        rAU.ref() = 1.0/UEqn.A();
-    }
-    else
-    {
-        rAU = 1.0/UEqn.A();
-    }
+    rAU.ref() = 1.0/UEqn.A();
+}
+else
+{
+    rAU = 1.0/UEqn.A();
+}
 
-    surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU()));
-    surfaceScalarField rAUfModified("rAUfModified", fvc::interpolate(2*rho/(rho1 + rho2)/UEqn.A()));
-    volVectorField HbyA(constrainHbyA(rAU()*UEqn.H(), U, p_rgh));
-    surfaceScalarField phiHbyA
+surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU()));
+surfaceScalarField rAUfModified("rAUfModified", fvc::interpolate(2*rho/(rho1 + rho2)/UEqn.A()));
+volVectorField HbyA(constrainHbyA(rAU()*UEqn.H(), U, p_rgh));
+surfaceScalarField phiHbyA
+(
+    "phiHbyA",
+    fvc::flux(HbyA)
+  + fvc::interpolate(rho*rAU())*fvc::ddtCorr(U, phi, Uf)
+);
+
+if (p_rgh.needReference())
+{
+    fvc::makeRelative(phiHbyA, U);
+    adjustPhi(phiHbyA, U, p_rgh);
+    fvc::makeAbsolute(phiHbyA, U);
+}
+
+surfaceScalarField phig
+(
     (
-        "phiHbyA",
-        fvc::flux(HbyA)
-      + fvc::interpolate(rho*rAU())*fvc::ddtCorr(U, phi, Uf)
+        (
+            mixture.surfaceTensionForce()
+          - (3 - evaporationCoeff)/4*fvc::interpolate(vaporPressure)*fvc::snGrad(alpha2)
+        )*rAUfModified
+      - ghf*fvc::snGrad(rhok)*rAUf
+    )*mesh.magSf()
+);
+
+phiHbyA += phig;
+
+// Update the pressure BCs to ensure flux consistency
+constrainPressure(p_rgh, U, phiHbyA, rAUf);
+
+while (pimple.correctNonOrthogonal())
+{
+    fvScalarMatrix p_rghEqn
+    (
+        fvm::laplacian(rAUf, p_rgh) == fvc::div(phiHbyA)
     );
 
-    if (p_rgh.needReference())
-    {
-        fvc::makeRelative(phiHbyA, U);
-        adjustPhi(phiHbyA, U, p_rgh);
-        fvc::makeAbsolute(phiHbyA, U);
-    }
+    p_rghEqn.setReference(pRefCell, getRefCellValue(p_rgh, pRefCell));
 
-    surfaceScalarField phig
+    p_rghEqn.solve(mesh.solver(p_rgh.select(pimple.finalInnerIter())));
+
+    if (pimple.finalNonOrthogonalIter())
+    {
+        phi = phiHbyA - p_rghEqn.flux();
+
+        p_rgh.relax();
+
+        U = HbyA + rAU()*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
+        U.correctBoundaryConditions();
+    }
+}
+
+#include "continuityErrs.H"
+
+// Correct Uf if the mesh is moving
+fvc::correctUf(Uf, U, phi);
+
+// Make the fluxes relative to the mesh motion
+fvc::makeRelative(phi, U);
+
+p == p_rgh + rhok*gh;
+
+if (p_rgh.needReference())
+{
+    p += dimensionedScalar
     (
-        (
-            (
-                mixture.surfaceTensionForce()
-              - (3-evaporationCoeff)/4 * fvc::interpolate(vaporPressure) * fvc::snGrad(alpha2)
-            )*rAUfModified
-          - ghf*fvc::snGrad(rhok)*rAUf
-        )*mesh.magSf()
+        "p",
+        p.dimensions(),
+        pRefValue - getRefCellValue(p, pRefCell)
     );
+    p_rgh = p - rhok*gh;
+}
 
-    phiHbyA += phig;
-
-    // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p_rgh, U, phiHbyA, rAUf);
-
-    while (pimple.correctNonOrthogonal())
-    {
-        fvScalarMatrix p_rghEqn
-        (
-            fvm::laplacian(rAUf, p_rgh) == fvc::div(phiHbyA)
-        );
-
-        p_rghEqn.setReference(pRefCell, getRefCellValue(p_rgh, pRefCell));
-
-        p_rghEqn.solve(mesh.solver(p_rgh.select(pimple.finalInnerIter())));
-
-        if (pimple.finalNonOrthogonalIter())
-        {
-            phi = phiHbyA - p_rghEqn.flux();
-
-            p_rgh.relax();
-
-            U = HbyA + rAU()*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
-            U.correctBoundaryConditions();
-        }
-    }
-
-    #include "continuityErrs.H"
-
-    // Correct Uf if the mesh is moving
-    fvc::correctUf(Uf, U, phi);
-
-    // Make the fluxes relative to the mesh motion
-    fvc::makeRelative(phi, U);
-
-    p == p_rgh + rhok*gh;
-
-    if (p_rgh.needReference())
-    {
-        p += dimensionedScalar
-        (
-            "p",
-            p.dimensions(),
-            pRefValue - getRefCellValue(p, pRefCell)
-        );
-        p_rgh = p - rhok*gh;
-    }
-
-    if (!correctPhi)
-    {
-        rAU.clear();
-    }
+if (!correctPhi)
+{
+    rAU.clear();
 }

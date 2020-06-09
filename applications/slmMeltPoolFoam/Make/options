@@ -1,5 +1,7 @@
 EXE_INC = \
+    -I../../src \
     -I./LiquidFraction/lnInclude \
+    -I./gasMetalMixture/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
@@ -21,4 +23,5 @@ EXE_LIBS = \
     -lmeshTools \
     -L$(FOAM_USER_LIBBIN) \
     -lliquidFraction \
+    -lgasMetalMixture \
     -ltrueArrhenius

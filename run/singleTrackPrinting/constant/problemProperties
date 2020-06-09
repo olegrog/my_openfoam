@@ -15,8 +15,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-molarMass           molarMass           [ kg/mol ]  55.95e-3; // for 0.691Fe + 0.183Cr + 0.114Ni + 0.012Mo
 ambientPressure     ambientPressure     [ Pa ] 101325;
+ambientTemperature  ambientTemperature  [ K ] 293;
 
 emissivity          0.2;
 evaporationCoeff    0.82;

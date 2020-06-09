@@ -1,9 +1,9 @@
 /*--------------------------------*- C++ -*----------------------------------*\
-  =========                 |
-  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
-   \\    /   O peration     | Website:  https://openfoam.org
-    \\  /    A nd           | Version:  7
-     \\/     M anipulation  |
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -22,29 +22,39 @@ FoamFile
 // SS316L -- C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
 // SS316L -- K. C. Mills. Recommended values of thermophysical properties for selected commercial alloys. Woodhead Publishing, 2002.
 
-k_gas           k_gas [ W/m/K ] 6.16e-2; // Argon: 6.16e-2 for liquidus
-// Air: 2.5e-2 for 293K, 1.1e-1 for 2000K
-Cp_gas          Cp_gas [ J/kg/K ] 520; // = 2.5*R/M;
-// Air: 1200 for liquidus, 1007 for 293K, 1264 for 2000K
+metal
+{
+    molWeight       55.95; // for 0.691Fe + 0.183Cr + 0.114Ni + 0.012Mo
 
-// From Kim
-k_sol           k_sol [ W/m/K ] 9.248;
-dk_sol          dk_sol [ W/m/K^2 ] 1.571e-2;
-k_liq           k_liq [ W/m/K ] 12.41;
-dk_liq          dk_liq [ W/m/K^2 ] 3.279e-3;
+    Tmelting        1700; // Kim: 1700, Mills: solidus=1633, liquidus=1683
+    Tboiling        3090; // Kim
 
-Cp_sol          Cp_sol [ J/kg/K ] 459.0;
-dCp_sol         dCp_sol [ J/kg/K^2 ] 0.1328;
-Cp_liq          Cp_liq [ J/kg/K ] 769.9;
-dCp_liq         dCp_liq [ J/kg/K^2 ] 0;
+    Hfusion         2.7e+5;
+    Hvapour         7.41e+6;
 
-T_ambient       T_ambient [ K ] 293;
-T_melting       T_melting [ K ] 1700; // Kim: 1700, Mills: solidus=1633, liquidus=1683
-T_boiling       T_boiling [ K ] 3090; // Kim
+    // From Kim
+    solid
+    {
+        kCoeffs     (9.248 1.571e-2);
+        CpCoeffs    (459.0 0.1328);
+    }
 
-enthalpyFusion  enthalpyFusion [ J/kg ] 2.7e+5;
-enthalpyBoiling enthalpyBoiling [ J/kg ] 7.41e+6;
+    liquid
+    {
+        kCoeffs     (12.41 3.279e-3);
+        CpCoeffs    (769.9 0);
+    }
 
-sigmoid         erf; //tanh;
+    sigmoid         erf; //tanh;
+}
+
+argon
+{
+    molWeight       39.95;
+    kCoeffs         (2.1527e-2 2.67e-5);
+    // Air: 2.5e-2 for 293K, 1.1e-1 for 2000K
+    CpCoeffs        (520 0); // = 2.5*R/M;
+    // Air: 1200 for liquidus, 1007 for 293K, 1264 for 2000K
+}
 
 // ************************************************************************* //

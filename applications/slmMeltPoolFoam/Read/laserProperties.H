@@ -20,6 +20,6 @@ dimensionedVector coordStart("coordStart", laserProperties);
 dimensionedScalar timeStop("timeStop", laserProperties);
 
 const boundBox& bounds = mesh.bounds();
-Info<< "Dimentions of the computational domain = " << bounds.max() - bounds.min() << endl
-    << "Length of the printed track = " << (laserVelocity * timeStop).value() << endl
+Info<< "Dimensions of the computational domain = " << bounds.max() - bounds.min() << endl
+    << "Length of the printed track = " << (laserVelocity*timeStop).value() << endl
     << endl;

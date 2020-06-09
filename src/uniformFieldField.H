@@ -23,57 +23,59 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::uniformFieldField
+
 Description
-    Function for updating GeometricField<Type> based on Type functor.
+    A class representing the concept of a field of uniformFields used to avoid
+    unnecessary manipulations for objects which are known at compile-time.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef updateGeometricField_H
-#define updateGeometricField_H
+#ifndef uniformFieldField_H
+#define uniformFieldField_H
+
+#include "UniformField.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-    //- Update internal and boundary fields.
-    //  Typical usage:
-    //      updateGeometricField
-    //      (
-    //          f, [](scalar& f, scalar p1, scalar p2)
-    //          {
-    //              f = Op(p1, p2);
-    //          },
-    //          p1, p2
-    //      );
-    //
-    //  \note Dimensions of fields are not checked.
-    template
-    <
-        class Field,
-        class Func,
-        class... Args
-    >
-    void updateGeometricField
-    (
-        Field& f,
-        Func calc,
-        const Args&... args
-    )
-    {
-        forAll(f, cellI)
-        {
-            calc(f[cellI], (args[cellI])...);
-        }
+template<class Type>
+class uniformFieldField
+{
 
-        auto& fBf = f.boundaryFieldRef();
-        forAll(fBf, patchi)
+    // Private data
+
+        Type value_;
+
+public:
+
+    // Constructors
+
+        //- Constructor
+        uniformFieldField(const Type& value)
+        :
+            value_(value)
+        {}
+
+
+    // Member Operators
+
+        UniformField<Type> operator[](const label) const
         {
-            forAll(fBf[patchi], faceI)
-            {
-                calc(fBf[patchi][faceI], (args.boundaryField()[patchi][faceI])...);
-            }
+            return UniformField<Type>(value_);
         }
-    }
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 #endif
+
+// ************************************************************************* //

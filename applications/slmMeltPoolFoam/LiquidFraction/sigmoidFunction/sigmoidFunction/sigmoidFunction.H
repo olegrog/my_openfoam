@@ -56,7 +56,7 @@ class sigmoidFunction
         //- Apply the normalized sigmoid function to a field (range between -1 and 1)
         virtual tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const = 0;
 
-        //- Apply the first derivative of the normalized sigmoid function to a field
+        //- Apply the derivative of the normalized sigmoid function to a field
         virtual tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const = 0;
 public:
 
@@ -85,10 +85,10 @@ public:
     // Member Functions
 
         //- Apply the sigmoid function to a field
-        tmp<volScalarField> operator()(const volScalarField& field) const;
+        tmp<volScalarField> value(const volScalarField& field) const;
 
-        //- Apply the first derivative of the sigmoid function to a field
-        tmp<volScalarField> der(const volScalarField& field) const;
+        //- Apply the derivative of the sigmoid function to a field
+        tmp<volScalarField> derivative(const volScalarField& field) const;
 };
 
 } // End namespace Foam

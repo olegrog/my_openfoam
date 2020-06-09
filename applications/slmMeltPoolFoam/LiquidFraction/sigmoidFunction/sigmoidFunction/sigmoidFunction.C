@@ -69,20 +69,20 @@ Foam::sigmoidFunction::sigmoidFunction(scalar a, scalar b) : a_(a), b_(b) {}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::operator()
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::value
 (
     const volScalarField& field
 ) const
 {
-    return (b_-a_)/2 * value0(2*field/(b_-a_)) + (a_+b_)/2;
+    return (b_ - a_)/2*value0(2*field/(b_ - a_)) + (a_ + b_)/2;
 }
 
-Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::der
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::derivative
 (
     const volScalarField& field
 ) const
 {
-    return value1(2*field/(b_-a_));
+    return value1(2*field/(b_ - a_));
 }
 
 // ************************************************************************* //
