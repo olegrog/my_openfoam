@@ -32,6 +32,8 @@ divSchemes
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
     div(rhoPhi,U)   Gauss linearUpwind grad(U);
     div(rhoPhi,h)   Gauss linearUpwind grad(he); // limitedLinear -- Koren limiter
+    div(phi,epsilon) Gauss linear;
+    div(phi,k) Gauss linear;
     //div(phi,alpha)  Gauss vanLeer;
 }
 
