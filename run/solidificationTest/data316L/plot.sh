@@ -52,11 +52,11 @@ do for [i=1:4] {
         'ferrite.txt' u ($1+DT):j w l, \
         equilL[i] + (x-TL)/slopeL[i] w l dt 2 lc 1 title titleL, \
         equilS[i] + (x-TL)/slopeS[i] w l dt 2 lc 2 title titleS, \
+        'austenite.txt' u ($1+DT):(fcc($1+DT,column(j))) w l, \
         '< paste ferrite.txt austenite.txt phases.txt' \
             u ($1+DT):(column(j)*$15/($15+$16) + column(j+6)*$16/($15+$16)) w l dt 4 lc 4 \
             title solute[i]."(bcc+fcc)"
 }
-#        'austenite.txt' u ($1+DT):(fcc($1+DT,column(j))) w l, \
 
 unset multiplot
 
