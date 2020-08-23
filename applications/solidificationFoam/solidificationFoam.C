@@ -127,97 +127,9 @@ int main(int argc, char *argv[])
     label tipCell(0), tipCellPrev(0);
     dimensionedScalar tipTimeInterval("tipTimeInterval", dimTime, 0);
 
-    // --- Initial conditions
+    #include "initialConditions.H"
 
-    // phase + grain
-    phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y))/initialWidth))/pi + .5;
-    const dimensionedScalar radius = width/nSeeds/seedNarrowing;
-    for (int i = 0; i < nSeeds; i++)
-    {
-        dimensionedVector position = center;
-        position.replace(vector::X, xmin + (i+.5)/nSeeds*width);
-        position.replace(vector::Y, frontPosition);
-        phase = max(phase, generateSeed(coord, position, radius));
-    }
-    phase.clip(0, 1);
-
-    const volScalarField grainNumber
-    (
-        sign((coord.component(vector::X) - center.component(vector::X))/width)
-    );
-    addGrain(grain, phase*grainNumber, 1, nGrains);
-
-    if (addRandomSeeds) {
-        dimensionedVector position = center;
-        position.replace(vector::Y, ymin/3 + 2*ymax/3);
-        volScalarField seed = generateSeed(coord, position, radius/2);
-        phase += seed;
-        addGrain(grain, seed, 0, nGrains);
-    }
-
-    // number of grain
-    calcNGrain(nGrain, grain, nGrains);
-
-    // temperature
-    T = alloy.liquidus() - undercooling
-        + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3);
-
-    // concentrations
-    forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
-    {
-        alloyComponent& C = iter();
-        const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
-        C == C.equilibrium(phase, temp);
-    }
-
-    // --- Print reference parameters
-
-    const scalar minMeshStep = 1/gMax(mesh.surfaceInterpolation::deltaCoeffs());
-    const scalar sigmaW =
-    (
-        alloy.diffusionL()*alloy.capillaryLength()/tipVelocity/sqr(interfaceWidth)
-    ).value();
-    const scalar minSigmaW(runTime.controlDict().get<scalar>("minSigmaW"));
-    const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
-    const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
-    const dimensionedScalar PDAS = (xmax - xmin)/nSeeds;
-
-    Info<< "Dimensionless parameters:" << endl
-        << " -- minimal undercooling = "
-        << alloy.undercooling(Tmin).value() << endl
-        << " -- maximum undercooling = "
-        << alloy.undercooling(Tmax).value() << endl
-        << " -- interface width / capillary length = "
-        << (interfaceWidth/alloy.capillaryLength()).value() << endl
-        << " -- mesh step / interface width = "
-        << (minMeshStep/interfaceWidth).value() << endl
-        << " -- theoretical tip velocity = "
-        << (tipVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
-        << " -- interface stability parameter = "
-        << sigmaW << endl
-        << " -- Reynolds number = "
-        << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
-        << nl;
-
-    Info<< "Dimensioned parameters:" << endl
-        << " -- generated PDAS = "
-        << PDAS.value() << endl
-        << " -- theoretical tip velocity (m/s) = "
-        << tipVelocity.value() << endl
-        << " -- characteristic velocity (m/s) = "
-        << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
-        << " -- capillary length (m) = "
-        << alloy.capillaryLength().value() << endl
-        << " -- relaxation time (s) = "
-        << tau.value() << endl;
-
-    if (sigmaW < minSigmaW)
-    {
-        FatalError
-            << "Interface stability parameter is too low:" << endl
-            << sigmaW << " < " << minSigmaW
-            << abort(FatalError);
-    }
+    #include "printProblemParameters.H"
 
     Info<< "\nStarting time loop\n" << endl;
 
@@ -278,7 +190,8 @@ int main(int argc, char *argv[])
             Info<< "Solid fraction: min = " << gMin(phase)
                 << " max = 1 + " << gMax(phase) - 1 << endl;
 
-            if (gMin(phase) < -ROOTSMALL || gMax(phase) > 1 + ROOTSMALL)
+            scalar phaseTolerance = mesh.solverDict(phase.name()).get<scalar>("tolerance");
+            if (gMin(phase) < -phaseTolerance || gMax(phase) > 1 + phaseTolerance)
             {
                 FatalError
                     << "Phase is out of bounds."

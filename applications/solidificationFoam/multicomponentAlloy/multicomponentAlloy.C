@@ -47,7 +47,17 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     components_(lookup("components"), alloyComponent::iNew(mesh, liquidus_)),
     factorS_(calcFactor<0>()),
     factorL_(calcFactor<1>())
-{}
+{
+    for (auto iter = components_.begin(); iter != components_.end(); ++iter)
+    {
+        Info<< "Component " << iter().name() << ": D_L = " << iter().diffusion<1>().value()
+            << ", deltaA = " << (iter().deltaA()).value()
+            << ", sqr(deltaA)/D_L = " << (sqr(iter().deltaA())/iter().diffusion<1>()).value()
+            << endl;
+    }
+
+    Info << nl;
+}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
