@@ -9,7 +9,7 @@ if [[ "$1" == "-parallel" ]]; then
     runApplication blockMesh
     runApplication setFields
     runApplication decomposePar
-    runParallel $application 4
+    runParallel -np 4 $application
     runApplication reconstructPar
 else
     runApplication blockMesh

@@ -60,16 +60,17 @@ if (p.needReference())
 }
 
 Info<< "Reading boundary conditions\n" << endl;
-IOdictionary boundaryConditions
+volScalarField boundaryConditions
 (
     IOobject
     (
         "boundaryConditions",
-        runTime.constant(),
+        runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
         IOobject::NO_WRITE
-    )
+    ),
+    mesh
 );
 
 volScalarField T
@@ -83,7 +84,9 @@ volScalarField T
         IOobject::AUTO_WRITE
     ),
     mesh,
-    boundaryConditions
+    dimTemperature,
+    boundaryConditions.primitiveField(),
+    boundaryConditions.boundaryField()
 );
 T.dimensions().reset(dimTemperature);
 
@@ -98,7 +101,9 @@ volScalarField phase
         IOobject::AUTO_WRITE
     ),
     mesh,
-    boundaryConditions
+    dimless,
+    boundaryConditions.primitiveField(),
+    boundaryConditions.boundaryField()
 );
 
 volScalarField nGrain
@@ -112,7 +117,9 @@ volScalarField nGrain
         IOobject::AUTO_WRITE
     ),
     mesh,
-    boundaryConditions
+    dimless,
+    boundaryConditions.primitiveField(),
+    boundaryConditions.boundaryField()
 );
 
 volScalarField Co
@@ -126,10 +133,10 @@ volScalarField Co
         IOobject::AUTO_WRITE
     ),
     mesh,
-    boundaryConditions
+    dimless,
+    boundaryConditions.primitiveField(),
+    boundaryConditions.boundaryField()
 );
-
-boundaryConditions.set("internalField", "uniform (0 0 0)");
 
 volVectorField grain
 (
@@ -142,7 +149,8 @@ volVectorField grain
         IOobject::AUTO_WRITE
     ),
     mesh,
-    boundaryConditions
+    dimensionedVector(),
+    boundaryConditions.boundaryField().types()
 );
 
 Info<< "Reading phase-field properties\n" << endl;

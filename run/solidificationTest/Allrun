@@ -1,10 +1,17 @@
-#!/bin/sh
+#!/bin/bash -e
 cd ${0%/*} || exit 1    # run from this directory
 
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-runApplication blockMesh
-runApplication `getApplication`
+if [[ "$1" == "-parallel" ]]; then
+    runApplication blockMesh
+    runApplication decomposePar
+    runParallel -np 6 `getApplication`
+    runApplication reconstructPar
+else
+    runApplication blockMesh
+    runApplication `getApplication`
+fi
 
 # ----------------------------------------------------------------- end-of-file
