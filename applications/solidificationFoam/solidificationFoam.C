@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
         // --- Calculate temperature
 
         T = alloy.liquidus() - undercooling
-            + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3)
+            + tempGradient*(coord.component(vector::Y) - frontPosition)
             - coolingRate*runTime;
 
         while (pimple.loop())

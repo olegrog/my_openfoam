@@ -30,7 +30,7 @@
 
     // temperature
     T = alloy.liquidus() - undercooling
-        + tempGradient*(coord.component(vector::Y) - ymin/3 - 2*ymax/3);
+        + tempGradient*(coord.component(vector::Y) - frontPosition);
 
     // concentrations
     forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
