@@ -25,6 +25,7 @@ boundary
 # Results files
 *.vtk
 *.txt
+*.log
 
 # Simulation directories
 _*
