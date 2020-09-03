@@ -1,8 +1,8 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
-| \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.0                                |
-|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
@@ -21,59 +21,60 @@ components
 (
     Cr
     {
-        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  6300;
-        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  5.2e-2;
-        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.1747;
-        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.17;
-        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   5765;
-        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   6272;
-        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-11; // 1.0e-14;
-        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.0e-9;
+        molarMass       5.20e-2;
+        equilibriumS    0.1747;
+        equilibriumL    0.17;
+        slopeS          5765;
+        slopeL          6272;
+        diffusionS      1.0e-11; // 1.0e-14;
+        diffusionL      2.0e-9;
     }
 
     Ni
     {
-        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  7810;
-        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  5.87e-2;
-        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0914;
-        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.12;
-        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -1226;
-        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   -862.2;
-        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  6.8e-12; // 1.0e-14;
-        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.0e-9;
+        molarMass       5.87e-2;
+        equilibriumS    0.0914;
+        equilibriumL    0.12;
+        slopeS          -1226;
+        slopeL          -862.2;
+        diffusionS      6.8e-12; // 1.0e-14;
+        diffusionL      2.0e-9;
     }
 
     Mo
     {
-        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  9330;
-        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  9.6e-2;
-        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0288;
-        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.025;
-        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   6990;
-        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   7877;
-        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.3e-11; // 1.0e-14;
-        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.0e-9;
+        molarMass       9.60e-2;
+        equilibriumS    0.0288;
+        equilibriumL    0.025;
+        slopeS          6990;
+        slopeL          7877;
+        diffusionS      1.3e-11; // 1.0e-14;
+        diffusionL      2.0e-9;
     }
 
     C
     {
-        rhoMelting      rhoMelting      [ 1 -3 0 0 0 0 0 ]  2000;
-        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  1.2e-2;
-        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   3.27e-5;
-        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.0003;
-        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -674700;
-        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   -63800;
-        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-11; // 4.1e-9; // 1.0e-14;
-        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.0e-9; // 2.0e-9;
+        molarMass       1.20e-2;
+        equilibriumS    3.27e-5;
+        equilibriumL    0.0003;
+        slopeS          -674700;
+        slopeL          -63800;
+        diffusionS      1.0e-11; // 4.1e-9; // 1.0e-14;
+        diffusionL      2.0e-9; // 2.0e-9;
     }
 );
 
-entropyChange   entropyChange   [ 1 2 -2 -1 -1 0 0 ]    9.50;   // = 2.9e5*0.056/1710; AISI 316L
+baseMolarMass   5.58e-2;
+rhoLiquidus     6937;    // calculated in ../data316L/diagrams.plt // Kim1975: 6979
+interfaceEnergy 0.358;   // Pinomaa2020; Nomoto2019: 0.2
+
+solidus         1698.25; // Pichler2020: 1675+/-15
+liquidus        1726.78; // Pichler2020: 1708+/-30
+latentHeat      2.9e5;   // Pichler2020
+
+// entropyChange[J/mol/K] = latentHeat[J/kg]*molarMass[kg/mol]/liquidus[K]
+// entropyChange = 2.9e5*0.056/1710 = 9.50; // AISI 316L
 // entropyChange = 13810/1713 = 8.06; // pure iron
 // entropyChange = 1.25e9*0.056/6980/1710 = 5.86; // Pinomaa2020
-interfaceEnergy interfaceEnergy [ 1 0 -2 0 0 0 0 ]      0.358;  // Pinomaa2020
-// interfaceEnergy = 0.2; // Nomoto2019
-solidus         solidus         [ 0 0 0 1 0 0 0 ]       1699;
-liquidus        liquidus        [ 0 0 0 1 0 0 0 ]       1727;
 
 // ************************************************************************* //

@@ -1,15 +1,33 @@
 /*---------------------------------------------------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.0                                 |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | Copyright held by original author(s)
+     \\/     M anipulation  |
 -------------------------------------------------------------------------------
+                            | Copyright (C) 2019-2020 Oleg Rogozin
+-------------------------------------------------------------------------------
+License
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
 Application
     solidificationFoam
 
 Description
-    Solver for the phase-field equations for the solidification of binary alloys.
+    Solver for the multicomponent phase-field model with linearized phase
+    diagrams, convection, and tracking of the grain boundaries.
+    The directional solidification problem is assumed to be solved.
 
 \*---------------------------------------------------------------------------*/
 
@@ -106,8 +124,9 @@ int main(int argc, char *argv[])
     const tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
 
     // Derived quantities
-    const dimensionedScalar tau = a1*a2*pow3(interfaceWidth)*alloy.relaxationTime();
-    dimensionedScalar tipVelocity = coolingRate/tempGradient;
+    const dimensionedScalar tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()
+        *alloy.sumRestrictionFactors();
+    dimensionedScalar pullingVelocity = coolingRate/tempGradient;
     const label nGrains = crystallographicAngles.size();
 
     // Coordinates-related constants and variables
@@ -122,6 +141,7 @@ int main(int argc, char *argv[])
     const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min())/2);
     const dimensionedScalar frontPosition = ymin + frontPositionRel*height;
     const dimensionedScalar initialWidth = interfaceWidth/interfaceNarrowing;
+    dimensionedScalar tipVelocity = pullingVelocity;
     dimensionedScalar tipPosition = frontPosition;
     dimensionedScalar tipPositionPrev = tipPosition;
     label tipCell(0), tipCellPrev(0);

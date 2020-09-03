@@ -4,7 +4,6 @@
 darwin*
 linux*
 lnInclude*
-*.pdf
 
 # Programs files
 *.swp
@@ -26,6 +25,8 @@ boundary
 *.vtk
 *.txt
 *.log
+*.pdf
+*.eps
 
 # Simulation directories
 _*

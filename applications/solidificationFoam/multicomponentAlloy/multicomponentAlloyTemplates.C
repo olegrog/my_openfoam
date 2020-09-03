@@ -25,40 +25,23 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "alloyComponent.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::alloyComponent::alloyComponent
-(
-    const word& name,
-    const dictionary& alloyComponentDict,
-    const fvMesh& mesh,
-    const dimensionedScalar& Tmelting
-)
-:
-    volScalarField
-    (
-        IOobject
-        (
-            "concentration" + name,
-            mesh.time().timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh.lookupObject<volScalarField>("phase")
-    ),
-    name_(name),
-    alloyComponentDict_(alloyComponentDict),
-    molarMass_("molarMass", dimMass/dimMoles, alloyComponentDict_),
-    equilibriumS_("equilibriumS", dimless, alloyComponentDict_),
-    equilibriumL_("equilibriumL", dimless, alloyComponentDict_),
-    slopeS_("slopeS", dimTemperature, alloyComponentDict_),
-    slopeL_("slopeL", dimTemperature, alloyComponentDict_),
-    diffusionS_("diffusionS", dimArea/dimTime, alloyComponentDict_),
-    diffusionL_("diffusionL", dimArea/dimTime, alloyComponentDict_),
-    Tmelting_(Tmelting)
-{}
+template<Foam::label Phase>
+Foam::dimensionedScalar Foam::multicomponentAlloy::factor() const
+{
+    auto iter = components_.begin();
+
+    dimensionedScalar result = iter().deltaA()/iter().slope<Phase>();
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result += iter().deltaA()/iter().slope<Phase>();
+    }
+
+    return entropyChange_/result;
+}
+
 
 // ************************************************************************* //

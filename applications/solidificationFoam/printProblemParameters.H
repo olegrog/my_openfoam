@@ -3,30 +3,25 @@
     const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
     const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
     const dimensionedScalar PDAS = (xmax - xmin)/nSeeds;
-    const dimensionedScalar diffusionLength = alloy.diffusionL()/tipVelocity;
+    const dimensionedScalar diffusionLength = alloy.diffusionL()/pullingVelocity;
 
     const scalar sigmaW =
     (
-        alloy.diffusionL()*alloy.capillaryLength()/tipVelocity/sqr(interfaceWidth)
+        alloy.diffusionL()*alloy.capillaryLength()/pullingVelocity/sqr(interfaceWidth)
     ).value();
     const scalar WbyD = (interfaceWidth/alloy.capillaryLength()).value();
     const scalar HbyW = (minMeshStep/interfaceWidth).value();
     const scalar LbyD = ((xmax - xmin)/diffusionLength).value();
 
-    const scalar maxWbyD(phaseFieldProperties.get<scalar>("maxWbyD"));
-    const scalar maxHbyW(phaseFieldProperties.get<scalar>("maxHbyW"));
-    const scalar minLbyD(phaseFieldProperties.get<scalar>("minLbyD"));
-    const scalar minSigmaW(phaseFieldProperties.get<scalar>("minSigmaW"));
-
-    Info<< "Dimensionless parameters:" << endl
+    Info<< nl << "Dimensionless parameters:" << endl
         << " -- minimal undercooling = " << alloy.undercooling(Tmin).value() << endl
         << " -- maximum undercooling = " << alloy.undercooling(Tmax).value() << endl
         << " -- interface width / capillary length = " << WbyD << " < " << maxWbyD << endl
         << " -- mesh step / interface width = " << HbyW << " < " << maxHbyW << endl
         << " -- computational width / diffusion length = " << LbyD << " > " << minLbyD << endl
         << " -- interface stability parameter = " << sigmaW << " > " << minSigmaW << endl
-        << " -- theoretical tip velocity = "
-        << (tipVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
+        << " -- pulling velocity = "
+        << (pullingVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
         << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
         << nl;
 
@@ -37,10 +32,9 @@
         << " -- interface width (m) = " << interfaceWidth.value() << endl
         << " -- mesh step (m) = " << minMeshStep << endl
         << " -- capillary length (m) = " << alloy.capillaryLength().value() << endl
-        << " -- theoretical tip velocity (m/s) = " << tipVelocity.value() << endl
+        << " -- pulling velocity (m/s) = " << pullingVelocity.value() << endl
         << " -- characteristic velocity (m/s) = "
         << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
-        << " -- mean diffusion in liquid (m^2/s) = " << alloy.diffusionL().value() << endl
         << " -- relaxation time (s) = "  << tau.value() << endl
         << nl;
 

@@ -15,25 +15,17 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-interfaceWidth  interfaceWidth  [ 0 1 0 0 0 0 0 ]   8e-8; //6e-8
-epsilon4    0.06;
-a1          0.2357;
-a2          2.35;
-a3          1;
-a4          10;
-
-// mapping from grain (integer) to clockwise degrees (from -45 to 45)
-crystallographicAngles
-{
-    "-1"    0;//10;
-    "0"     0;//45;
-    "1"     0;//-20;
-}
+// Numerical constants
+a1              0.2357;
+a2              2.35;
+a3              1;
+a4              10;
+hStar           2.757;
 
 // Conditions for stable and accurate simulations
-maxWbyD             50.0; //5.0
-maxHbyW             0.8;
-minLbyD             25; // 50
-minSigmaW           0.01; //1.2;
+maxWbyD         50.0; // 5.0
+maxHbyW         0.8;
+minLbyD         25;   // 50
+minSigmaW       0.05; // Kundin2019: 1.2
 
 // ************************************************************************* //

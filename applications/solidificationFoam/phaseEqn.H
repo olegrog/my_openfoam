@@ -1,6 +1,6 @@
 const dimensionedScalar zero(0), one(1);
 
-if (epsilon4 > 0)
+if (anisotropyStrength > 0)
 {
     volVectorField gradPhase = fvc::grad(phase);
     volVectorField normal = calcNormal(gradPhase);
@@ -8,13 +8,13 @@ if (epsilon4 > 0)
     {
         theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y()) - theta0[cellI];
     }
-    volScalarField a_s = 1 + epsilon4*Foam::cos(4*theta);
+    volScalarField a_s = 1 + anisotropyStrength*Foam::cos(nAnisotropyModes*theta);
 
-    volVectorField A = 4*epsilon4*a_s*mag(gradPhase)*vector::one;
+    volVectorField A = nAnisotropyModes*anisotropyStrength*a_s*mag(gradPhase)*vector::one;
     forAll(A, cellI)
     {
-        A[cellI].x() *= - Foam::sin(4*theta[cellI])*Foam::cos(theta[cellI]);
-        A[cellI].y() *= + Foam::sin(4*theta[cellI])*Foam::sin(theta[cellI]);
+        A[cellI].x() *= - Foam::sin(nAnisotropyModes*theta[cellI])*Foam::cos(theta[cellI]);
+        A[cellI].y() *= + Foam::sin(nAnisotropyModes*theta[cellI])*Foam::sin(theta[cellI]);
     }
 
     fvScalarMatrix phaseEqn

@@ -52,7 +52,6 @@ class alloyComponent
 
         word name_;
         dictionary alloyComponentDict_;
-        dimensionedScalar rhoMelting_;
         dimensionedScalar molarMass_;
         dimensionedScalar equilibriumS_;
         dimensionedScalar equilibriumL_;
@@ -123,13 +122,6 @@ public:
                 return name_;
             }
 
-                //- Return limited concentration
-            tmp<volScalarField> limitedConcentration() const
-            {
-                const volScalarField& concentration = *this;
-                return Foam::min(Foam::max(concentration, scalar(0)), scalar(1));
-            }
-
             //- Return the equilibrium concentration
             template<class T1, class T2>
             auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
@@ -141,21 +133,21 @@ public:
             //- Return the diffusion coefficient
             tmp<volScalarField> diffusion(const volScalarField& phase) const
             {
-                return diffusionS_ * phase + diffusionL_ * (1 - phase);
+                return diffusionS_*phase + diffusionL_*(1 - phase);
             }
 
             //- Return the slopes along the solidification path (solid and liquid)
             template<label Phase>
             dimensionedScalar slope() const
             {
-                return Phase ? slopeL_ : slopeS_;
+                return Phase ? slopeS_ : slopeL_;
             }
 
             //- Return the diffusion coefficients (solid and liquid)
             template<label Phase>
             dimensionedScalar diffusion() const
             {
-                return Phase ? diffusionL_ : diffusionS_;
+                return Phase ? diffusionS_ : diffusionL_;
             }
 
             //- Return the difference of the equilibrium concentrations
@@ -164,10 +156,10 @@ public:
                 return equilibriumS_ - equilibriumL_;
             }
 
-            //- Return the molar volume
-            dimensionedScalar molarVolume() const
+            //- Return the molar mass
+            dimensionedScalar molarMass() const
             {
-                return molarMass_ / rhoMelting_;
+                return molarMass_;
             }
 
 };

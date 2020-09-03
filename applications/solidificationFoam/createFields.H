@@ -153,22 +153,8 @@ volVectorField grain
     boundaryConditions.boundaryField().types()
 );
 
-Info<< "Reading phase-field properties\n" << endl;
-IOdictionary phaseFieldProperties
-(
-    IOobject
-    (
-        "phaseFieldProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-    )
-);
-
-dimensionedScalar interfaceWidth("interfaceWidth", phaseFieldProperties);
-
-dictionary crystallographicAngles = phaseFieldProperties.subDict("crystallographicAngles");
+Info<< "Reading alloy properties\n" << endl;
+multicomponentAlloy alloy(mesh);
 
 Info<< "Reading problem-specific properties\n" << endl;
 IOdictionary problemProperties
@@ -183,9 +169,22 @@ IOdictionary problemProperties
     )
 );
 
-dimensionedScalar undercooling("undercooling", problemProperties);
-dimensionedScalar tempGradient("tempGradient", problemProperties);
-dimensionedScalar coolingRate("coolingRate", problemProperties);
+dimensionedScalar undercooling("undercooling", dimTemperature, problemProperties);
+dimensionedScalar tempGradient("tempGradient", dimTemperature/dimLength, problemProperties);
+dimensionedScalar coolingRate("coolingRate", dimTemperature/dimTime, problemProperties);
+dimensionedScalar interfaceWidth("interfaceWidth", dimLength, problemProperties);
+dictionary crystallographicAngles = problemProperties.subDict("crystallographicAngles");
 
-Info<< "Reading alloy properties\n" << endl;
-multicomponentAlloy alloy(mesh);
+Info<< "Reading phase-field properties\n" << endl;
+IOdictionary phaseFieldProperties
+(
+    IOobject
+    (
+        "phaseFieldProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+    )
+);
+

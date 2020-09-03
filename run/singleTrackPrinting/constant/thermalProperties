@@ -20,17 +20,18 @@ FoamFile
 // Argon -- J. Kestin et al. Equilibrium and Transport Properties of the Noble Gases and Their Mixtures at Low Density.
 //      Journal of Physical and Chemical Reference Data 13, 229 (1984).
 // SS316L -- C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
-// SS316L -- K. C. Mills. Recommended values of thermophysical properties for selected commercial alloys. Woodhead Publishing, 2002.
+// SS316L -- P. Pichler et al. Measurements of thermophysical properties of solid and liquid NIST SRM 316L stainless steel.
+//      Journal of Material Science 55, 4081--4093 (2020).
 
 metal
 {
     molWeight       55.95; // for 0.691Fe + 0.183Cr + 0.114Ni + 0.012Mo
 
-    Tmelting        1700; // Kim: 1700, Mills: solidus=1633, liquidus=1683
+    Tmelting        1700; // Kim: 1700; Pichler: solidus=1675, liquidus=1708
     Tboiling        3090; // Kim
 
-    Hfusion         2.7e+5;
-    Hvapour         7.41e+6;
+    Hfusion         2.9e5; // Pichler
+    Hvapour         7.41e6;
 
     // From Kim
     solid
