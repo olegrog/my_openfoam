@@ -48,8 +48,8 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     latentHeat_("latentHeat", dimEnergy/dimMass, *this),
     interfaceEnergy_("interfaceEnergy", dimEnergy/dimArea, *this),
     liquidus_("liquidus", dimTemperature, *this),
-    rhoLiquidus_("rhoLiquidus", dimDensity, *this),
-    entropyChange_("entropyChange", latentHeat_*rhoLiquidus_/liquidus_),
+    rhoSolid_("rhoSolid", dimDensity, *this),
+    entropyChange_("entropyChange", latentHeat_*rhoSolid_/liquidus_),
     components_(lookup("components"), alloyComponent::iNew(mesh, liquidus_)),
     solidus_(liquidus_ - deltaTemp())
 {
@@ -60,7 +60,7 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
         << " -- solidification interval (K) = " << (liquidus_ - solidus_).value() << endl
         << " -- molar mass (kg/mol) = " << molarMass().value() << endl
         << " -- entropy change (J/mol/K) = "
-        << (entropyChange_*molarMass()/rhoLiquidus_).value() << endl
+        << (entropyChange_*molarMass()/rhoSolid_).value() << endl
         << " -- entropy change (J/m^3/K) = " << entropyChange_.value() << endl
         << " -- Gibbs--Thomson coefficient (Km) = "
         << (interfaceEnergy_/entropyChange_).value() << endl

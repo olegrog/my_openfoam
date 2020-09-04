@@ -63,8 +63,8 @@ class multicomponentAlloy
         //- Liquidus temperature [K]
         const dimensionedScalar liquidus_;
 
-        //- Density at the liquidus temperature [kg/m^3]
-        const dimensionedScalar rhoLiquidus_;
+        //- Density of the solid [kg/m^3]
+        const dimensionedScalar rhoSolid_;
 
         //- Entropy change [J/m^3/K]
         const dimensionedScalar entropyChange_;

@@ -32,7 +32,7 @@ components
 );
 
 baseMolarMass   5.58e-2;
-rhoLiquidus     6980;
+rhoSolid        7256;
 interfaceEnergy 0.358;
 
 solidus         1700;

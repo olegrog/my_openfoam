@@ -52,7 +52,7 @@ components
 );
 
 baseMolarMass   5.58e-2;
-rhoLiquidus     5441.77; // calculated to provide \Gamma = 3e-7
+rhoSolid        5441.77; // calculated to provide \Gamma = 3e-7
 interfaceEnergy 0.27;
 
 solidus         1656.6;

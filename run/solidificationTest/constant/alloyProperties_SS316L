@@ -65,7 +65,8 @@ components
 );
 
 baseMolarMass   5.58e-2;
-rhoLiquidus     6937;    // calculated in ../data316L/diagrams.plt // Kim1975: 6979
+rhoSolid        7266;    // calculated for ferrite in ../data316L/diagrams.plt // Kim1975: 7256
+// Liquid phase: calculated: 6937, Kim1975: 6979
 interfaceEnergy 0.358;   // Pinomaa2020; Nomoto2019: 0.2
 
 solidus         1698.25; // Pichler2020: 1675+/-15

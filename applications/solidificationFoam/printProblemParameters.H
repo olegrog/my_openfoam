@@ -23,7 +23,7 @@
     Info<< nl << "Dimensioned parameters:" << endl
         << " -- computational domain (m) = " << bounds.max() - bounds.min() << endl
         << " -- generated PDAS (m) = " << PDAS.value() << endl
-        << " -- estimation (Kurz--Fischer) of PDAS (m) = " << estimatedPDAS.value() << endl
+        << " -- estimation (Kurz--Fisher) of PDAS (m) = " << estimatedPDAS.value() << endl
         << " -- diffusion length (m) = " << diffusionLength.value() << endl
         << " -- interface width (m) = " << interfaceWidth.value() << endl
         << " -- mesh step (m) = " << minMeshStep << endl
