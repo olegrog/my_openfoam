@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 
         const dimensionedVector laserCoordinate
         (
-            "laserCoordinate", coordStart + laserVelocity*mesh.time()
+            "laserCoordinate", coordStart + laserVelocity*runTime
         );
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
         // vector beamDirection(0, 0, -1);

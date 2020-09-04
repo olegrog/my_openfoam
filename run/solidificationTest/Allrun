@@ -8,7 +8,7 @@ if [[ "$1" == "-parallel" ]]; then
     runApplication blockMesh
     runApplication decomposePar
     runParallel -np 6 `getApplication`
-    runApplication reconstructPar
+    runApplication reconstructPar -newTimes
     touch "$(basename `pwd`).foam"
     time DISPLAY=:1 ./make_video.py -x 1500 -y 600 -z 2.65 -f 12 *.foam
     ~/admin/converters/compress_videos.sh -a=4 video.avi

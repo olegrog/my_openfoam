@@ -57,6 +57,7 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
         << " -- liquidus (K) = " << liquidus_.value() << endl
         << " -- specified solidus (K) = " << get<dimensionedScalar>("solidus").value() << endl
         << " -- calculated solidus (K) = " << solidus_.value() << endl
+        << " -- solidification interval (K) = " << (liquidus_ - solidus_).value() << endl
         << " -- molar mass (kg/mol) = " << molarMass().value() << endl
         << " -- entropy change (J/mol/K) = "
         << (entropyChange_*molarMass()/rhoLiquidus_).value() << endl

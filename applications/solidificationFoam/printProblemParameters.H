@@ -5,6 +5,13 @@
     const dimensionedScalar PDAS = (xmax - xmin)/nSeeds;
     const dimensionedScalar diffusionLength = alloy.diffusionL()/pullingVelocity;
 
+    // Steady-state estimations from Kundin et al. 2019
+    const scalar tipVelocity = (pullingVelocity*alloy.capillaryLength()/alloy.diffusionL()).value();
+    const scalar tipUndercooling = Foam::pow(pow4(pi)*tipVelocity/820/anisotropyStrength , 1./5.4);
+    const dimensionedScalar estimatedPDAS = 4.3
+        *Foam::sqrt((1 - tipUndercooling)*alloy.deltaTemp()/tempGradient)
+        *pow025(alloy.interfaceEnergy()/pullingVelocity/alloy.sumRestrictionFactors());
+
     const scalar sigmaW =
     (
         alloy.diffusionL()*alloy.capillaryLength()/pullingVelocity/sqr(interfaceWidth)
@@ -13,21 +20,10 @@
     const scalar HbyW = (minMeshStep/interfaceWidth).value();
     const scalar LbyD = ((xmax - xmin)/diffusionLength).value();
 
-    Info<< nl << "Dimensionless parameters:" << endl
-        << " -- minimal undercooling = " << alloy.undercooling(Tmin).value() << endl
-        << " -- maximum undercooling = " << alloy.undercooling(Tmax).value() << endl
-        << " -- interface width / capillary length = " << WbyD << " < " << maxWbyD << endl
-        << " -- mesh step / interface width = " << HbyW << " < " << maxHbyW << endl
-        << " -- computational width / diffusion length = " << LbyD << " > " << minLbyD << endl
-        << " -- interface stability parameter = " << sigmaW << " > " << minSigmaW << endl
-        << " -- pulling velocity = "
-        << (pullingVelocity*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
-        << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
-        << nl;
-
-    Info<< "Dimensioned parameters:" << endl
+    Info<< nl << "Dimensioned parameters:" << endl
         << " -- computational domain (m) = " << bounds.max() - bounds.min() << endl
         << " -- generated PDAS (m) = " << PDAS.value() << endl
+        << " -- estimation (Kurz--Fischer) of PDAS (m) = " << estimatedPDAS.value() << endl
         << " -- diffusion length (m) = " << diffusionLength.value() << endl
         << " -- interface width (m) = " << interfaceWidth.value() << endl
         << " -- mesh step (m) = " << minMeshStep << endl
@@ -36,6 +32,21 @@
         << " -- characteristic velocity (m/s) = "
         << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
         << " -- relaxation time (s) = "  << tau.value() << endl
+        << nl;
+
+    Info<< "Dimensionless parameters:" << endl
+        << " -- minimal undercooling = " << alloy.undercooling(Tmin).value() << endl
+        << " -- maximum undercooling = " << alloy.undercooling(Tmax).value() << endl
+        << " -- estimated tip undercooling = " << tipUndercooling << endl
+        << " -- tip velocity = " << tipVelocity << endl
+        << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
+        << nl;
+
+    Info<< "Accuracy and stability parameters:" << endl
+        << " -- interface width / capillary length = " << WbyD << " < " << maxWbyD << endl
+        << " -- mesh step / interface width = " << HbyW << " < " << maxHbyW << endl
+        << " -- computational width / diffusion length = " << LbyD << " > " << minLbyD << endl
+        << " -- interface stability parameter = " << sigmaW << " > " << minSigmaW << endl
         << nl;
 
     if (WbyD > maxWbyD)

@@ -150,6 +150,12 @@ public:
                 return interfaceEnergy_/factor<0>()/sumD()/sumSqrAperD();
             }
 
+            //- Return the Gibbs--Thomson coefficient [Km]
+            dimensionedScalar GibbsThomson() const
+            {
+                return interfaceEnergy_/entropyChange_;
+            }
+
             //- Return the mean diffusion coefficient [m^2/s]
             dimensionedScalar diffusionL() const
             {
