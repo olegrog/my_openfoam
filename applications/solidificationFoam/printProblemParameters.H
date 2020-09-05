@@ -2,15 +2,19 @@
     const scalar minMeshStep = 1/gMax(mesh.surfaceInterpolation::deltaCoeffs());
     const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
     const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
-    const dimensionedScalar PDAS = (xmax - xmin)/nSeeds;
+    const dimensionedScalar seedSpacing = (xmax - xmin)/nSeeds;
     const dimensionedScalar diffusionLength = alloy.diffusionL()/pullingVelocity;
 
     // Steady-state estimations from Kundin et al. 2019
     const scalar tipVelocity = (pullingVelocity*alloy.capillaryLength()/alloy.diffusionL()).value();
     const scalar tipUndercooling = Foam::pow(pow4(pi)*tipVelocity/820/anisotropyStrength , 1./5.4);
-    const dimensionedScalar estimatedPDAS = 4.3
-        *Foam::sqrt((1 - tipUndercooling)*alloy.deltaTemp()/tempGradient)
-        *pow025(alloy.interfaceEnergy()/pullingVelocity/alloy.sumRestrictionFactors());
+    dimensionedScalar tipRadius
+    (
+        2*pi*Foam::sqrt(alloy.interfaceEnergy()/pullingVelocity/alloy.sumRestrictionFactors())
+    );
+    if (anisotropyStrength > VSMALL) tipRadius *= Foam::pow(50*anisotropyStrength, -0.225);
+    const dimensionedScalar cellSpacing =
+        Foam::sqrt(3*(1 - tipUndercooling)*alloy.deltaTemp()/tempGradient*tipRadius);
 
     const scalar sigmaW =
     (
@@ -20,10 +24,15 @@
     const scalar HbyW = (minMeshStep/interfaceWidth).value();
     const scalar LbyD = ((xmax - xmin)/diffusionLength).value();
 
+    // Check the dimensions
+    seedSpacing + cellSpacing + diffusionLength + tipRadius + interfaceWidth
+        + alloy.capillaryLength() + pullingVelocity*tau;
+
     Info<< nl << "Dimensioned parameters:" << endl
         << " -- computational domain (m) = " << bounds.max() - bounds.min() << endl
-        << " -- generated PDAS (m) = " << PDAS.value() << endl
-        << " -- estimation (Kurz--Fisher) of PDAS (m) = " << estimatedPDAS.value() << endl
+        << " -- estimated cell spacing (m) = " << cellSpacing.value() << endl
+        << " -- seed spacing (m) = " << seedSpacing.value() << endl
+        << " -- estimated tip radius (m) = " << tipRadius.value() << endl
         << " -- diffusion length (m) = " << diffusionLength.value() << endl
         << " -- interface width (m) = " << interfaceWidth.value() << endl
         << " -- mesh step (m) = " << minMeshStep << endl
@@ -39,7 +48,7 @@
         << " -- maximum undercooling = " << alloy.undercooling(Tmax).value() << endl
         << " -- estimated tip undercooling = " << tipUndercooling << endl
         << " -- tip velocity = " << tipVelocity << endl
-        << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*PDAS).value() << endl
+        << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*seedSpacing).value() << endl
         << nl;
 
     Info<< "Accuracy and stability parameters:" << endl
