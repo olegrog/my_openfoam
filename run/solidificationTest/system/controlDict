@@ -31,7 +31,7 @@ timeFormat          general; //fixed;
 timePrecision       7;
 adjustTimeStep      yes;
 maxCo               0.5;
-maxPhaseCo          0.01; //0.02
+maxPhaseCo          0.02; //0.02
 minDeltaT           1e-12;
 //maxDeltaT           1e-7;
 runTimeModifiable   yes;

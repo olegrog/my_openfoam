@@ -3,14 +3,15 @@
     const dimensionedScalar Tmin("Tmin", dimTemperature, gMin(T));
     const dimensionedScalar Tmax("Tmax", dimTemperature, gMax(T));
     const dimensionedScalar seedSpacing = (xmax - xmin)/nSeeds;
-    const dimensionedScalar diffusionLength = alloy.diffusionL()/pullingVelocity;
+    const dimensionedScalar diffusionLength = alloy.diffusionL()/pullingSpeed;
 
     // Steady-state estimations from Kundin et al. 2019
-    const scalar tipVelocity = (pullingVelocity*alloy.capillaryLength()/alloy.diffusionL()).value();
-    const scalar tipUndercooling = Foam::pow(pow4(pi)*tipVelocity/820/anisotropyStrength , 1./5.4);
+    const scalar anisotropyStrength = max(capillaryAnisotropy, kineticAnisotropy);
+    const scalar tipSpeed = (pullingSpeed*alloy.capillaryLength()/alloy.diffusionL()).value();
+    const scalar tipUndercooling = Foam::pow(pow4(pi)*tipSpeed/820/anisotropyStrength, 1./5.4);
     dimensionedScalar tipRadius
     (
-        2*pi*Foam::sqrt(alloy.interfaceEnergy()/pullingVelocity/alloy.sumRestrictionFactors())
+        2*pi*Foam::sqrt(alloy.interfaceEnergy()/pullingSpeed/alloy.sumRestrictionFactors())
     );
     if (anisotropyStrength > VSMALL) tipRadius *= Foam::pow(50*anisotropyStrength, -0.225);
     const dimensionedScalar cellSpacing =
@@ -18,7 +19,7 @@
 
     const scalar sigmaW =
     (
-        alloy.diffusionL()*alloy.capillaryLength()/pullingVelocity/sqr(interfaceWidth)
+        alloy.diffusionL()*alloy.capillaryLength()/pullingSpeed/sqr(interfaceWidth)
     ).value();
     const scalar WbyD = (interfaceWidth/alloy.capillaryLength()).value();
     const scalar HbyW = (minMeshStep/interfaceWidth).value();
@@ -26,7 +27,7 @@
 
     // Check the dimensions
     seedSpacing + cellSpacing + diffusionLength + tipRadius + interfaceWidth
-        + alloy.capillaryLength() + pullingVelocity*tau;
+        + alloy.capillaryLength() + pullingSpeed*tau;
 
     Info<< nl << "Dimensioned parameters:" << endl
         << " -- computational domain (m) = " << bounds.max() - bounds.min() << endl
@@ -37,8 +38,8 @@
         << " -- interface width (m) = " << interfaceWidth.value() << endl
         << " -- mesh step (m) = " << minMeshStep << endl
         << " -- capillary length (m) = " << alloy.capillaryLength().value() << endl
-        << " -- pulling velocity (m/s) = " << pullingVelocity.value() << endl
-        << " -- characteristic velocity (m/s) = "
+        << " -- pulling speed (m/s) = " << pullingSpeed.value() << endl
+        << " -- characteristic speed (m/s) = "
         << (alloy.diffusionL()/alloy.capillaryLength()).value() << endl
         << " -- relaxation time (s) = "  << tau.value() << endl
         << nl;
@@ -47,7 +48,7 @@
         << " -- minimal undercooling = " << alloy.undercooling(Tmin).value() << endl
         << " -- maximum undercooling = " << alloy.undercooling(Tmax).value() << endl
         << " -- estimated tip undercooling = " << tipUndercooling << endl
-        << " -- tip velocity = " << tipVelocity << endl
+        << " -- tip speed = " << tipSpeed << endl
         << " -- Reynolds number = " << max(mag(U)/laminarTransport.nu()*seedSpacing).value() << endl
         << nl;
 

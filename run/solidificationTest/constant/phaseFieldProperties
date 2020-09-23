@@ -16,11 +16,12 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // Numerical constants
-a1              0.2357;
-a2              2.35;
+a1              0.23570; //= sqrt(2)/6
+a2              2.3500;
+aAT             0.70711; //= 1/sqrt(2)
+aIF             2.757;
 a3              1;
 a4              10;
-hStar           2.757;
 
 // Conditions for stable and accurate simulations
 maxWbyD         50.0; // 5.0

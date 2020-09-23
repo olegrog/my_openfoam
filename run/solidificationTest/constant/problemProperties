@@ -16,14 +16,12 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // Parameters for directional solidification
-undercooling        10;  // 10
+undercooling        15;  // 10
 tempGradient        5e5; // 5e5
 coolingRate         5e3; // 3e3
 
 // Model parameters
 interfaceWidth      8e-8; // 6e-8
-nAnisotropyModes    4;
-anisotropyStrength  0.06;
 
 // Mapping from grain (integer) to clockwise degrees (from -45 to 45)
 crystallographicAngles

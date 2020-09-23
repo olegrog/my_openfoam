@@ -51,12 +51,16 @@ components
     }
 );
 
-baseMolarMass   5.58e-2;
-rhoSolid        5441.77; // calculated to provide \Gamma = 3e-7
-interfaceEnergy 0.27;
+baseMolarMass       5.58e-2;
+rhoSolid            5441.77; // calculated to provide \Gamma = 3e-7
+interfaceEnergy     0.27;
 
-solidus         1656.6;
-liquidus        1703;
-latentHeat      281655; // calculated to provide entropyChange = 9.0
+solidus             1656.6;
+liquidus            1703;
+latentHeat          281655; // calculated to provide entropyChange = 9.0
+
+nAnisotropyModes    4;
+capillaryAnisotropy 0.06;
+kineticAnisotropy   0.06;
 
 // ************************************************************************* //

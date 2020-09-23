@@ -1,7 +1,7 @@
 // Calculate grain number and crystallographic orientation
 
-volVectorField gNormal = calcNormal(grain);
-volVectorField gTangent = rot & gNormal;
+const volVectorField gNormal = calcNormal(grain);
+const volVectorField gTangent = rot & gNormal;
 
 fvVectorMatrix grainEqn
 (

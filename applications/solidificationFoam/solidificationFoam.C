@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     // Derived quantities
     const dimensionedScalar tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()
         *alloy.sumRestrictionFactors();
-    dimensionedScalar pullingVelocity = coolingRate/tempGradient;
+    dimensionedScalar pullingSpeed = coolingRate/tempGradient;
     const label nGrains = crystallographicAngles.size();
 
     // Coordinates-related constants and variables
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min())/2);
     const dimensionedScalar frontPosition = ymin + frontPositionRel*height;
     const dimensionedScalar initialWidth = interfaceWidth/interfaceNarrowing;
-    dimensionedScalar tipVelocity = pullingVelocity;
+    dimensionedScalar tipSpeed = pullingSpeed;
     dimensionedScalar tipPosition = frontPosition;
     dimensionedScalar tipPositionPrev = tipPosition;
     label tipCell(0), tipCellPrev(0);
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        #include "tipVelocity.H"
+        #include "tipPosition.H"
 
         // --- Calculate temperature
 
@@ -206,9 +206,6 @@ int main(int argc, char *argv[])
             {
                 #include "phaseEqn.H"
             }
-
-            Info<< "Solid fraction: min = " << gMin(phase)
-                << " max = 1 + " << gMax(phase) - 1 << endl;
 
             scalar phaseTolerance = mesh.solverDict(phase.name()).get<scalar>("tolerance");
             if (gMin(phase) < -phaseTolerance || gMax(phase) > 1 + phaseTolerance)

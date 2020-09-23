@@ -1,6 +1,12 @@
 #!/usr/bin/env gnuplot -persist
+EPS=0
 
-set term qt 0 position 200, 200
+if (EPS) {
+    set terminal postscript eps color font 'Helvetica,10' size 5in, 3in
+    set output "1.eps"
+} else {
+    set term qt 0 position 200, 200
+}
 
 set multiplot layout 2, 2
 set key autotitle columnhead
@@ -60,7 +66,14 @@ do for [i=1:4] {
 
 unset multiplot
 
-set term qt 1 position 900, 200
+if (EPS) {
+    set terminal postscript eps color font 'Helvetica,14' size 3.5in, 2in
+    set output "2.eps"
+} else {
+    set term qt 1 position 900, 200
+}
 
+set ylabel "Phase fraction"
+set key top center
 plot for [i=2:4] 'phases.txt' u ($1+DT):i w l
 

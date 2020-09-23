@@ -1,8 +1,12 @@
 #!/usr/bin/env gnuplot --persist -c
+EPS=0
 
-set terminal qt size 1000, 600 font 'Helvetica,14'
-#set terminal postscript eps color font 'Helvetica,14'
-#set output "tip.eps"
+if (EPS) {
+    set terminal postscript eps color font 'Helvetica,14'
+    set output "tip.eps"
+} else {
+    set terminal qt size 1000, 600 font 'Helvetica,14'
+}
 
 set multiplot layout 2, 1
 set fit errorvariables results
@@ -26,8 +30,8 @@ print "Undercooling (K) = ", undercooling
 print "Window = ", window
 
 # Generate 4 columns: time, position, speed, undercooling
-data = sprintf("<(awk '/^Time.*/{a=1e3*$3} /^Tip p/{b=$4} /^Tip v/{c=$4} /^Tip u/{print a,b,c,$4}' %s)", file)
-xmax = system(sprintf("grep 'Tip v' %s | wc -l", file)) + 0
+data = sprintf("<(awk '/^Time.*/{a=1e3*$3} /^Tip p/{b=$4} /^Tip s/{c=$4} /^Tip u/{print a,b,c,$4}' %s)", file)
+xmax = system(sprintf("grep 'Tip s' %s | wc -l", file)) + 0
 print "xmax = ", xmax
 
 # Find maximum time when tips grow

@@ -176,9 +176,9 @@ public:
             ) const;
 
             //- Return the partition function
-            tmp<volScalarField> partition(const volScalarField& phi) const
+            tmp<volScalarField> partition(const volScalarField& phase) const
             {
-                return phi + (1 - phi)*factor<1>()/factor<0>();
+                return phase + (1 - phase)*factor<1>()/factor<0>();
             }
 
             //- Return the first derivative of the partition function
