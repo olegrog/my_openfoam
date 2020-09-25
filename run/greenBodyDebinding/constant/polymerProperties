@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      polymerProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+components
+(
+    Polymer1
+    {
+        initialValue        0.2;
+        rateConstant        3e3;
+        activationEnergy    4e4;
+    }
+
+    Polymer2
+    {
+        initialValue        0.8;
+        rateConstant        2e6;
+        activationEnergy    9e4;
+    }
+);
+
+initialVolumeFraction       0.37;
+rhoPolymer                  1e3;
+
+// Parameters for the diffusion coefficient
+
+diffusionConstant           6.92e-4;
+activationEnergy            38.37e3;
+//...
+
+// ************************************************************************* //

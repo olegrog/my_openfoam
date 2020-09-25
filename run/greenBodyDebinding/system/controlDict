@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application         thermalDebindingFoam;
+startFrom           latestTime;
+startTime           0;
+stopAt              endTime;
+endTime             500e3;
+deltaT              1e3;
+writeControl        runTime;
+writeInterval       1e3;
+purgeWrite          0;
+writeFormat         binary;
+writePrecision      6;
+writeCompression    off;
+timeFormat          general;
+timePrecision       7;
+runTimeModifiable   yes;
+maxTemperature      500;    // stop simulation when this temperature is reached
+
+// ************************************************************************* //
