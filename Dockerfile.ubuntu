@@ -3,7 +3,7 @@ FROM openfoam/openfoam-dev-graphical-apps:latest
 USER root
 
 RUN apt-get update \
- && apt-get install -y ack colordiff gdb git less mlocate source-highlight vim-pathogen \
+ && apt-get install -y ack colordiff gdb git less mlocate source-highlight vim-pathogen ripgrep \
  && apt-get clean autoclean \
  && rm -rf /var/lib/apt/lists/*
 
