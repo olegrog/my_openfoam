@@ -91,6 +91,7 @@ public:
         tmp<volScalarField> derivative(const volScalarField& field) const;
 };
 
+
 } // End namespace Foam
 
 #endif

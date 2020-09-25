@@ -222,8 +222,8 @@ public:
             const volScalarField& hAtMelting,
             const volScalarField& metalFraction
         ) const;
-
 };
+
 
 } // End namespace Foam
 

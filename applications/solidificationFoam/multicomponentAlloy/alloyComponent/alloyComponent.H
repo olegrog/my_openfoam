@@ -27,7 +27,7 @@ Class
     Foam::alloyComponent
 
 Description
-    Concentration of the single alloy component.
+    Concentration of a single alloy component.
     Used as part of the multicomponentAlloy for phase-field simulations.
 
 SourceFiles
@@ -62,6 +62,7 @@ class alloyComponent
         dimensionedScalar Tmelting_;
 
 public:
+
     // Constructors
 
         //- Construct from components
@@ -122,7 +123,7 @@ public:
                 return name_;
             }
 
-            //- Return the equilibrium concentration
+            //- Return the equilibrium concentration []
             template<class T1, class T2>
             auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
             {
@@ -130,39 +131,39 @@ public:
                      + (equilibriumL_ + (T - Tmelting_)/slopeL_)*(1 - phase);
             }
 
-            //- Return the diffusion coefficient
+            //- Return the diffusion coefficient [m^2/s]
             tmp<volScalarField> diffusion(const volScalarField& phase) const
             {
                 return diffusionS_*phase + diffusionL_*(1 - phase);
             }
 
-            //- Return the slopes along the solidification path (solid and liquid)
+            //- Return the slopes along the solidification path (solid and liquid) [K]
             template<label Phase>
             dimensionedScalar slope() const
             {
                 return Phase ? slopeS_ : slopeL_;
             }
 
-            //- Return the diffusion coefficients (solid and liquid)
+            //- Return the diffusion coefficients (solid and liquid) [m^2/s]
             template<label Phase>
             dimensionedScalar diffusion() const
             {
                 return Phase ? diffusionS_ : diffusionL_;
             }
 
-            //- Return the difference of the equilibrium concentrations
+            //- Return the difference of the equilibrium concentrations []
             dimensionedScalar deltaA() const
             {
                 return equilibriumS_ - equilibriumL_;
             }
 
-            //- Return the molar mass
+            //- Return the molar mass [kg/mol]
             dimensionedScalar molarMass() const
             {
                 return molarMass_;
             }
-
 };
+
 
 } // End namespace Foam
 

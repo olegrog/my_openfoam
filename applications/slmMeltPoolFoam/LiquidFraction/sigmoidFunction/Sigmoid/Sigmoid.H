@@ -66,6 +66,7 @@ public:
     Sigmoid(scalar a, scalar b);
 };
 
+
 } // End namespace Foam
 
 #ifdef NoRepository

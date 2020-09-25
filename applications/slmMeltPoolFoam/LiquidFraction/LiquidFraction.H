@@ -134,8 +134,8 @@ public:
         {
             return inMetal_;
         }
-
 };
+
 
 } // End namespace Foam
 

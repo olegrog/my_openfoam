@@ -182,8 +182,8 @@ public:
 
             //- Correct passive internal fields
             void finalCorrect();
-
 };
+
 
 } // End namespace Foam
 

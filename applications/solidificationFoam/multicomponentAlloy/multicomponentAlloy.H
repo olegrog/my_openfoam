@@ -137,7 +137,7 @@ public:
                 return interfaceEnergy_;
             }
 
-            //- Return the dimensionless undercooling
+            //- Return the dimensionless undercooling []
             template<class T1>
             auto undercooling(const T1& T) const -> decltype(T+T)
             {
@@ -175,19 +175,19 @@ public:
                 const volScalarField& T
             ) const;
 
-            //- Return the partition function
+            //- Return the kStar function []
             tmp<volScalarField> partition(const volScalarField& phase) const
             {
                 return phase + (1 - phase)*factor<1>()/factor<0>();
             }
 
-            //- Return the first derivative of the partition function
+            //- Return the first derivative of kStar []
             dimensionedScalar partitionPrime() const
             {
                 return 1 - factor<1>()/factor<0>();
             }
-
 };
+
 
 } // End namespace Foam
 

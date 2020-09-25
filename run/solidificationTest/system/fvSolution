@@ -52,12 +52,14 @@ solvers
         tolerance       1e-6;
         relTol          0.1;
     }
+    
     grain
     {
         solver          PCG;
         preconditioner  DIC;
         tolerance       1e-6;
     }
+    
     concentration
     {
         solver          PBiCG;
@@ -65,7 +67,6 @@ solvers
         tolerance       1e-6;
         relTol          0.01;
     }
-
 }
 
 PIMPLE
