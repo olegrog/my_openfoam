@@ -27,6 +27,7 @@ boundary
 *.log
 *.pdf
 *.eps
+*.dat
 
 # Simulation directories
 _*

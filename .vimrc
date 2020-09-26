@@ -3,6 +3,10 @@ set hlsearch
 set ts=4 sw=4 sts=4 et ai
 filetype plugin on
 
+"- Use the UTF-8 encoding
+set encoding=utf-8
+set fileencoding=utf-8
+
 "- Colorize OpenFOAM case files
 execute pathogen#infect()
 let g:foam256_use_custom_colors=1

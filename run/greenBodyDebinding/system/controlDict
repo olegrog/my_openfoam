@@ -32,4 +32,18 @@ timePrecision       7;
 runTimeModifiable   yes;
 maxTemperature      500;    // stop simulation when this temperature is reached
 
+functions
+{
+    minMax
+    {
+        type            fieldMinMax;
+        libs            (fieldFunctionObjects);
+        writeControl    timeStep;
+        fields          (rho T);
+        location        false;
+        log             false;
+        enabled         true;
+    }
+}
+
 // ************************************************************************* //
