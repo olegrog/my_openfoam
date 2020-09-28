@@ -2,4 +2,8 @@ multicomponentPolymer.C
 
 polymerComponent/polymerComponent.C
 
+diffusionModel/diffusionModel/diffusionModel.C
+diffusionModel/constant/constant.C
+diffusionModel/freeVolume/freeVolume.C
+
 LIB = $(FOAM_USER_LIBBIN)/libmulticomponentPolymer

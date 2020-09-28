@@ -24,25 +24,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::multicomponentPolymer
+    Foam::diffusionModel
 
 Description
-    System of a multicomponent polymer with its monomer.
-    Volume of the system is constant.
-
-SourceFiles
-    multicomponentPolymer.C
+    Abstract base class for diffusion model of monomer--polymer mixture.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef multicomponentPolymer_H
-#define multicomponentPolymer_H
+#ifndef diffusionModel_H
+#define diffusionModel_H
 
 #include "volFields.H"
-#include "PtrDictionary.H"
-
-#include "polymerComponent.H"
-#include "diffusionModel.H"
+#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,69 +43,54 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class multicomponentPolymer Declaration
+                       Class diffusionModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class multicomponentPolymer
-:
-    public IOdictionary
+class diffusionModel
 {
     // Private data
 
-        //- Density of the polymer [kg/m^3]
-        const dimensionedScalar rhoPolymer_;
+        //- Diffusion constant [m^2/s]
+        const dimensionedScalar diffusionConstant_;
 
-        //- Total volume fraction of polymer and pores []
-        const dimensionedScalar totalVolumeFraction_;
-
-        //- Initial porosity []
-        const dimensionedScalar initialPorosity_;
-
-        //- The diffusion model
-        autoPtr<diffusionModel> diffusionModelPtr_;
-
-        //- Pointer to the dictionary of polymer components
-        PtrDictionary<polymerComponent> components_;
+        //- Activation energy for diffusion [J/mol]
+        const dimensionedScalar activationEnergy_;
 
 public:
 
+    //- Runtime type information
+    TypeName("diffusionModel");
+
+    //- Declare run-time constructor selection tables
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        diffusionModel,
+        dictionary,
+        (
+            const dictionary& dict
+        ),
+        (dict)
+    );
+
     //- Constructor
-    multicomponentPolymer(const fvMesh& mesh);
+    diffusionModel(const dictionary& dict);
+
+    //- Selector
+    static autoPtr<diffusionModel> New(const dictionary& dict);
 
     //- Destructor
-    ~multicomponentPolymer() = default;
+    virtual ~diffusionModel() = default;
 
     // Member Functions
 
-        //- Return the polymer components
-        PtrDictionary<polymerComponent>& components()
-        {
-            return components_;
-        }
-
-        // Access
-
-            //- Return the polymer density [kg/m^3]
-            dimensionedScalar rho() const
-            {
-                return rhoPolymer_;
-            }
-
-            //- Return the initial volume fraction []
-            dimensionedScalar initialVolumeFraction() const
-            {
-                return totalVolumeFraction_ - initialPorosity_;
-            }
-
-            //- Return the volume fraction []
-            tmp<volScalarField> volumeFraction() const;
-
-            //- Return the diffusion coefficient [m^2/s]
-            tmp<volScalarField> diffusion
-            (
-                const volScalarField& rho,
-                const volScalarField& T
-            ) const;
+        //- Return the value of the diffusion coefficient
+        virtual tmp<volScalarField> D
+        (
+            const volScalarField& T,
+            const volScalarField& monomerVolumeFraction,
+            const volScalarField& monomerMassFraction
+        ) const;
 };
 
 

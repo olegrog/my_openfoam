@@ -39,7 +39,18 @@ functions
         type            fieldMinMax;
         libs            (fieldFunctionObjects);
         writeControl    timeStep;
-        fields          (rho T);
+        fields          (rho T D);
+        location        false;
+        log             false;
+        enabled         true;
+    }
+
+    minMaxKinetics
+    {
+        type            fieldMinMax;
+        libs            (fieldFunctionObjects);
+        writeControl    timeStep;
+        fields          (T "massFractionPolymer[1-9]");
         location        false;
         log             false;
         enabled         true;

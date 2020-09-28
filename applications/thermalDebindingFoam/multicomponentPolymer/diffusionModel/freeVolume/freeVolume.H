@@ -24,100 +24,98 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::multicomponentPolymer
+    Foam::diffusion::freeVolume
 
 Description
-    System of a multicomponent polymer with its monomer.
-    Volume of the system is constant.
+    Diffusion coefficient based on the free-volume (Vrentas--Duda) theory.
+    See Duda, Vrentas, Ju, and Liu. AIChE Journal 28, no. 2 (1982): 279-285.
 
 SourceFiles
-    multicomponentPolymer.C
+    freeVolume.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef multicomponentPolymer_H
-#define multicomponentPolymer_H
+#ifndef diffusion_freeVolume_H
+#define diffusion_freeVolume_H
 
-#include "volFields.H"
-#include "PtrDictionary.H"
-
-#include "polymerComponent.H"
 #include "diffusionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace diffusion
+{
 
 /*---------------------------------------------------------------------------*\
-                       Class multicomponentPolymer Declaration
+                         Class freeVolume Declaration
 \*---------------------------------------------------------------------------*/
 
-class multicomponentPolymer
+class freeVolume
 :
-    public IOdictionary
+    public diffusionModel
 {
+
+    struct TVK
+    {
+        //- Glass transition temperature
+        const dimensionedScalar Tg;
+
+        //- Speficic volume at zero temperature
+        const dimensionedScalar V;
+
+        //- Free-volume parameter
+        const dimensionedScalar K;
+
+        //- Constructor
+        TVK(const dictionary& dict)
+        :
+            Tg("Tg", dimTemperature, dict),
+            V("V", inv(dimDensity), dict),
+            K("K", inv(dimDensity*dimTemperature), dict)
+        {}
+    };
+
     // Private data
 
-        //- Density of the polymer [kg/m^3]
-        const dimensionedScalar rhoPolymer_;
+        //- Coefficients dictionary
+        const dictionary coeffsDict_;
 
-        //- Total volume fraction of polymer and pores []
-        const dimensionedScalar totalVolumeFraction_;
+        //- Properties of all phases
+        const TVK monomer_, polymer_;
 
-        //- Initial porosity []
-        const dimensionedScalar initialPorosity_;
+        //- Interaction parameter of the Flory--Huggins theory
+        const scalar chi_;
 
-        //- The diffusion model
-        autoPtr<diffusionModel> diffusionModelPtr_;
-
-        //- Pointer to the dictionary of polymer components
-        PtrDictionary<polymerComponent> components_;
+        //- Ratio of critical molar volumes of hopping units
+        const scalar xi_;
 
 public:
 
+    //- Runtime type information
+    TypeName("freeVolume");
+
     //- Constructor
-    multicomponentPolymer(const fvMesh& mesh);
+    freeVolume(const dictionary& dict);
 
     //- Destructor
-    ~multicomponentPolymer() = default;
+    virtual ~freeVolume() = default;
 
     // Member Functions
 
-        //- Return the polymer components
-        PtrDictionary<polymerComponent>& components()
-        {
-            return components_;
-        }
-
-        // Access
-
-            //- Return the polymer density [kg/m^3]
-            dimensionedScalar rho() const
-            {
-                return rhoPolymer_;
-            }
-
-            //- Return the initial volume fraction []
-            dimensionedScalar initialVolumeFraction() const
-            {
-                return totalVolumeFraction_ - initialPorosity_;
-            }
-
-            //- Return the volume fraction []
-            tmp<volScalarField> volumeFraction() const;
-
-            //- Return the diffusion coefficient [m^2/s]
-            tmp<volScalarField> diffusion
-            (
-                const volScalarField& rho,
-                const volScalarField& T
-            ) const;
+        //- Return the value of the diffusion coefficient
+        tmp<volScalarField> D
+        (
+            const volScalarField& T,
+            const volScalarField& monomerVolumeFraction,
+            const volScalarField& monomerMassFraction
+        ) const final;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace diffusion
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

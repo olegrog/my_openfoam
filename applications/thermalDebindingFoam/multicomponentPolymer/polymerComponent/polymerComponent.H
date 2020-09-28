@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2020 Oleg Rogozin
+                            | Copyright (C) 2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of thermalDebindingFoam.

@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2020 Oleg Rogozin
+                            | Copyright (C) 2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     OpenFOAM is free software: you can redistribute it and/or modify it
@@ -75,11 +75,13 @@ int main(int argc, char *argv[])
 
         while (simple.correctNonOrthogonal())
         {
+            D = polymer.diffusion(rho, T);
+
             fvScalarMatrix rhoEqn
             (
                 fvm::ddt(rho)
              ==
-                fvm::laplacian(polymer.diffusion(rho, T), rho)
+                fvm::laplacian(D, rho)
                 // + convection term
             );
 

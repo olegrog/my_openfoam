@@ -25,38 +25,33 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "polymerComponent.H"
+#include "constant.H"
 
-#include "zeroGradientFvPatchField.H"
+#include "addToRunTimeSelectionTable.H"
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-Foam::polymerComponent::polymerComponent
+namespace Foam
+{
+    namespace diffusion
+    {
+        defineTypeName(constant);
+        addToRunTimeSelectionTable(diffusionModel, constant, dictionary);
+    }
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::diffusion::constant::D
 (
-    const word& name,
-    const dictionary& polymerComponentDict,
-    const fvMesh& mesh
-)
-:
-    volScalarField
-    (
-        IOobject
-        (
-            "massFraction" + name,
-            mesh.time().timeName(),
-            mesh,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar("initialValue", dimless, polymerComponentDict),
-        zeroGradientFvPatchField<scalar>::typeName
-    ),
-    name_(name),
-    polymerComponentDict_(polymerComponentDict),
-    rateConstant_("rateConstant", inv(dimTime), polymerComponentDict_),
-    activationEnergy_("activationEnergy", dimEnergy/dimMoles, polymerComponentDict_)
-{}
+    const volScalarField& T,
+    const volScalarField& monomerVolumeFraction,
+    const volScalarField& monomerMassFraction
+) const
+{
+    return diffusionModel::D(T, monomerVolumeFraction, monomerMassFraction);
+}
 
 
 // ************************************************************************* //

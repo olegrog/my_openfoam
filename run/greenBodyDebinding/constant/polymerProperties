@@ -20,25 +20,48 @@ components
     Polymer1
     {
         initialValue        0.2;
-        rateConstant        3e3;
+        rateConstant        17;
         activationEnergy    4e4;
     }
 
     Polymer2
     {
         initialValue        0.8;
-        rateConstant        2e6;
+        rateConstant        15000;
         activationEnergy    9e4;
     }
 );
 
-initialVolumeFraction       0.37;
+totalVolumeFraction         0.37; // polymer + pores
+initialPorosity             0.03;
 rhoPolymer                  1e3;
 
-// Parameters for the diffusion coefficient
+diffusionModel
+{
+    type                    freeVolume; // or constant
 
-diffusionConstant           6.92e-4;
-activationEnergy            38.37e3;
-//...
+    diffusionConstant       6.92e-4;
+    activationEnergy        38.37e3;
+
+    freeVolumeCoeffs
+    {
+        chi         0.361;
+        xi          0.54;
+
+        monomer
+        {
+            Tg      106.73;
+            V       8.69e-4;
+            K       1.76e-6;
+        }
+
+        polymer
+        {
+            Tg      392.7;
+            V       7.98e-4;
+            K       5.31e-7;
+        }
+    }
+}
 
 // ************************************************************************* //

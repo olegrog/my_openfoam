@@ -25,38 +25,67 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "polymerComponent.H"
+#include "diffusionModel.H"
 
-#include "zeroGradientFvPatchField.H"
+#include "error.H"
+#include "constants.H"
+
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeName(diffusionModel);
+    defineRunTimeSelectionTable(diffusionModel, dictionary);
+}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::polymerComponent::polymerComponent
+Foam::autoPtr<Foam::diffusionModel> Foam::diffusionModel::New
 (
-    const word& name,
-    const dictionary& polymerComponentDict,
-    const fvMesh& mesh
+    const dictionary& dict
 )
-:
-    volScalarField
-    (
-        IOobject
+{
+    const word modelType(dict.get<word>("type"));
+
+    Info<< "Selecting diffusionModel " << modelType << endl;
+
+    const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
+
+    if (!cstrIter.found())
+    {
+        FatalIOErrorInLookup
         (
-            "massFraction" + name,
-            mesh.time().timeName(),
-            mesh,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar("initialValue", dimless, polymerComponentDict),
-        zeroGradientFvPatchField<scalar>::typeName
-    ),
-    name_(name),
-    polymerComponentDict_(polymerComponentDict),
-    rateConstant_("rateConstant", inv(dimTime), polymerComponentDict_),
-    activationEnergy_("activationEnergy", dimEnergy/dimMoles, polymerComponentDict_)
+            dict,
+            "diffusionModel",
+            modelType,
+            *dictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
+    }
+
+    return autoPtr<diffusionModel>(cstrIter()(dict));
+}
+
+
+Foam::diffusionModel::diffusionModel(const dictionary& dict)
+:
+    diffusionConstant_("diffusionConstant", dimViscosity, dict),
+    activationEnergy_("activationEnergy", dimEnergy/dimMoles, dict)
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::diffusionModel::D
+(
+    const volScalarField& T,
+    const volScalarField& monomerVolumeFraction,
+    const volScalarField& monomerMassFraction
+) const
+{
+    using constant::physicoChemical::R;
+    return diffusionConstant_*exp(-activationEnergy_/R/T);
+}
 
 
 // ************************************************************************* //

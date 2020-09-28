@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2020 Oleg Rogozin
+                            | Copyright (C) 2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of thermalDebindingFoam.
@@ -27,8 +27,6 @@ License
 
 #include "multicomponentPolymer.H"
 
-#include "constants.H"
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::multicomponentPolymer::multicomponentPolymer(const fvMesh& mesh)
@@ -44,19 +42,41 @@ Foam::multicomponentPolymer::multicomponentPolymer(const fvMesh& mesh)
             IOobject::NO_WRITE
         )
     ),
-    initialVolumeFraction_("initialVolumeFraction", dimless, *this),
     rhoPolymer_("rhoPolymer", dimDensity, *this),
-    diffusionConstant_("diffusionConstant", dimViscosity, *this),
-    activationEnergy_("activationEnergy", dimEnergy/dimMoles, *this),
+    totalVolumeFraction_("totalVolumeFraction", dimless, *this),
+    initialPorosity_("initialPorosity", dimless, *this),
+    diffusionModelPtr_(diffusionModel::New(subDict("diffusionModel"))),
     components_(lookup("components"), polymerComponent::iNew(mesh))
-{}
+{
+    // --- Checks
 
+    volScalarField total = volumeFraction()/(totalVolumeFraction_ - initialPorosity_);
 
-// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
-
+    if (gMax(total) > 1)
+    {
+        FatalError
+            << "The total sum of components is more than 1."
+            << exit(FatalError);
+    }
+}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::volumeFraction() const
+{
+    auto iter = components_.begin();
+
+    tmp<volScalarField> result = iter();
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result = result() + iter();
+    }
+
+    return result()*(totalVolumeFraction_ - initialPorosity_);
+}
+
 
 Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::diffusion
 (
@@ -64,8 +84,10 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::diffusion
     const volScalarField& T
 ) const
 {
-    using constant::physicoChemical::R;
-    return diffusionConstant_*exp(-activationEnergy_/R/T);
+    const volScalarField monomerVolumeFraction = 1 - volumeFraction()/totalVolumeFraction_;
+    const volScalarField monomerMassFraction = rho/(rho + volumeFraction()*rhoPolymer_);
+    return diffusionModelPtr_->D(T, monomerVolumeFraction, monomerMassFraction)
+        *Foam::pow(totalVolumeFraction_, 1.5);
 }
 
 

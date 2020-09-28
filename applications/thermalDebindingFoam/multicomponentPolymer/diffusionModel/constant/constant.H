@@ -24,100 +24,63 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::multicomponentPolymer
+    Foam::diffusion::constant
 
 Description
-    System of a multicomponent polymer with its monomer.
-    Volume of the system is constant.
+    Diffusion coefficient independent of polymer volume fraction.
 
 SourceFiles
-    multicomponentPolymer.C
+    constant.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef multicomponentPolymer_H
-#define multicomponentPolymer_H
+#ifndef diffusion_constant_H
+#define diffusion_constant_H
 
-#include "volFields.H"
-#include "PtrDictionary.H"
-
-#include "polymerComponent.H"
 #include "diffusionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace diffusion
+{
 
 /*---------------------------------------------------------------------------*\
-                       Class multicomponentPolymer Declaration
+                         Class constant Declaration
 \*---------------------------------------------------------------------------*/
 
-class multicomponentPolymer
+class constant
 :
-    public IOdictionary
+    public diffusionModel
 {
-    // Private data
-
-        //- Density of the polymer [kg/m^3]
-        const dimensionedScalar rhoPolymer_;
-
-        //- Total volume fraction of polymer and pores []
-        const dimensionedScalar totalVolumeFraction_;
-
-        //- Initial porosity []
-        const dimensionedScalar initialPorosity_;
-
-        //- The diffusion model
-        autoPtr<diffusionModel> diffusionModelPtr_;
-
-        //- Pointer to the dictionary of polymer components
-        PtrDictionary<polymerComponent> components_;
 
 public:
 
+    //- Runtime type information
+    TypeName("constant");
+
     //- Constructor
-    multicomponentPolymer(const fvMesh& mesh);
+    constant(const dictionary& dict) : diffusionModel(dict) {}
 
     //- Destructor
-    ~multicomponentPolymer() = default;
+    virtual ~constant() = default;
 
     // Member Functions
 
-        //- Return the polymer components
-        PtrDictionary<polymerComponent>& components()
-        {
-            return components_;
-        }
-
-        // Access
-
-            //- Return the polymer density [kg/m^3]
-            dimensionedScalar rho() const
-            {
-                return rhoPolymer_;
-            }
-
-            //- Return the initial volume fraction []
-            dimensionedScalar initialVolumeFraction() const
-            {
-                return totalVolumeFraction_ - initialPorosity_;
-            }
-
-            //- Return the volume fraction []
-            tmp<volScalarField> volumeFraction() const;
-
-            //- Return the diffusion coefficient [m^2/s]
-            tmp<volScalarField> diffusion
-            (
-                const volScalarField& rho,
-                const volScalarField& T
-            ) const;
+        //- Return the value of the diffusion coefficient
+        tmp<volScalarField> D
+        (
+            const volScalarField& T,
+            const volScalarField& monomerVolumeFraction,
+            const volScalarField& monomerMassFraction
+        ) const final;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace diffusion
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -32,6 +32,19 @@ volScalarField rho
 Info<< "Reading polymer properties\n" << endl;
 multicomponentPolymer polymer(mesh);
 
+volScalarField D
+(
+    IOobject
+    (
+        "D",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    polymer.diffusion(rho, T)
+);
+
 Info<< "Reading problem-specific properties\n" << endl;
 IOdictionary problemProperties
 (
