@@ -89,11 +89,8 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::pressure
 {
     using constant::physicoChemical::R;
 
-    // Fraction in the whole system
-    volScalarField monomerVolumeFraction = totalVolumeFraction_ - volumeFraction();
-    monomerVolumeFraction.max(dimensionedScalar(inv(dimless), SMALL));
-
-    return rho*R*T/monomerVolumeFraction/monomerW_;
+    dimensionedScalar small(inv(dimless), SMALL);
+    return rho*R*T/monomerW_/(poresFraction() + small);
 }
 
 

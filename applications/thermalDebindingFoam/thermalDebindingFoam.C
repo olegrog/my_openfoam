@@ -77,13 +77,15 @@ int main(int argc, char *argv[])
         {
             D = polymer.diffusion(rho, T);
             p = polymer.pressure(rho, T);
+            permeability = permeability0
+                *pow(polymer.poresFraction(), 3)/sqr(1 - polymer.poresFraction());
 
             fvScalarMatrix rhoEqn
             (
                 fvm::ddt(rho)
              ==
                 fvm::laplacian(D, rho)
-                // + convection term
+              + fvm::laplacian(permeability/mu/polymer.poresFraction()*p, rho)
             );
 
             forAllIter(PtrDictionary<polymerComponent>, polymer.components(), iter)

@@ -101,14 +101,20 @@ public:
                 return polymerRho_;
             }
 
-            //- Return the initial volume fraction []
+            //- Return the initial volume fraction of polymer
             dimensionedScalar initialVolumeFraction() const
             {
                 return totalVolumeFraction_ - initialPorosity_;
             }
 
-            //- Return the volume fraction []
+            //- Return the volume fraction of polymer
             tmp<volScalarField> volumeFraction() const;
+
+            //- Return the volume fraction of pores
+            tmp<volScalarField> poresFraction() const
+            {
+                return totalVolumeFraction_ - volumeFraction();
+            }
 
             //- Return the monomer pressure [Pa]
             tmp<volScalarField> pressure
