@@ -16,6 +16,7 @@ log*
 dynamicCode
 polyMesh
 boundary
+postProcessing
 [1-9]*
 0.*
 *.gz
@@ -23,11 +24,12 @@ boundary
 
 # Results files
 *.vtk
-*.txt
 *.log
+*.dat
+
+# Graphics
 *.pdf
 *.eps
-*.dat
 
 # Simulation directories
 _*

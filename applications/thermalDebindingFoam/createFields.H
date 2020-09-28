@@ -45,6 +45,19 @@ volScalarField D
     polymer.diffusion(rho, T)
 );
 
+volScalarField p
+(
+    IOobject
+    (
+        "p",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    polymer.pressure(rho, T)
+);
+
 Info<< "Reading problem-specific properties\n" << endl;
 IOdictionary problemProperties
 (

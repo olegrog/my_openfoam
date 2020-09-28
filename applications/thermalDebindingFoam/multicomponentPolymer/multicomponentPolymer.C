@@ -27,6 +27,8 @@ License
 
 #include "multicomponentPolymer.H"
 
+#include "constants.H"
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::multicomponentPolymer::multicomponentPolymer(const fvMesh& mesh)
@@ -42,7 +44,8 @@ Foam::multicomponentPolymer::multicomponentPolymer(const fvMesh& mesh)
             IOobject::NO_WRITE
         )
     ),
-    rhoPolymer_("rhoPolymer", dimDensity, *this),
+    polymerRho_("polymerRho", dimDensity, *this),
+    monomerW_("monomerW", dimMass/dimMoles, *this),
     totalVolumeFraction_("totalVolumeFraction", dimless, *this),
     initialPorosity_("initialPorosity", dimless, *this),
     diffusionModelPtr_(diffusionModel::New(subDict("diffusionModel"))),
@@ -78,14 +81,32 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::volumeFraction() co
 }
 
 
+Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::pressure
+(
+    const volScalarField& rho,
+    const volScalarField& T
+) const
+{
+    using constant::physicoChemical::R;
+
+    // Fraction in the whole system
+    volScalarField monomerVolumeFraction = totalVolumeFraction_ - volumeFraction();
+    monomerVolumeFraction.max(dimensionedScalar(inv(dimless), SMALL));
+
+    return rho*R*T/monomerVolumeFraction/monomerW_;
+}
+
+
 Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::diffusion
 (
     const volScalarField& rho,
     const volScalarField& T
 ) const
 {
+    // Fractions in the polymer--monomer system
     const volScalarField monomerVolumeFraction = 1 - volumeFraction()/totalVolumeFraction_;
-    const volScalarField monomerMassFraction = rho/(rho + volumeFraction()*rhoPolymer_);
+    const volScalarField monomerMassFraction = rho/(rho + volumeFraction()*polymerRho_);
+
     return diffusionModelPtr_->D(T, monomerVolumeFraction, monomerMassFraction)
         *Foam::pow(totalVolumeFraction_, 1.5);
 }

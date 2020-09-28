@@ -60,7 +60,10 @@ class multicomponentPolymer
     // Private data
 
         //- Density of the polymer [kg/m^3]
-        const dimensionedScalar rhoPolymer_;
+        const dimensionedScalar polymerRho_;
+
+        //- Molar mass of the monomer [kg/mol]
+        const dimensionedScalar monomerW_;
 
         //- Total volume fraction of polymer and pores []
         const dimensionedScalar totalVolumeFraction_;
@@ -95,7 +98,7 @@ public:
             //- Return the polymer density [kg/m^3]
             dimensionedScalar rho() const
             {
-                return rhoPolymer_;
+                return polymerRho_;
             }
 
             //- Return the initial volume fraction []
@@ -106,6 +109,13 @@ public:
 
             //- Return the volume fraction []
             tmp<volScalarField> volumeFraction() const;
+
+            //- Return the monomer pressure [Pa]
+            tmp<volScalarField> pressure
+            (
+                const volScalarField& rho,
+                const volScalarField& T
+            ) const;
 
             //- Return the diffusion coefficient [m^2/s]
             tmp<volScalarField> diffusion

@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
         while (simple.correctNonOrthogonal())
         {
             D = polymer.diffusion(rho, T);
+            p = polymer.pressure(rho, T);
 
             fvScalarMatrix rhoEqn
             (

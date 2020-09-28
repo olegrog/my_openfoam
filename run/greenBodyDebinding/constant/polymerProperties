@@ -34,7 +34,8 @@ components
 
 totalVolumeFraction         0.37; // polymer + pores
 initialPorosity             0.03;
-rhoPolymer                  1e3;
+polymerRho                  1e3;
+monomerW                    30e-3;
 
 diffusionModel
 {
