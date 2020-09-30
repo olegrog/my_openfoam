@@ -5,17 +5,30 @@
     \\  /    A nd           | Copyright (C) 1991-2009 OpenCFD Ltd.
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 \*---------------------------------------------------------------------------*/
 
-#define NoConstructFromTmp
 #include "extrapolatedGradientFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "uniformDimensionedFields.H"
 #include "fvcGrad.H"
-#define NoConstructFromTmp
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -92,20 +105,18 @@ void extrapolatedGradientFvPatchScalarField::updateCoeffs()
     {
         return;
     }
-    
+
     word field = this->internalField().name();
-    
+
     vectorField nf = patch().nf();
-    
-    volVectorField gradField 
+
+    volVectorField gradField
         = fvc::grad(db().lookupObject<volScalarField>(field));
 
     gradient()
-//        = (nf & gradField.boundaryField()[patch().index()]
-//        .patchInternalField()());
-        = -2*(nf & gradField.boundaryField()[patch().index()]
-        .patchInternalField()()) * log(patch().deltaCoeffs())/(1-log(patch().deltaCoeffs()));
-    
+        = (nf & gradField.boundaryField()[patch().index()]
+        .patchInternalField()());
+
     fixedGradientFvPatchScalarField::updateCoeffs();
 }
 
