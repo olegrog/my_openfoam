@@ -39,7 +39,7 @@ functions
         type            fieldMinMax;
         libs            (fieldFunctionObjects);
         writeControl    timeStep;
-        fields          (rho T p D);
+        fields          (T rho p "D[12]");
         location        false;
         log             false;
         enabled         true;

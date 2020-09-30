@@ -30,7 +30,8 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "simpleControl.H"
+#include "pimpleControl.H"
+#include "zeroGradientFvPatchField.H"
 
 #include "multicomponentPolymer/multicomponentPolymer.H"
 
@@ -49,16 +50,16 @@ int main(int argc, char *argv[])
 
     Info<< "\nStarting time loop\n" << endl;
 
-    while (simple.loop() && gMax(T) < maxTemperature)
+    while (runTime.run() && gMax(T) < maxTemperature)
     {
+        ++runTime;
+
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // --- Calculate the temperature
-
         T += heatingRate*runTime.deltaT();
 
         // --- Calculate the burning of polymer components
-
         forAllIter(PtrDictionary<polymerComponent>, polymer.components(), iter)
         {
             polymerComponent& y = iter();
@@ -72,20 +73,19 @@ int main(int argc, char *argv[])
         }
 
         // --- Solve the transport equation for monomer
-
-        while (simple.correctNonOrthogonal())
+        while (pimple.loop())
         {
-            D = polymer.diffusion(rho, T);
+            D1 = polymer.diffusion(rho, T);
             p = polymer.pressure(rho, T);
             permeability = permeability0
+                *pow(polymer.poresFraction()/polymer.totalVolumeFraction(), particleSizeExponent)
                 *pow(polymer.poresFraction(), 3)/sqr(1 - polymer.poresFraction());
+            D2 = permeability/mu/polymer.poresFraction()*p;
+            D2.correctBoundaryConditions();
 
             fvScalarMatrix rhoEqn
             (
-                fvm::ddt(rho)
-             ==
-                fvm::laplacian(D, rho)
-              + fvm::laplacian(permeability/mu/polymer.poresFraction()*p, rho)
+                fvm::ddt(rho) == fvm::laplacian(D1 + D2, rho)
             );
 
             forAllIter(PtrDictionary<polymerComponent>, polymer.components(), iter)
@@ -95,6 +95,8 @@ int main(int argc, char *argv[])
 
             rhoEqn.solve();
         }
+
+        Info<< "max(D1) = " << gMax(D1) << ", max(D2) = " << gMax(D2) << endl;
 
         runTime.write();
         runTime.printExecutionTime(Info);

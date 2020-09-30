@@ -29,17 +29,33 @@ volScalarField rho
 Info<< "Reading polymer properties\n" << endl;
 multicomponentPolymer polymer(mesh);
 
-volScalarField D
+volScalarField D1
 (
     IOobject
     (
-        "D",
+        "D1",
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    polymer.diffusion(rho, T)
+    mesh,
+    dimViscosity
+);
+
+volScalarField D2
+(
+    IOobject
+    (
+        "D2",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimViscosity,
+    zeroGradientFvPatchField<scalar>::typeName
 );
 
 volScalarField p
@@ -52,7 +68,8 @@ volScalarField p
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    polymer.pressure(rho, T)
+    mesh,
+    dimPressure
 );
 
 Info<< "Reading transport properties\n" << endl;

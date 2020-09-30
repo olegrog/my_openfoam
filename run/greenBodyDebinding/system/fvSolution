@@ -22,6 +22,12 @@ solvers
         solver          PCG;
         preconditioner  DIC;
         tolerance       1e-6;
+        relTol          0.1;
+    }
+
+    rhoFinal
+    {
+        $rho
         relTol          0;
     }
 
@@ -33,9 +39,17 @@ solvers
     }
 }
 
-SIMPLE
+PIMPLE
 {
-    nNonOrthogonalCorrectors 0;
+    nOuterCorrectors    20;
+    residualControl
+    {
+        rho
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+    }
 }
 
 // ************************************************************************* //

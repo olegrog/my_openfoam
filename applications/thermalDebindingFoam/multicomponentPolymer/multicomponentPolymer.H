@@ -116,6 +116,12 @@ public:
                 return totalVolumeFraction_ - volumeFraction();
             }
 
+            //- Return the total volume fraction
+            dimensionedScalar totalVolumeFraction() const
+            {
+                return totalVolumeFraction_;
+            }
+
             //- Return the monomer pressure [Pa]
             tmp<volScalarField> pressure
             (

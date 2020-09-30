@@ -14,7 +14,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-mu                  2e-3;
-meanParticleSize    10e-6;
+mu                      2e-3;
+meanParticleSize        1e-7; // 1.03e-6 from the experiment
+particleSizeExponent    2;
 
 // ************************************************************************* //
