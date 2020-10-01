@@ -51,3 +51,7 @@ plot file1 u (filter(KtoC($11), 100, 200)):9 with filledcurves x1 notitle lc rgb
     file3 u 1:(fromMPa($3)) w lp title "Tensile strength", \
     file3 u 1:(fromMPa($4)) w lp title "Flexural strength", \
 
+getValue(row,col,filename) = system('awk ''{if (NR == '.row.') print $'.col.'}'' '.filename.'')
+stats file1 u 9 nooutput
+print "Max pressure (MPa) = ", STATS_max/1e6, " when T (°C) = ", KtoC(getValue(STATS_index_max+3, 11, file1))
+
