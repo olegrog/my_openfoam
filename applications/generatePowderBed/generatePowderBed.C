@@ -5,6 +5,8 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
+                            | Copyright (C) 2019-2020 Oleg Rogozin
+-------------------------------------------------------------------------------
 License
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -18,6 +20,9 @@ License
 
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Application
+    generatePowderBed
 
 Description
     Set initial conditions for alpha field, which represent the powder bed on
@@ -37,6 +42,9 @@ scalarField generateBall
 {
     return mag(points - center) - radius;
 }
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {

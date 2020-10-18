@@ -168,6 +168,15 @@ public:
                 return factor<0>()*sumSqrAperD();
             }
 
+            //- Return the first derivative of kStar []
+            dimensionedScalar partitionPrime() const
+            {
+                return 1 - factor<1>()/factor<0>();
+            }
+
+
+        // Evaluation
+
             //- Return the chemical driving force [J/m^3]
             tmp<volScalarField> chemicalDrivingForce
             (
@@ -179,12 +188,6 @@ public:
             tmp<volScalarField> partition(const volScalarField& phase) const
             {
                 return phase + (1 - phase)*factor<1>()/factor<0>();
-            }
-
-            //- Return the first derivative of kStar []
-            dimensionedScalar partitionPrime() const
-            {
-                return 1 - factor<1>()/factor<0>();
             }
 };
 

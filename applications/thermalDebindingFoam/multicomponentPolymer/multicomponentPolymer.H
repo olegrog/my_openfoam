@@ -122,6 +122,9 @@ public:
                 return totalVolumeFraction_;
             }
 
+
+        // Evaluation
+
             //- Return the monomer pressure [Pa]
             tmp<volScalarField> pressure
             (

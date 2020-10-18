@@ -215,13 +215,13 @@ public:
                 const T3& gasFraction
             ) const;
 
-        //- Construct a LiquidFraction object
-        LiquidFraction liquidFraction
-        (
-            const volScalarField& h,
-            const volScalarField& hAtMelting,
-            const volScalarField& metalFraction
-        ) const;
+            //- Construct a LiquidFraction object
+            LiquidFraction liquidFraction
+            (
+                const volScalarField& h,
+                const volScalarField& hAtMelting,
+                const volScalarField& metalFraction
+            ) const;
 };
 
 

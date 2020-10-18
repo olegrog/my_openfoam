@@ -46,8 +46,6 @@ Description
 
 #include "gasMetalMixture.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 volScalarField surfaceGaussian
 (
     const volVectorField& x,
@@ -61,6 +59,7 @@ volScalarField surfaceGaussian
     return 2*exp(-2*magSqr(r/radius))/pi/sqr(radius);
 }
 
+
 // For debug
 auto pp = [](const volScalarField& f)
 {
@@ -69,6 +68,9 @@ auto pp = [](const volScalarField& f)
     // f.writeMinMax(Info);
     // Info<< f.name() << ": " << gMin(f) << " " << gMax(f) << endl;
 };
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {

@@ -123,20 +123,6 @@ public:
                 return name_;
             }
 
-            //- Return the equilibrium concentration []
-            template<class T1, class T2>
-            auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
-            {
-                return (equilibriumS_ + (T - Tmelting_)/slopeS_)*phase
-                     + (equilibriumL_ + (T - Tmelting_)/slopeL_)*(1 - phase);
-            }
-
-            //- Return the diffusion coefficient [m^2/s]
-            tmp<volScalarField> diffusion(const volScalarField& phase) const
-            {
-                return diffusionS_*phase + diffusionL_*(1 - phase);
-            }
-
             //- Return the slopes along the solidification path (solid and liquid) [K]
             template<label Phase>
             dimensionedScalar slope() const
@@ -161,6 +147,23 @@ public:
             dimensionedScalar molarMass() const
             {
                 return molarMass_;
+            }
+
+
+        // Evaluation
+
+            //- Return the equilibrium concentration []
+            template<class T1, class T2>
+            auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
+            {
+                return (equilibriumS_ + (T - Tmelting_)/slopeS_)*phase
+                     + (equilibriumL_ + (T - Tmelting_)/slopeL_)*(1 - phase);
+            }
+
+            //- Return the diffusion coefficient [m^2/s]
+            tmp<volScalarField> diffusion(const volScalarField& phase) const
+            {
+                return diffusionS_*phase + diffusionL_*(1 - phase);
             }
 };
 

@@ -40,8 +40,6 @@ Description
 
 #include "multicomponentAlloy/multicomponentAlloy.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 using constant::mathematical::pi;
 
 tmp<volScalarField> fPrime(const volScalarField& phase)
@@ -49,20 +47,24 @@ tmp<volScalarField> fPrime(const volScalarField& phase)
     return 2*phase*(1 - phase)*(1 - 2*phase);
 }
 
+
 tmp<volScalarField> fPrime2(const volScalarField& phase)
 {
     return 3*sqr(1 - 2*phase) - 1;
 }
+
 
 tmp<volScalarField> gPrime(const volScalarField& phase)
 {
     return 30*sqr(phase)*sqr(1 - phase);
 }
 
+
 tmp<volScalarField> gPrime2(const volScalarField& phase)
 {
     return 30*fPrime(phase);
 }
+
 
 tmp<volScalarField> generateSeed
 (
@@ -78,6 +80,7 @@ tmp<volScalarField> generateSeed
     );
 }
 
+
 void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains)
 {
     forAll(grain, cellI)
@@ -89,6 +92,7 @@ void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, 
     }
 }
 
+
 void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains)
 {
     forAll(grain, cellI)
@@ -97,11 +101,15 @@ void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrai
     }
 }
 
+
 tmp<volVectorField> calcNormal(const volVectorField& vField)
 {
     dimensionedVector smallVector("small", vField.dimensions(), vector(0, SMALL, 0));
     return (vField + smallVector)/mag(vField + smallVector);
 }
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
