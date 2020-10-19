@@ -6,6 +6,7 @@ cd ${0%/*} || exit 1    # run from this directory
 
 runApplication blockMesh
 runApplication stereolithography
-#runApplication `getApplication`
+cp 0.orig/D 0/
+runApplication `getApplication`
 
 # ----------------------------------------------------------------- end-of-file

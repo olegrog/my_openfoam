@@ -50,7 +50,7 @@ IOdictionary polymerProperties
 
 const scalar aConst(polymerProperties.get<scalar>("aConst"));
 const scalar bConst(polymerProperties.get<scalar>("bConst"));
-const scalar pGel(polymerProperties.get<scalar>("gelPoint"));
+const scalar pGel(polymerProperties.get<scalar>("pGel"));
 
 const dimensionedScalar Ec("criticalExposure", totalExposure.dimensions(), polymerProperties);
 const dimensionedScalar Dp("penetrationDepth", dimLength, polymerProperties);

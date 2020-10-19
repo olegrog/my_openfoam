@@ -23,17 +23,17 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         200;
+endTime         10000;
 
 deltaT          1;
 
-writeControl    timeStep;
+writeControl    runTime;
 
-writeInterval   1;
+writeInterval   500;
 
 purgeWrite      0;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 
@@ -44,7 +44,5 @@ timeFormat      general;
 timePrecision   6;
 
 runTimeModifiable true;
-
-maxIter         10;
 
 // ************************************************************************* //

@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     Info<< " -- Scattering factor = " << Fscatt << endl;
     Info<< " -- Polymerization constant = " << PConst.value() << endl;
 
-    if (notEqual(zmin.value(), 0))
+    if (mag(zmin) > small)
     {
         FatalError
             << "Coordinate zmin is not equal to zero."
@@ -90,12 +90,12 @@ int main(int argc, char *argv[])
 
     Info << " -- Total number of layers = " << --i << endl;
 
-    if (notEqual(zmax.value(), laser.height(i).value()))
+    if (mag(zmax - laser.height(i)) > small)
     {
         FatalError
-            << "Coordinate zmax does not correspond to integer number of layers:"
+            << "Coordinate zmax does not correspond to integer number of layers:" << nl
             << "  zmax = " << zmax.value() << nl
-            << "  laser.height(" << i << ") = " << laser.height(i).value()
+            << "  laser.height(" << i << ") = " << laser.height(i).value() << nl
             << exit(FatalError);
     }
 

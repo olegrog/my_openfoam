@@ -28,21 +28,17 @@ ddtSchemes
 gradSchemes
 {
     default         leastSquares;
-    grad(D)         leastSquares;
-    grad(T)         leastSquares;
 }
 
 divSchemes
 {
-    default         none;
-    div(sigmaD)     Gauss linear;
+    default         Gauss linear;
 }
 
 laplacianSchemes
 {
     default         none;
     laplacian(DD,D) Gauss linear corrected;
-    laplacian(DT,T) Gauss linear corrected;
 }
 
 interpolationSchemes

@@ -20,18 +20,19 @@ solvers
     D
     {
         solver          GAMG;
-        tolerance       1e-06;
+        tolerance       1e-6;
         relTol          0.9;
         smoother        GaussSeidel;
         nCellsInCoarsestLevel 20;
     }
 }
 
-stressAnalysis
+SIMPLE
 {
-    compactNormalStress yes;
-    nCorrectors     1;
-    D               1e-06;
+    residualControl
+    {
+        D               1e-5;
+    }
 }
 
 // ************************************************************************* //
