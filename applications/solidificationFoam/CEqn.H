@@ -1,7 +1,7 @@
 const volVectorField normal = calcNormal(fvc::grad(phase));
 const volScalarField partition = alloy.partition(phase);
 
-forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
+forAllIters(alloy.components(), iter)
 {
     alloyComponent& C = iter();
 

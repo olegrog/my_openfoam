@@ -33,7 +33,7 @@
         + tempGradient*(coord.component(vector::Y) - frontPosition);
 
     // concentrations
-    forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
+    forAllIters(alloy.components(), iter)
     {
         alloyComponent& C = iter();
         const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);

@@ -21,7 +21,7 @@ Info<< "Interface Courant number max = " << phaseCoNum << endl;
 Co = max(Co, rhsPhase*runTime.deltaT());
 
 // --- Estimate evolution of concentration via rhs
-forAllIter(PtrDictionary<alloyComponent>, alloy.components(), iter)
+forAllIters(alloy.components(), iter)
 {
     alloyComponent& C = iter();
     volScalarField h = alloy.partition(phase);

@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         T += heatingRate*runTime.deltaT();
 
         // --- Calculate the burning of polymer components
-        forAllIter(PtrDictionary<polymerComponent>, polymer.components(), iter)
+        forAllIters(polymer.components(), iter)
         {
             polymerComponent& y = iter();
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
                 fvm::ddt(rho) == fvm::laplacian(D1 + D2, rho)
             );
 
-            forAllIter(PtrDictionary<polymerComponent>, polymer.components(), iter)
+            forAllIters(polymer.components(), iter)
             {
                 rhoEqn += polymer.initialVolumeFraction()*polymer.rho()*fvc::ddt(iter());
             }
