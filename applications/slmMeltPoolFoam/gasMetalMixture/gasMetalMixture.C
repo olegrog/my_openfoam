@@ -144,7 +144,7 @@ Foam::tmp<Foam::volVectorField> Foam::gasMetalMixture::marangoniForce
 ) const
 {
     const volVectorField normal(fvc::reconstruct(nHatf()));
-    const volTensorField I_nn(tensor::one - sqr(normal));
+    const volTensorField I_nn(tensor::I - sqr(normal));
 
     return dSigmaDT_*(gradT & I_nn)*mag(fvc::grad(alpha2()));
 }
