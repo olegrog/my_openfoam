@@ -15,40 +15,20 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-d2dt2Schemes
-{
-    default         steadyState;
-}
-
-ddtSchemes
-{
-    default         Euler;
-}
-
 gradSchemes
 {
-    default         leastSquares;
+    grad(D)         leastSquares;
 }
 
 divSchemes
 {
     default         Gauss linear;
+    div(sigma)      Gauss linear;
 }
 
 laplacianSchemes
 {
-    default         none;
-    laplacian(DD,D) Gauss linear corrected;
-}
-
-interpolationSchemes
-{
-    default         linear;
-}
-
-snGradSchemes
-{
-    default         none;
+    laplacian(DD,D) Gauss linear uncorrected;
 }
 
 // ************************************************************************* //

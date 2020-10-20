@@ -17,13 +17,20 @@ FoamFile
 
 solvers
 {
-    D
+    D_
     {
         solver          GAMG;
         tolerance       1e-6;
         relTol          0.9;
         smoother        GaussSeidel;
         nCellsInCoarsestLevel 20;
+    }
+    D
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-6;
+        relTol          0.9;
     }
 }
 
