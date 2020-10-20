@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2011-2017 OpenFOAM Foundation
+                  interFoam | Copyright (C) 2011-2017 OpenFOAM Foundation
                 isoAdvector | Copyright (C) 2016 DHI
               Modified work | Copyright (C) 2018 Johan Roenby
             slmMeltPoolFoam | Copyright (C) 2019-2020 Oleg Rogozin
