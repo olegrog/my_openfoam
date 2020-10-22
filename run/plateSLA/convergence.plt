@@ -1,16 +1,15 @@
 #!/usr/bin/env gnuplot --persist -c
-EPS=0
 
-if (EPS) {
+if (ARGC > 0) {
     set terminal postscript eps color font 'Helvetica,14'
-    set output "convergence.eps"
+    set output ARG1.".eps"
 } else {
     set terminal qt size 1000, 600 font 'Helvetica,14'
 }
 
 file = "log.polymerSolidFoam"
 # Generate 3 columns
-data = sprintf("<(awk '/for Dx/{a=$8+0} /for Dy/{b=$8+0} /for Dz/{c=$8+0; print a,b,c}' %s)", file)
+data = sprintf("<(awk '/for Dx/{a=$$8+0} /for Dy/{b=$$8+0} /for Dz/{c=$$8+0; print a,b,c}' %s)", file)
 
 set xlabel "Iteration"
 set ylabel "Residual"
