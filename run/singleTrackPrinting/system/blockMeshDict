@@ -40,9 +40,9 @@ vertices
 blocks
 (
     hex (0 1 2 3 4 5 6 7) (
-#calc "$cells*(($xmax)-($xmin))"
-#calc "$cells*(($ymax)-($ymin))"
-#calc "$cells*(($zmax)-($zmin))"
+#eval "$cells*(($xmax)-($xmin))"
+#eval "$cells*(($ymax)-($ymin))"
+#eval "$cells*(($zmax)-($zmin))"
     ) simpleGrading (1 1 1)
 );
 

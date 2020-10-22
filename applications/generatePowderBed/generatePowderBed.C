@@ -31,7 +31,11 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "isoCutCell.H"
+#include "cutCellIso.H"
+
+//*************************************//
+
+using constant::mathematical::pi;
 
 scalarField generateBall
 (
@@ -44,7 +48,38 @@ scalarField generateBall
 }
 
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+tmp<volScalarField> VolumeOfFluid(const fvMesh& mesh, scalarField& f)
+{
+    cutCellIso cutCell(mesh, f);
+    auto tres = volScalarField::New("result", mesh, dimless);
+    auto& res = tres.ref();
+
+    forAll(res, cellI)
+    {
+        label cellStatus = cutCell.calcSubCell(cellI, Zero);
+
+        if (cellStatus == -1)
+        {
+            res[cellI] = 1;
+        }
+        else if (cellStatus == 1)
+        {
+            res[cellI] = 0;
+        }
+        else if (cellStatus == 0)
+        {
+            if (mag(cutCell.faceArea()) != 0)
+            {
+                res[cellI] = max(min(cutCell.VolumeOfFluid(), 1), 0);
+            }
+        }
+    }
+
+    return tres;
+}
+
+
+//*************************************//
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +103,6 @@ int main(int argc, char *argv[])
         ),
         mesh
     );
-    volScalarField dAlpha = alpha;  // increment of the alpha field
 
     // -- Read a dictionary
     const word dictName("powderBedProperties");
@@ -105,11 +139,9 @@ int main(int argc, char *argv[])
     // -- Generate substrate
     {
         scalarField f = substratePosition.value() - (mesh.points() & substrateNormal);
-        isoCutCell icc(mesh, f);
-        icc.volumeOfFluid(alpha, Zero);
+        alpha = VolumeOfFluid(mesh, f);
         volumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
     }
-    alpha += dAlpha;
 
     // -- Generate balls
     Random random(seed);
@@ -117,26 +149,30 @@ int main(int argc, char *argv[])
     {
         for (int i = -2; i < 15-2; i++)
         {
-            const scalar R = ballRadius.value() * (1 + amplitudeRadius * random.position(-1, 1));
-            const scalar X = (amplitudePosition * random.position(-1, 1) + latticeStep*i) * R;
-            const scalar Y = (amplitudePosition * random.position(-1, 1) + latticeStep*j) * R;
+            const scalar R = ballRadius.value()*(1 + amplitudeRadius*random.position(-1, 1));
+            const scalar X = (amplitudePosition*random.position(-1, 1) + latticeStep*i)*R;
+            const scalar Y = (amplitudePosition*random.position(-1, 1) + latticeStep*j)*R;
             const scalar Z = substratePosition.value() + R;
+
             scalarField f = -generateBall(mesh.points(), vector(X, Y, Z), R);
-            isoCutCell icc(mesh, f);
-            icc.volumeOfFluid(dAlpha, Zero);
-            alpha += dAlpha;
+            alpha += VolumeOfFluid(mesh, f);
+
             // -- Evaluate the volume of ball (full or cut)
             // TODO(olegrog): improve accuracy by adding spherical caps
-            if (bounds.min().x() < X && X < bounds.max().x()
-                && bounds.min().y() < Y && Y < bounds.max().y())
+            if
+            (
+                bounds.min().x() < X && X < bounds.max().x()
+             && bounds.min().y() < Y && Y < bounds.max().y()
+            )
             {
-                volumeFraction += 4./3 * constant::mathematical::pi * pow(R, 3) / domainVolume;
+                volumeFraction += 4./3*pi*pow(R, 3)/domainVolume;
             }
         }
     }
 
     // -- Save the result
     alpha.clip(0, 1);
+    alpha.correctBoundaryConditions();
     Info<< "Writing field " << alphaName << endl;
     ISstream::defaultPrecision(18);
     alpha.write();
