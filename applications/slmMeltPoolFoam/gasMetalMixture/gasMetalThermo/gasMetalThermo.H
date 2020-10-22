@@ -45,8 +45,14 @@ SourceFiles
 
 #include "LiquidFraction.H"
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 namespace Foam
 {
+
+/*---------------------------------------------------------------------------*\
+                        Class gasMetalThermo Declaration
+\*---------------------------------------------------------------------------*/
 
 class gasMetalThermo
 :
@@ -225,10 +231,18 @@ public:
 };
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 } // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 #ifdef NoRepository
-#   include "gasMetalThermoTemplates.C"
+    #include "gasMetalThermoTemplates.C"
 #endif
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 #endif
+
+// ************************************************************************* //

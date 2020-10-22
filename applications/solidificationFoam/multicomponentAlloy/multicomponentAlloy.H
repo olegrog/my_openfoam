@@ -42,8 +42,14 @@ SourceFiles
 
 #include "alloyComponent.H"
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 namespace Foam
 {
+
+/*---------------------------------------------------------------------------*\
+                      Class multicomponentAlloy Declaration
+\*---------------------------------------------------------------------------*/
 
 class multicomponentAlloy
 :
@@ -192,10 +198,18 @@ public:
 };
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 } // End namespace Foam
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 #ifdef NoRepository
-#   include "multicomponentAlloyTemplates.C"
+    #include "multicomponentAlloyTemplates.C"
 #endif
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 #endif
+
+// ************************************************************************* //
