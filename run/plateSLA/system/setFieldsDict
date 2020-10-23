@@ -11,24 +11,29 @@ FoamFile
     format      ascii;
     class       dictionary;
     location    "system";
-    object      fvSchemes;
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-gradSchemes
-{
-    grad(D)         Gauss linear; //leastSquares;
-}
+defaultFieldValues
+(
+    volScalarFieldValue polymerization 0.8
+);
 
-divSchemes
-{
-    default         Gauss linear;
-    div(sigma)      Gauss linear;
-}
+high 1e5;
+low -1e5;
 
-laplacianSchemes
-{
-    laplacian(DD,D) Gauss linear orthogonal;
-}
+regions
+(
+    boxToCell
+    {
+        box ($low $low $low) ($high $high 0.25e-3);
+        fieldValues
+        (
+            volScalarFieldValue polymerization 1
+        );
+    }
+);
+
 
 // ************************************************************************* //

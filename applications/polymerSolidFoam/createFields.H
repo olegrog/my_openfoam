@@ -44,7 +44,16 @@ const dimensionedScalar pGel("pGel", dimless, polymerProperties);
 const dimensionedScalar epsilonChemicalMax("epsilonChemicalMax", dimless, polymerProperties);
 
 Info<< "Calculating mechanical properties\n" << endl;
+
 volScalarField E("E", Emax*(polymerization - pGel)/(1 - pGel));
+
+if (gMin(E) < SMALL)
+{
+    FatalError
+        << "Somewhere the Young's modulus is equal to zero."
+        << exit(FatalError);
+}
+
 volScalarField nu = volScalarField::New
 (
     "nu",
@@ -53,6 +62,7 @@ volScalarField nu = volScalarField::New
 );
 
 Info<< "Calculating Lame's coefficients\n" << endl;
+
 volScalarField mu(E/(2.0*(1.0 + nu)));
 volScalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK(E/(1.0 - 2.0*nu));
