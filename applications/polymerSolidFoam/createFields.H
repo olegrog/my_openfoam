@@ -97,3 +97,13 @@ volScalarField sigmaEq
 );
 
 mesh.setFluxRequired(D.name());
+
+// Flag to write auxiliary fields
+bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
+
+if (writeProperties)
+{
+    polymerization.writeOpt() = IOobject::AUTO_WRITE;
+    E.writeOpt() = IOobject::AUTO_WRITE;
+    sigma.writeOpt() = IOobject::AUTO_WRITE;
+}
