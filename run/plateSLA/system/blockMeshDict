@@ -86,19 +86,19 @@ boundary
     }
     left
     {
-	    type wall;
-	    faces
-	    (
-	        (3 7 4 0)
-	    );
+        type wall;
+        faces
+        (
+            (3 7 4 0)
+        );
     }
     right
     {
-	    type wall;
-	    faces
-	    (
-	        (1 2 6 5)
-	    );
+        type wall;
+        faces
+        (
+            (1 2 6 5)
+        );
     }
 );
 

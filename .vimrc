@@ -26,6 +26,10 @@ autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
 autocmd InsertLeave * match ExtraWhitespace /\s\+$/
 autocmd BufWinLeave * call clearmatches()
 
+"- Highlight tabs
+set list
+set listchars=tab:▸\ ,
+
 "- Enables transparent pasting for vim < 8.0
 "- Imported from https://stackoverflow.com/a/7053522
 if &term =~ "xterm.*"
