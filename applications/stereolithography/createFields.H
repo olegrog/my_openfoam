@@ -1,37 +1,29 @@
-volScalarField totalExposure
+volScalarField totalExposure = volScalarField::New
 (
-    IOobject
-    (
-        "totalExposure",
-        runTime.timeName(),
-        mesh
-    ),
+    "totalExposure",
     mesh,
-    dimEnergy/dimArea
+    dimensionedScalar(dimEnergy/dimArea)
 );
 
-volScalarField totalSqrtExposure
+volScalarField totalSqrtExposure = volScalarField::New
 (
-    IOobject
-    (
-        "totalSqrtExposure",
-        runTime.timeName(),
-        mesh
-    ),
+    "totalSqrtExposure",
     mesh,
-    sqrt(dimEnergy/dimArea)
+    dimensionedScalar(sqrt(dimEnergy/dimArea))
 );
 
-volScalarField polymerization
+volScalarField polymerization = volScalarField::New
 (
-    IOobject
-    (
-        "polymerization",
-        runTime.timeName(),
-        mesh
-    ),
+    "polymerization",
     mesh,
-    dimless
+    dimensionedScalar()
+);
+
+volScalarField nLayer = volScalarField::New
+(
+    "nLayer",
+    mesh,
+    dimensionedScalar(dimless, 1)
 );
 
 Info<< "Reading polymerProperties" << endl;

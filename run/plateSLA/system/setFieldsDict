@@ -18,6 +18,7 @@ FoamFile
 defaultFieldValues
 (
     volScalarFieldValue polymerization 0.8
+    volScalarFieldValue nLayer 2
 );
 
 high 1e5;
@@ -31,6 +32,7 @@ regions
         fieldValues
         (
             volScalarFieldValue polymerization 1
+            volScalarFieldValue nLayer 1
         );
     }
 );

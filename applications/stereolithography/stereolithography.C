@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
     label i;
     for (i = 1; laser.height(i) < zmax + small; i++)
     {
+        nLayer += pos0(Z - laser.height(i) - small);
         volScalarField exposure = laser.E()*BeerLambert(Z - laser.height(i) - small, Dp);
         totalSqrtExposure += sqrt(exposure);
         totalExposure += exposure;
@@ -103,6 +104,7 @@ int main(int argc, char *argv[])
     polymerization = 1 - exp(-pow025(2*pi)*PConst*totalSqrtExposure*sqrt(radius/laser.V(L)));
 
     Info<< "Writing fields" << endl;
+    nLayer.write();
     totalExposure.write();
     totalSqrtExposure.dimensions().clear(); // ParaView cannot read fractional dimensions
     totalSqrtExposure.write();

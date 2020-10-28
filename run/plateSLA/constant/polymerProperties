@@ -28,6 +28,7 @@ penetrationDepth        [m]     61e-6;
 
 nu                  0.32;
 epsilonChemicalMax  -0.025;
+interlayerCohesion  0.05;
 
 Emax                    [Pa]    0.9e9;
 

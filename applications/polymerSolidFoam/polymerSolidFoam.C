@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
 
     Info<< "\nCalculating displacement field\n" << endl;
 
+    symmTensor Ixy = symmTensor::I; Ixy.zz() = 0;
+
     while (simple.loop())
     {
         Info<< "Iteration: " << runTime.value() << nl << endl;
@@ -63,11 +65,13 @@ int main(int argc, char *argv[])
         DEqn.solve();
 
         volTensorField gradD(fvc::grad(D));
-        sigma = mu*twoSymm(gradD) + lambda*I*tr(gradD) - threeKalpha*I*polymerization;
+        sigma = mu*twoSymm(gradD) + lambda*I*tr(gradD) - threeK*epsilonChemicalMax
+            *(polymerization*I + interlayerCohesion*(nLayer - 1)*Ixy);
         divSigmaExp = fvc::div(sigma - (2*mu + lambda)*gradD, "div(sigma)");
 
         if (runTime.writeTime())
         {
+            epsilon = symm(gradD);
             sigmaEq = sqrt(1.5*magSqr(dev(sigma)));
             Info<< "Max sigmaEq = " << max(sigmaEq).value() << endl;
             runTime.write();

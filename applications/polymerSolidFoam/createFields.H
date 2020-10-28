@@ -26,6 +26,20 @@ volScalarField polymerization
     mesh
 );
 
+Info<< "Reading field nLayer\n" << endl;
+volScalarField nLayer
+(
+    IOobject
+    (
+        "nLayer",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh
+);
+
 Info<< "Reading polymer properties\n" << endl;
 IOdictionary polymerProperties
 (
@@ -42,6 +56,7 @@ IOdictionary polymerProperties
 const dimensionedScalar Emax("Emax", dimPressure, polymerProperties);
 const dimensionedScalar pGel("pGel", dimless, polymerProperties);
 const dimensionedScalar epsilonChemicalMax("epsilonChemicalMax", dimless, polymerProperties);
+const dimensionedScalar interlayerCohesion("interlayerCohesion", dimless, polymerProperties);
 
 Info<< "Calculating mechanical properties\n" << endl;
 
@@ -66,7 +81,6 @@ Info<< "Calculating Lame's coefficients\n" << endl;
 volScalarField mu(E/(2.0*(1.0 + nu)));
 volScalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK(E/(1.0 - 2.0*nu));
-volScalarField threeKalpha(threeK*epsilonChemicalMax);
 
 volSymmTensorField sigma
 (
@@ -103,6 +117,8 @@ volScalarField sigmaEq
     sigma.dimensions()
 );
 
+volSymmTensorField epsilon("epsilon", symm(fvc::grad(D)));
+
 mesh.setFluxRequired(D.name());
 
 // Flag to write auxiliary fields
@@ -111,6 +127,8 @@ bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
 if (writeProperties)
 {
     polymerization.writeOpt() = IOobject::AUTO_WRITE;
+    nLayer.writeOpt() = IOobject::AUTO_WRITE;
     E.writeOpt() = IOobject::AUTO_WRITE;
     sigma.writeOpt() = IOobject::AUTO_WRITE;
+    epsilon.writeOpt() = IOobject::AUTO_WRITE;
 }
