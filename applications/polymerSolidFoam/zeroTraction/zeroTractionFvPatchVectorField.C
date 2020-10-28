@@ -67,7 +67,7 @@ Foam::zeroTractionFvPatchVectorField::zeroTractionFvPatchVectorField
     fixedGradientFvPatchVectorField(p, iF)
 {
     fvPatchVectorField::operator=(patchInternalField());
-    gradient() = Zero;
+    gradient() = vectorField("gradient", dict, p.size());
 }
 
 
@@ -112,7 +112,7 @@ void Foam::zeroTractionFvPatchVectorField::updateCoeffs()
     const fvPatchField<symmTensor>& sigma =
         patch().lookupPatchField<volSymmTensorField, symmTensor>("sigma");
 
-    gradient() = fvPatchField<vector>::snGrad() - (n & sigma)/twoMuLambda;
+    gradient() = snGrad() - (n & sigma)/twoMuLambda;
 
     fixedGradientFvPatchVectorField::updateCoeffs();
 }

@@ -68,11 +68,18 @@ volScalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK(E/(1.0 - 2.0*nu));
 volScalarField threeKalpha(threeK*epsilonChemicalMax);
 
-Info<< "Calculating stress field sigma\n" << endl;
 volSymmTensorField sigma
 (
-    "sigma",
-    mu*twoSymm(fvc::grad(D)) + lambda*(I*fvc::div(D)) - threeKalpha*I*polymerization
+    IOobject
+    (
+        "sigma",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    E.dimensions()
 );
 
 Info<< "Calculating explicit part of div(sigma) divSigmaExp\n" << endl;

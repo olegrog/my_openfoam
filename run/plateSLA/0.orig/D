@@ -23,6 +23,7 @@ boundaryField
     ".*"
     {
         type        zeroTraction;
+        gradient    $internalField;
     }
 }
 
