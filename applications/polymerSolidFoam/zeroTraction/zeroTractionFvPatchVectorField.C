@@ -118,6 +118,15 @@ void Foam::zeroTractionFvPatchVectorField::updateCoeffs()
 }
 
 
+void Foam::zeroTractionFvPatchVectorField::write(Ostream& os) const
+{
+    // write gradient for restarting
+    fixedGradientFvPatchVectorField::write(os);
+    // write value for more accurate vizualization
+    writeEntry("value", os);
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam {
