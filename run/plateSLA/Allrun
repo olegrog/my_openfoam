@@ -6,10 +6,17 @@ cd ${0%/*} || exit 1    # run from this directory
 
 runApplication blockMesh
 runApplication stereolithography
-if [[ "$1" == "-bi" ]]; then
-    runApplication setFields
-fi
 cp 0.orig/D 0/
-runApplication `getApplication`
+
+if [[ "$1" == "-parallel" ]]; then
+    runApplication decomposePar
+    runParallel -np 4 `getApplication`
+    runApplication reconstructPar -newTimes
+else
+    if [[ "$1" == "-bi" ]]; then
+        runApplication setFields
+    fi
+    runApplication `getApplication`
+fi
 
 # ----------------------------------------------------------------- end-of-file

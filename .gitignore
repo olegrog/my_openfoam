@@ -17,6 +17,7 @@ dynamicCode
 polyMesh
 boundary
 postProcessing
+processor*
 [1-9]*
 0.[0-9]*
 *.gz
