@@ -4,7 +4,15 @@ cd ${0%/*} || exit 1    # run from this directory
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-runApplication blockMesh
+if [[ $# -eq 1 ]]; then
+    geo="gmsh/$1.geo"
+    [ -f "$geo" ] || { echo "No file $geo"; exit 1; }
+    runApplication gmsh -3 $geo
+    runApplication gmshToFoam "${geo%geo}msh"
+else
+    runApplication blockMesh
+fi
+
 runApplication `getApplication`
 
 # ----------------------------------------------------------------- end-of-file
