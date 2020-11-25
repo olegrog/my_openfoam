@@ -2,12 +2,12 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 1991-2009 OpenCFD Ltd.
+    \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
+                            | Copyright (C) 2020 Oleg Rogozin
+-------------------------------------------------------------------------------
 License
-    This file is part of OpenFOAM.
-
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -22,25 +22,26 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::extrapolatedGradientFvPatchScalarField
+    Foam::extrapolatedGradientFvPatchField
 
 Description
-    The boundary condition means that the second normal derivative is equal to
-    zero. Credit to Eugene de Villiers.
+    This boundary condition means that the second normal derivative is equal to
+    zero.
 
-    Downloaded from
+    Credit to Eugene de Villiers for extrapolatedGradientFvPatchScalarField,
+    which can be downloaded from
     https://www.cfd-online.com/Forums/openfoam/89731-second-derivative-zero-boundary-condition.html
 
 SourceFiles
-    extrapolatedGradientFvPatchScalarField.C
+    extrapolatedGradientFvPatchField.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef extrapolatedGradientFvPatchScalarFields_H
-#define extrapolatedGradientFvPatchScalarFields_H
+#ifndef extrapolatedGradientFvPatchField_H
+#define extrapolatedGradientFvPatchField_H
 
 #include "fvPatchFields.H"
-#include "fixedGradientFvPatchFields.H"
+#include "fixedGradientFvPatchField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -51,11 +52,11 @@ namespace Foam
                   Class extrapolatedGradientFvPatch Declaration
 \*---------------------------------------------------------------------------*/
 
-class extrapolatedGradientFvPatchScalarField
+template<class Type>
+class extrapolatedGradientFvPatchField
 :
-    public fixedGradientFvPatchScalarField
+    public fixedGradientFvPatchField<Type>
 {
-    // Private data
 
 public:
 
@@ -66,61 +67,61 @@ public:
     // Constructors
 
         //- Construct from patch and internal field
-        extrapolatedGradientFvPatchScalarField
+        extrapolatedGradientFvPatchField
         (
             const fvPatch&,
-            const DimensionedField<scalar, volMesh>&
+            const DimensionedField<Type, volMesh>&
         );
 
         //- Construct from patch, internal field and dictionary
-        extrapolatedGradientFvPatchScalarField
+        extrapolatedGradientFvPatchField
         (
             const fvPatch&,
-            const DimensionedField<scalar, volMesh>&,
+            const DimensionedField<Type, volMesh>&,
             const dictionary&
         );
 
         //- Construct by mapping given
-        //  extrapolatedGradientFvPatchScalarField onto a new patch
-        extrapolatedGradientFvPatchScalarField
+        //  extrapolatedGradientFvPatchField<Type> onto a new patch
+        extrapolatedGradientFvPatchField
         (
-            const extrapolatedGradientFvPatchScalarField&,
+            const extrapolatedGradientFvPatchField<Type>&,
             const fvPatch&,
-            const DimensionedField<scalar, volMesh>&,
+            const DimensionedField<Type, volMesh>&,
             const fvPatchFieldMapper&
         );
 
         //- Construct as copy
-        extrapolatedGradientFvPatchScalarField
+        extrapolatedGradientFvPatchField
         (
-            const extrapolatedGradientFvPatchScalarField&
+            const extrapolatedGradientFvPatchField<Type>&
         );
 
         //- Construct and return a clone
-        virtual tmp<fvPatchScalarField> clone() const
+        virtual tmp<fvPatchField<Type>> clone() const
         {
-            return tmp<fvPatchScalarField>
+            return tmp<fvPatchField<Type>>
             (
-                new extrapolatedGradientFvPatchScalarField(*this)
+                new extrapolatedGradientFvPatchField<Type>(*this)
             );
         }
 
         //- Construct as copy setting internal field reference
-        extrapolatedGradientFvPatchScalarField
+        extrapolatedGradientFvPatchField
         (
-            const extrapolatedGradientFvPatchScalarField&,
-            const DimensionedField<scalar, volMesh>&
+            const extrapolatedGradientFvPatchField<Type>&,
+            const DimensionedField<Type, volMesh>&
         );
 
         //- Construct and return a clone setting internal field reference
-        virtual tmp<fvPatchScalarField> clone
+        virtual tmp<fvPatchField<Type>> clone
         (
-            const DimensionedField<scalar, volMesh>& iF
+            const DimensionedField<Type, volMesh>& iF
         ) const
         {
-            return tmp<fvPatchScalarField>
+            return tmp<fvPatchField<Type>>
             (
-                new extrapolatedGradientFvPatchScalarField(*this, iF)
+                new extrapolatedGradientFvPatchField<Type>(*this, iF)
             );
         }
 
@@ -138,6 +139,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "extrapolatedGradientFvPatchField.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
