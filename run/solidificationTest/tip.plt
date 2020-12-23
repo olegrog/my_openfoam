@@ -1,5 +1,7 @@
 #!/usr/bin/env gnuplot --persist -c
-EPS=0
+
+file = "log.solidificationFoam"
+EPS=1
 
 if (EPS) {
     set terminal postscript eps color font 'Helvetica,14'
@@ -13,7 +15,6 @@ set fit errorvariables results
 
 set xlabel "Time (ms)"
 
-file = "log.solidificationFoam"
 pulling_speed = 0.01
 undercooling = 20
 window = 1.5
@@ -30,7 +31,7 @@ print "Undercooling (K) = ", undercooling
 print "Window = ", window
 
 # Generate 4 columns: time, position, speed, undercooling
-data = sprintf("<(awk '/^Time.*/{a=1e3*$$3} /^Tip p/{b=$$4} /^Tip s/{c=$$4} /^Tip u/{print a,b,c,$$4}' %s)", file)
+data = sprintf("<(awk '/^Time.*/{a=1e3*$3} /^Tip p/{b=$4} /^Tip s/{c=$4} /^Tip u/{print a,b,c,$4}' %s)", file)
 xmax = system(sprintf("grep 'Tip s' %s | wc -l", file)) + 0
 print "xmax = ", xmax
 
@@ -56,9 +57,9 @@ do for [i=1:2] {
 set xrange [0:tmax]
 
 set ylabel "Speed (m/s)"
-plot data u 1:(f($$1, $$3, pulling_speed)) w l title 'Tip speed', \
+plot data u 1:(f($1, $3, pulling_speed)) w l title 'Tip speed', \
     pulling_speed title "Pulling speed" lw 2, A t sprintf("Averaged value = %g +/- %.1g", A, A_err)
 
 set ylabel "Undercooling (K)"
-plot data u 1:(f($$1, $$4, undercooling)) w l title 'Tip undercooling', \
+plot data u 1:(f($1, $4, undercooling)) w l title 'Tip undercooling', \
     B t sprintf("Averaged value = %g +/- %.1g", B, B_err)

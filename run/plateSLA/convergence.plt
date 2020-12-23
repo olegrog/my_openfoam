@@ -9,7 +9,7 @@ if (ARGC > 0) {
 
 file = "log.polymerSolidFoam"
 # Generate 3 columns
-data = sprintf("<(awk '/for Dx/{a=$$8+0} /for Dy/{b=$$8+0} /for Dz/{c=$$8+0; print a,b,c}' %s)", file)
+data = sprintf("<(awk '/for Dx/{a=$8+0} /for Dy/{b=$8+0} /for Dz/{c=$8+0; print a,b,c}' %s)", file)
 
 set xlabel "Iteration"
 set ylabel "Residual"
