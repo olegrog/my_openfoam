@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      codeDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Can be used for temperature field as follows:
+/*
+boundaryField
+{
+    bottom
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+    top
+    {
+        type            zeroGradient;
+    }
+    side
+    {
+        type            codedMixed;
+        refValue        $internalField;
+        refGradient     uniform 0;
+        valueFraction   uniform 0;
+        name            alphaMixed;
+    }
+}
+*/
+
+alphaFixed
+{
+    code
+    #{
+        const fvPatchField<scalar>& alpha = patch().lookupPatchField<volScalarField, scalar>("alpha.metal");
+        const word& fieldName = internalField().name();
+        const volScalarField& field = db().lookupObject<volScalarField>(fieldName);
+        const label patchi = patch().boundaryMesh().findPatchID("bottom");
+        const scalar constantValue = field.boundaryField()[patchi][0];
+
+        (*this) == alpha*constantValue + (1 - alpha)*patchInternalField();
+    #};
+}
+
+alphaMixed
+{
+    code
+    #{
+        const word& fieldName = internalField().name();
+        const volScalarField& field = db().lookupObject<volScalarField>(fieldName);
+        const label patchi = patch().boundaryMesh().findPatchID("bottom");
+
+        refValue() = field.boundaryField()[patchi][0];
+        refGrad() = Zero;
+        valueFraction() = patch().lookupPatchField<volScalarField, scalar>("alpha.metal");
+    #};
+}
+
+// ************************************************************************* //
