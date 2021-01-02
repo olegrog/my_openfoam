@@ -78,6 +78,7 @@ solvers
     liquidFraction
     {
         tolerance       1e-17;
+        maxIter         1000;
     }
 }
 

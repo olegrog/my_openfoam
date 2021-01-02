@@ -30,6 +30,14 @@ License
 #include "fvcGrad.H"
 #include "fvcReconstruct.H"
 
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(gasMetalMixture, 0);
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::gasMetalMixture::gasMetalMixture
@@ -116,20 +124,48 @@ Foam::gasMetalMixture::gasMetalMixture
 
     // --- Cycle for initial conditions
 
-    const scalar maxError = mesh_.solverDict(liquidFraction_().name()).get<scalar>("tolerance");
-    scalar error;
+    const dictionary& lfDict = mesh_.solverDict(liquidFraction_().name());
+    const scalar tolerance = lfDict.get<scalar>("tolerance");
+    const scalar maxIter = lfDict.getOrDefault<label>("maxIter", 1000);
+    label nIter = 0;
+    scalar residual;
+
+    Info<< "Fixed-point iterations for finding enthalpy:" << endl;
 
     // TODO(olegrog): Use Newton's iterations for boosting
-    Info<< "Fixed-point iterations for finding the enthalpy:" << endl;
-    do {
-        // operator== is used to force the assignment of the boundary field
-        h_ == thermo_.h(T_, liquidFraction_(), alpha2());
+    do
+    {
+        h_ = thermo_.h(T_, liquidFraction_(), alpha2());
         liquidFraction_().storePrevIter();
         liquidFraction_.correct();
-        const volScalarField errField = mag(liquidFraction_() - liquidFraction_().prevIter());
-        error = gMax(errField);
-        Info<< liquidFraction_().name() << " error = " << error << endl;
-    } while (error > maxError);
+        const volScalarField residualField = mag(liquidFraction_() - liquidFraction_().prevIter());
+        residual = gMax(residualField);
+
+        if (debug)
+        {
+            Info<< " -- residual = " << residual << ", iteration = " << nIter + 1 << endl;
+        }
+    }
+    while (++nIter < maxIter && residual > tolerance);
+
+    if (residual > tolerance)
+    {
+        Info<< " -- not converged within " << nIter << " iterations, final residual = "
+            << residual << " > " << tolerance << endl;
+    }
+    else
+    {
+        Info<< " -- converged in " << nIter << " iterations, final residual = "
+            << residual << " < " << tolerance << endl;
+    }
+
+    if (!h_.typeHeaderOk<volScalarField>())
+    {
+        Info<< "Updating the BC for " << h_.name() << endl;
+        // operator== is used to force the assignment of the boundary field
+        h_ == thermo_.h(T_, liquidFraction_(), alpha2());
+    }
+
     Info<< endl;
 
     correct();
@@ -160,10 +196,10 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalMixture::solidPhaseDamping() const
 void Foam::gasMetalMixture::correct()
 {
     immiscibleIncompressibleTwoPhaseMixture::correct();
-    liquidFraction_.correct();
 
-    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_(), alpha2());
     hAtMelting_ = thermo_.hAtMelting(alpha2());
+    liquidFraction_.correct(); // depends on alpha, h, hAtMelting
+    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_(), alpha2());
     hPrimeGasFraction_ = thermo_.hPrimeGasFraction(T_, liquidFraction_.dGasFraction());
     Cp_ = thermo_.Cp(T_, liquidFraction_(), alpha2());
     k_ = thermo_.k(T_, liquidFraction_(), alpha2());

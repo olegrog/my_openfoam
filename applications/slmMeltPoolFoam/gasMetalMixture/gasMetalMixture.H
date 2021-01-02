@@ -113,6 +113,11 @@ class gasMetalMixture
 
 public:
 
+    // Static data
+
+        // Declare name of the class and its debug switch
+        ClassName("gasMetalMixture");
+
     //- Constructor
     gasMetalMixture
     (
