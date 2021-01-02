@@ -15,8 +15,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-ambientPressure     ambientPressure     [ Pa ] 101325;
-ambientTemperature  ambientTemperature  [ K ] 293;
+ambientPressure     [ Pa ]  101325;
+ambientTemperature  [ K ]   293;
 
 emissivity          0.2;
 evaporationCoeff    0.82;
