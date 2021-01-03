@@ -31,10 +31,13 @@ unset label; set label "b)" at graph -0.15 - label_shift, 1
 set ylabel "Mass diffusivity (m^2/s)"
 set log y
 set yrange [1e-15:1e-5]
-plot file1 u (KtoC($11)):6:7 w filledcurves title "Due to diffusion (min/max)", \
+set style fill transparent solid 0.5
+plot file1 u (KtoC($11)):2:3 w filledcurves title "Due to convection (min/max)", \
+    file1 u (KtoC($11)):6:7 w filledcurves title "Due to diffusion (min/max)", \
     file1 u (KtoC($11)):6 w l lw 2 lt -1 notitle, \
     file1 u (KtoC($11)):7 w l lw 2 lt -1 notitle, \
-    file1 u (KtoC($11)):3 w l lw 2 title "Due to convection", \
+    file1 u (KtoC($11)):2 w l lw 2 lt -1 notitle, \
+    file1 u (KtoC($11)):3 w l lw 2 lt -1 notitle, \
 
 unset label; set label "c)" at graph -0.12 - label_shift, 1
 set ylabel "Maximum density of monomer (kg/m^3)"
@@ -45,6 +48,7 @@ unset label; set label "d)" at graph -0.15 - label_shift, 1
 set ylabel "Pressure (Pa)"
 set object 1 rect from  0,0 to 1,1
 set object 1 rect fc rgb "cyan" fillstyle solid 1.0
+set style fill transparent solid 1
 plot file1 u (filter(KtoC($11), 100, 200)):9 with filledcurves x1 notitle lc rgb "gray",\
     file1 u (KtoC($11)):9 w l title "Maximum monomer pressure" lw 2, \
     file3 u 1:(fromMPa($2)) w lp title "Compressive strength", \
