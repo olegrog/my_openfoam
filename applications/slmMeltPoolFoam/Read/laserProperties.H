@@ -13,7 +13,7 @@ IOdictionary laserProperties
 );
 
 dimensionedScalar laserPower("laserPower", laserProperties);
-dimensionedScalar absorptivity("absorptivity", laserProperties);
+dimensionedScalar absorptivity0("absorptivity", laserProperties);
 dimensionedVector laserVelocity("laserVelocity", laserProperties);
 dimensionedScalar laserRadius("laserRadius", laserProperties);
 dimensionedVector coordStart("coordStart", laserProperties);

@@ -19,11 +19,13 @@ solvers
 {
     "alpha.metal.*"
     {
-        isoFaceTol      1e-10;
+        isoFaceTol      1e-8;
         surfCellTol     1e-6;
         nAlphaBounds    3;
         snapTol         1e-12;
         clip            true;
+        reconstructionScheme isoAlpha; // plicRDF
+
         writeSurfCells  false;
         writeBoundedCells false;
         writeIsoFaces   false;
@@ -55,7 +57,7 @@ solvers
     "pcorr.*"
     {
         $p_rghFinal;
-        tolerance       1e-8;
+        tolerance       1e-5;
     }
 
     "(U|k|epsilon).*"
@@ -84,17 +86,17 @@ solvers
 
 PIMPLE
 {
-    momentumPredictor   no; //yes;
-    nOuterCorrectors    1;
-    nCorrectors         3;
+    momentumPredictor   no;
+    nOuterCorrectors    5; // for all variables
+    nCorrectors         3; // for pressure
+    nEnthalpyCorrectors 3;
     nNonOrthogonalCorrectors 0;
     correctPhi          yes;
 
-    nEnthalpyCorrectors 3;
 
     residualControl
     {
-        "(h|U|alpha|p)"
+        "(h|p_rgh)"
         {
             tolerance   1e-4;
             relTol      0;

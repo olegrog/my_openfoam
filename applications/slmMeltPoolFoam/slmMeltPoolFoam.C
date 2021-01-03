@@ -55,9 +55,10 @@ volScalarField surfaceGaussian
 {
     using constant::mathematical::pi;
     volVectorField r = x - x0;
-    r.replace(2, 0);
+    r.replace(vector::Z, 0);
     return 2*exp(-2*magSqr(r/radius))/pi/sqr(radius);
 }
+
 
 
 // For debug
@@ -115,8 +116,7 @@ int main(int argc, char *argv[])
             "laserCoordinate", coordStart + laserVelocity*runTime
         );
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
-        // vector beamDirection(0, 0, -1);
-        // mag(fvc::grad(alpha2) & beamDirection) can be used instead of mag(fvc::grad(alpha2))
+        const vector beamDirection(0, 0, -1);
 
         // --- Enthalpy--pressure--velocity PIMPLE corrector loop
         while (pimple.loop())
@@ -152,14 +152,19 @@ int main(int argc, char *argv[])
                 }
             }
 
+            // -- Advect alpha field
+
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
 
-            // Enthalpy-independent quantities
-            laserHeatSource = (runTime < timeStop)*absorptivity*laserPower
+            // -- Solve the energy equation
+
+            // Calculate enthalpy-independent quantities
+            laserHeatSource = (runTime < timeStop)*laserPower
                 *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+            const volVectorField gradAlpha1 = fvc::grad(alpha1);
 
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
             for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
@@ -167,6 +172,15 @@ int main(int argc, char *argv[])
                 #include "hEqn.H"
             }
 
+            const dimensionedScalar effectiveLaserPower =
+                fvc::domainIntegrate(absorptivity*laserHeatSource);
+
+            Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
+                << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
+                << ", effective absorptivity = " << (effectiveLaserPower/laserPower).value()
+                << endl;
+
+            // Update temperature-dependent fields used in the momentum equation
             rhok = rho*(1.0 - beta*(T - ambientTemperature));
             vaporPressure = ambientPressure*exp(molarMass*Hvapour/R*(1/Tboiling - 1/T));
 
@@ -175,6 +189,8 @@ int main(int argc, char *argv[])
             heatConduction = fvc::laplacian(k, T);
             heatConduction2 = fvc::laplacian(k/Cp*(1 - Hfusion*liquidFraction.dEnthalpy()), h)
                 + fvc::laplacian(k/Cp*hPrimeGasFraction, alpha1);
+
+            // -- Solve the momentum equation
 
             if (pimple.frozenFlow())
             {
@@ -197,12 +213,6 @@ int main(int argc, char *argv[])
 
         // Update passive quantities
         mixture.finalCorrect();
-
-        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
-            << ", laser input = "
-            << fvc::domainIntegrate(laserHeatSource*mag(fvc::grad(alpha2))*runTime.deltaT()).value()
-            << ", theoretical value = " << (absorptivity*laserPower*runTime.deltaT()).value()
-            << endl;
 
         runTime.write();
 

@@ -89,6 +89,20 @@ volScalarField laserHeatSource
     dimPower/dimArea
 );
 
+volScalarField absorptivity
+(
+    IOobject
+    (
+        "absorptivity",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    inv(dimLength)
+);
+
 volScalarField radiativeCooling
 (
     IOobject
