@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
                 *pow(polymer.poresFraction(), 3)/sqr(1 - polymer.poresFraction());
             D2 = permeability/mu/polymer.poresFraction()*p;
             D2.correctBoundaryConditions();
+            D2.boundaryFieldRef() /= 2; // rho = 0 is assumed at the boundary
 
             fvScalarMatrix rhoEqn
             (
