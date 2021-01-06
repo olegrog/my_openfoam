@@ -1,10 +1,10 @@
 # .bashrc is sourced in Ubuntu
 
 # Some of bash colors
-declare -xr RED='\033[0;31m'
-declare -xr YELLOW='\033[0;33m'
-declare -xr BBLUE='\033[1;34m'
-declare -xr NC='\033[0m'
+export RED='\033[0;31m'
+export YELLOW='\033[0;33m'
+export BBLUE='\033[1;34m'
+export NC='\033[0m'
 
 # Command line
 _parse_error_code() {
@@ -29,7 +29,16 @@ export LESS=" -R"
 
 # Search among OpenFOAM source
 s() {
-    less `locate "/$1" | grep $WM_PROJECT_DIR | grep -v applications | head -1`
+    result=$(locate "/$1" | grep $WM_PROJECT_DIR | grep -v lnInclude)
+    if [[ $? > 0 ]]; then
+        echo -e "${RED}Missing filename!${NC}"
+    elif [[ "$(wc -w <<< "$result")" > 1 ]]; then
+        echo -e "${RED}There are several files with the same name."
+        echo -e "Specify the unique path using the parent directory.${NC}"
+        echo "$result" | tr ' ' '\n'
+    else
+        less -R $result
+    fi
 }
 
 # Aliases
