@@ -8,7 +8,8 @@
                   interFoam | Copyright (C) 2011-2017 OpenFOAM Foundation
                 isoAdvector | Copyright (C) 2016 DHI
               Modified work | Copyright (C) 2018 Johan Roenby
-            slmMeltPoolFoam | Copyright (C) 2019-2020 Oleg Rogozin
+               interIsoFoam | Copyright (C) 2019-2020 DLR
+            slmMeltPoolFoam | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     OpenFOAM is free software: you can redistribute it and/or modify it
@@ -43,6 +44,7 @@ Description
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
 #include "CorrectPhi.H"
+#include "dynamicRefineFvMesh.H"
 
 #include "gasMetalMixture.H"
 
@@ -58,7 +60,6 @@ volScalarField surfaceGaussian
     r.replace(vector::Z, 0);
     return 2*exp(-2*magSqr(r/radius))/pi/sqr(radius);
 }
-
 
 
 // For debug
@@ -111,24 +112,41 @@ int main(int argc, char *argv[])
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
+        // --- Calculate time-dependent quantities
         const dimensionedVector laserCoordinate
         (
             "laserCoordinate", coordStart + laserVelocity*runTime
         );
-        const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
         const vector beamDirection(0, 0, -1);
+        const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
 
-        // --- Enthalpy--pressure--velocity PIMPLE corrector loop
+        // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
+                if (isA<dynamicRefineFvMesh>(mesh))
+                {
+                    advector.surf().reconstruct();
+                }
+
                 mesh.update();
 
                 if (mesh.changing())
                 {
                     gh = (g & mesh.C()) - ghRef;
                     ghf = (g & mesh.Cf()) - ghRef;
+
+                    if (isA<dynamicRefineFvMesh>(mesh))
+                    {
+                        advector.surf().mapAlphaField();
+                        alpha2 = 1.0 - alpha1;
+                        alpha2.correctBoundaryConditions();
+                        rho == alpha1*rho1 + alpha2*rho2;
+                        rho.correctBoundaryConditions();
+                        rho.oldTime() = rho;
+                        alpha2.oldTime() = alpha2;
+                    }
 
                     if (correctPhi)
                     {
@@ -144,7 +162,6 @@ int main(int argc, char *argv[])
                         mixture.correct();
                     }
 
-
                     if (checkMeshCourantNo)
                     {
                         #include "meshCourantNo.H"
@@ -152,52 +169,27 @@ int main(int argc, char *argv[])
                 }
             }
 
-            // -- Advect alpha field
-
+            // --- Advect alpha field
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
 
-            // -- Solve the energy equation
+            // --- Momentum predictor
+            #include "UEqn.H"
 
-            // Calculate enthalpy-independent quantities
-            laserHeatSource = (runTime < timeStop)*laserPower
-                *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+            // --- Calculate enthalpy-independent quantities
+            laserHeatSource =
+                (runTime < timeStop)*laserPower
+               *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
             const volVectorField gradAlpha1 = fvc::grad(alpha1);
 
+            // --- Enthalpy corrector loop
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
             for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
             {
                 #include "hEqn.H"
             }
-
-            const dimensionedScalar effectiveLaserPower =
-                fvc::domainIntegrate(absorptivity*laserHeatSource);
-
-            Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
-                << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
-                << ", effective absorptivity = " << (effectiveLaserPower/laserPower).value()
-                << endl;
-
-            // Update temperature-dependent fields used in the momentum equation
-            rhok = rho*(1.0 - beta*(T - ambientTemperature));
-            vaporPressure = ambientPressure*exp(molarMass*Hvapour/R*(1/Tboiling - 1/T));
-
-            // For debug: check that heatConduction is almost equal to heatConduction2
-            heatConvection = fvc::div(rhoPhi, h);
-            heatConduction = fvc::laplacian(k, T);
-            heatConduction2 = fvc::laplacian(k/Cp*(1 - Hfusion*liquidFraction.dEnthalpy()), h)
-                + fvc::laplacian(k/Cp*hPrimeGasFraction, alpha1);
-
-            // -- Solve the momentum equation
-
-            if (pimple.frozenFlow())
-            {
-                continue;
-            }
-
-            #include "UEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
@@ -211,11 +203,29 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Update passive quantities
-        mixture.finalCorrect();
+        // -- Update passive fields
+
+        wasMelted = Foam::max(wasMelted, liquidFraction);
+
+        if (writeProperties)
+        {
+            heatConvection = fvc::div(rhoPhi, h);
+            // For debug: check that heatConduction is almost equal to heatConduction2
+            heatConduction = fvc::laplacian(k, T);
+            heatConduction2 =
+                fvc::laplacian(k*mixture.TPrimeEnthalpy(), h)
+              + fvc::laplacian(k*mixture.TPrimeMetalFraction(), alpha1);
+        }
+
+        const dimensionedScalar effectiveLaserPower =
+            fvc::domainIntegrate(absorptivity*laserHeatSource);
+
+        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
+            << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
+            << ", effective absorptivity = " << (effectiveLaserPower/laserPower).value()
+            << endl;
 
         runTime.write();
-
         runTime.printExecutionTime(Info);
     }
 

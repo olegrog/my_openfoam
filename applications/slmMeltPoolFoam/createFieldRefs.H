@@ -7,8 +7,8 @@ const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
 const volScalarField& Cp = mixture.Cp();
 const volScalarField& k = mixture.k();
-const volScalarField& hPrimeGasFraction = mixture.hPrimeGasFraction();
-const LiquidFraction& liquidFraction = mixture.liquidFraction();
+const volScalarField& liquidFraction = mixture.liquidFraction();
+const volScalarField& vapourFraction = mixture.vapourFraction();
 
 // Define nondimensional constants
 

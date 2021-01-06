@@ -5,10 +5,10 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020 Oleg Rogozin
+                            | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of sigmoidFunction.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ public:
     );
 
     //- Constructor
-    sigmoidFunction(scalar a, scalar b);
+    sigmoidFunction(scalar a, scalar b) : a_(a), b_(b) {}
 
     //- Selector
     static autoPtr<sigmoidFunction> New(const dictionary& dict, scalar a, scalar b);
@@ -91,16 +91,24 @@ public:
     // Member Functions
 
         //- Apply the sigmoid function to a field
-        tmp<volScalarField> value(const volScalarField& field) const;
+        template<class T>
+        tmp<volScalarField> value(const T& field) const;
 
         //- Apply the derivative of the sigmoid function to a field
-        tmp<volScalarField> derivative(const volScalarField& field) const;
+        template<class T>
+        tmp<volScalarField> derivative(const T& field) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "sigmoidFunctionTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

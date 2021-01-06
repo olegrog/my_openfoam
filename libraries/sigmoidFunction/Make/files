@@ -1,0 +1,5 @@
+sigmoidFunction/sigmoidFunction.C
+Sigmoid/makeSigmoids.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsigmoidFunction
+

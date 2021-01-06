@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020 Oleg Rogozin
+                            | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -82,26 +82,6 @@ Foam::gasMetalThermo::gasMetalThermo
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::LiquidFraction Foam::gasMetalThermo::liquidFraction
-(
-    const volScalarField& h,
-    const volScalarField& hAtMelting,
-    const volScalarField& metalFraction
-) const
-{
-    dimensionedScalar hAtMeltingPrime
-    (
-        "hAtMeltingPrime",
-        h.dimensions(),
-        gas_.Cp.integral(0, Tmelting_) - solid_.Cp.integral(0, Tmelting_) - Hfusion_/2
-    );
-
-    return LiquidFraction
-    (
-        metalFraction, h, hAtMelting, Hfusion(), hAtMeltingPrime, metalDict_
-    );
-}
 
 
 // ************************************************************************* //

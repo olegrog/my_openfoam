@@ -5,10 +5,10 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020 Oleg Rogozin
+                            | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of sigmoidFunction.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -25,64 +25,20 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "error.H"
-#include "sigmoidFunction.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    defineTypeName(sigmoidFunction);
-    defineRunTimeSelectionTable(sigmoidFunction, interval);
-}
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::autoPtr<Foam::sigmoidFunction> Foam::sigmoidFunction::New
-(
-    const dictionary& dict,
-    scalar a,
-    scalar b
-)
-{
-    const word sigmoidType(dict.get<word>("sigmoid"));
-
-    Info<< "Selecting sigmoid function " << sigmoidType << endl;
-
-    const auto cstrIter = intervalConstructorTablePtr_->cfind(sigmoidType);
-
-    if (!cstrIter.found())
-    {
-        FatalIOErrorInLookup
-        (
-            dict,
-            "sigmoid",
-            sigmoidType,
-            *intervalConstructorTablePtr_
-        ) << exit(FatalIOError);
-    }
-
-    return autoPtr<sigmoidFunction>(cstrIter()(a, b));
-}
-
-Foam::sigmoidFunction::sigmoidFunction(scalar a, scalar b) : a_(a), b_(b) {}
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::value
-(
-    const volScalarField& field
-) const
+template<class T>
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::value(const T& field) const
 {
     return (b_ - a_)/2*value0(2*field/(b_ - a_)) + (a_ + b_)/2;
 }
 
-Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::derivative
-(
-    const volScalarField& field
-) const
+
+template<class T>
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::derivative(const T& field) const
 {
     return value1(2*field/(b_ - a_));
 }
+
 
 // ************************************************************************* //

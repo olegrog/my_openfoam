@@ -45,8 +45,6 @@ metal
         kCoeffs     (12.41 3.279e-3);
         CpCoeffs    (769.9 0);
     }
-
-    sigmoid         erf; //tanh;
 }
 
 argon

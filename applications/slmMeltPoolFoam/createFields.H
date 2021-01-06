@@ -40,9 +40,7 @@ const volScalarField& T = mixture.T();
 
 const gasMetalThermo& thermo = mixture.thermo();
 const dimensionedScalar molarMass = thermo.metalM();
-const dimensionedScalar Hfusion = thermo.Hfusion();
 const dimensionedScalar Hvapour = thermo.Hvapour();
-const dimensionedScalar Tmelting = thermo.Tmelting();
 const dimensionedScalar Tboiling = thermo.Tboiling();
 
 // Uncomment this to analyze the difference in implementations of |\grad\alpha|
@@ -62,17 +60,19 @@ const dimensionedScalar Tboiling = thermo.Tboiling();
 }
 */
 
-volVectorField gradT
+// Melt indicator (the maximum liquid fraction in time)
+volScalarField wasMelted
 (
     IOobject
     (
-        "gradT",
+        "wasMelted",
         runTime.timeName(),
         mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
     ),
-    fvc::grad(T)
+    mesh,
+    dimensionedScalar()
 );
 
 volScalarField laserHeatSource
@@ -187,25 +187,6 @@ IOdictionary problemProperties
 );
 dimensionedScalar ambientPressure("ambientPressure", problemProperties);
 dimensionedScalar ambientTemperature("ambientTemperature", problemProperties);
-
-{
-    scalar factor = (molarMass*Hvapour/constant::physicoChemical::R).value();
-    Info<< "Vapor pressure = " << ambientPressure.value()
-        << "*exp(" << factor/Tboiling.value()
-        << " - " << factor << "/T)\n" << endl;
-}
-
-volScalarField vaporPressure
-(
-    IOobject
-    (
-        "vaporPressure",
-        runTime.timeName(),
-        mesh
-    ),
-    mesh,
-    dimensionedScalar(dimPressure)
-);
 
 // Mass flux
 surfaceScalarField rhoPhi

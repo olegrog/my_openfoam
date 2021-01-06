@@ -1,6 +1,0 @@
-LiquidFraction.C
-
-sigmoidFunction/sigmoidFunction/sigmoidFunction.C
-sigmoidFunction/Sigmoid/makeSigmoids.C
-
-LIB = $(FOAM_USER_LIBBIN)/libliquidFraction

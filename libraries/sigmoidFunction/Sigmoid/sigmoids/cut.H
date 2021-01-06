@@ -8,7 +8,7 @@
                             | Copyright (C) 2020 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of sigmoidFunction.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,39 +24,37 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sigmoid::erf
+    Foam::sigmoid::cut
 
 Description
-    Error function.
+    Linear piecewise (cut) function.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef erf_H
-#define erf_H
+#ifndef cut_H
+#define cut_H
 
 namespace Foam
 {
 namespace sigmoid
 {
 
-struct erf
+struct cut
 {
     template<int nPrimes>
     static scalar value(scalar x);
 };
 
 template<>
-scalar erf::value<0>(scalar x)
+scalar cut::value<0>(scalar x)
 {
-    using constant::mathematical::pi;
-    return Foam::erf(sqrt(pi)/2*x);
+    return x > 1 ? 1 : x < -1 ? -1 : x;
 }
 
 template<>
-scalar erf::value<1>(scalar x)
+scalar cut::value<1>(scalar x)
 {
-    using constant::mathematical::pi;
-    return exp(-sqr(sqrt(pi)/2*x));
+    return x > 1 ? 0 : x < -1 ? 0 : 1;
 }
 
 } // End namespace sigmoid

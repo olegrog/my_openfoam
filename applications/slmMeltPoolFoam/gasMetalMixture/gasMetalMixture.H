@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020 Oleg Rogozin
+                            | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -77,11 +77,14 @@ class gasMetalMixture
             //- Specific enthalpy at the melting temperature [J/kg]
             volScalarField hAtMelting_;
 
-            //- Liquid fraction with its derivatives
-            LiquidFraction liquidFraction_;
+            //- Specific enthalpy at the boiling temperature [J/kg]
+            volScalarField hAtBoiling_;
 
-            //- Derivative of specific enthalpy w.r.t. gas fraction [J/kg]
-            volScalarField hPrimeGasFraction_;
+            //- Liquid fraction in the gas-metal mixture [-]
+            volScalarField liquidFraction_;
+
+            //- Vapour fraction in the gas-metal mixture [-]
+            volScalarField vapourFraction_;
 
             //- Heat capacity at constant pressure [J/kg/K]
             volScalarField Cp_;
@@ -91,6 +94,12 @@ class gasMetalMixture
 
             //- Density [kg/m^3]
             volScalarField rho_;
+
+            //- Derivative of temperature w.r.t. enthalpy [K*kg/J]
+            volScalarField TPrimeEnthalpy_;
+
+            //- Derivative of temperature w.r.t. metal fraction [K]
+            volScalarField TPrimeMetalFraction_;
 
         // Constants
 
@@ -104,6 +113,9 @@ class gasMetalMixture
             const dimensionedScalar mushyCoeff_;
 
     // Private Member Functions
+
+        //- Calculate derivatives of temperature w.r.t. enthalpy and gas fraction
+        void calcDerivatives();
 
         //- No copy construct
         gasMetalMixture(const gasMetalMixture&) = delete;
@@ -138,22 +150,22 @@ public:
                 return thermo_;
             }
 
-            //- Return the LiquidFraction object
-            const LiquidFraction& liquidFraction() const
+            //- Return liquid fraction [-]
+            const volScalarField& liquidFraction() const
             {
                 return liquidFraction_;
+            }
+
+            //- Return vapour fraction [-]
+            const volScalarField& vapourFraction() const
+            {
+                return vapourFraction_;
             }
 
             //- Return temperature [K]
             const volScalarField& T() const
             {
                 return T_;
-            }
-
-            //- Return derivative of enthalpy w.r.t. gas fraction [J/kg]
-            const volScalarField& hPrimeGasFraction() const
-            {
-                return hPrimeGasFraction_;
             }
 
             //- Return heat capacity at constant pressure [J/kg/K]
@@ -180,19 +192,34 @@ public:
                 return rho_;
             }
 
+            //- Return the derivative of temperature w.r.t. enthalpy [K*kg/J]
+            tmp<volScalarField> TPrimeEnthalpy() const
+            {
+                return TPrimeEnthalpy_;
+            }
+
+            //- Return the derivative of temperature w.r.t. metal fraction [K]
+            tmp<volScalarField> TPrimeMetalFraction() const
+            {
+                return TPrimeMetalFraction_;
+            }
+
         // Evaluation
 
             //- Return the thermal Marangoni force [N/m^3]
-            tmp<volVectorField> marangoniForce(const volVectorField& gradT) const;
+            tmp<volVectorField> marangoniForce() const;
 
             //- Return the solid-phase damping coefficient [N/m^3]
             tmp<volScalarField> solidPhaseDamping() const;
 
-            //- Correct active internal fields
+            //- Return the vapour pressure [Pa]
+            tmp<volScalarField> vapourPressure(const dimensionedScalar& p0) const;
+
+            //- Correct alpha-dependent fields
             void correct() override;
 
-            //- Correct passive internal fields
-            void finalCorrect();
+            //- Correct enthalpy-dependent fields
+            void correctThermo();
 };
 
 

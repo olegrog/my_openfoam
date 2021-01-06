@@ -29,7 +29,7 @@ surfaceScalarField phig
     (
         (
             mixture.surfaceTensionForce()
-          - (3 - evaporationCoeff)/4*fvc::interpolate(vaporPressure)*fvc::snGrad(alpha2)
+          - recoilPressure
         )*rAUfModified
       - ghf*fvc::snGrad(rhok)*rAUf
     )*mesh.magSf()

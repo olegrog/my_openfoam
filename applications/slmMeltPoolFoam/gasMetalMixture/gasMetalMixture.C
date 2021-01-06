@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020 Oleg Rogozin
+                            | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -29,6 +29,7 @@ License
 
 #include "fvcGrad.H"
 #include "fvcReconstruct.H"
+#include "constants.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -78,11 +79,44 @@ Foam::gasMetalMixture::gasMetalMixture
         T_.boundaryField()   // copy BC from the temperature field
     ),
     hAtMelting_(thermo_.hAtMelting(alpha2())),
-    liquidFraction_(thermo_.liquidFraction(h_, hAtMelting_, alpha1())),
-    hPrimeGasFraction_(thermo_.hPrimeGasFraction(T_, liquidFraction_.dGasFraction())),
-    Cp_(thermo_.Cp(T_, liquidFraction_(), alpha2())),
-    k_(thermo_.k(T_, liquidFraction_(), alpha2())),
-    rho_("rho", alpha1()*rho1() + alpha2()*rho2()),
+    hAtBoiling_(thermo_.hAtBoiling(alpha2())),
+    liquidFraction_
+    (
+        IOobject
+        (
+            "liquidFraction",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar()
+    ),
+    vapourFraction_
+    (
+        IOobject
+        (
+            "vapourFraction",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar()
+    ),
+    Cp_(volScalarField::New("Cp", mesh_, dimSpecificHeatCapacity)),
+    k_(volScalarField::New("k", mesh_, dimViscosity*dimDensity*Cp_.dimensions())),
+    rho_("rho", alpha1()*rho1_ + alpha2()*rho2_),
+    TPrimeEnthalpy_
+    (
+        volScalarField::New("TPrimeEnthalpy", mesh_, dimTemperature*dimMass/dimEnergy)
+    ),
+    TPrimeMetalFraction_
+    (
+        volScalarField::New("TPrimeMetalFraction", mesh_, dimTemperature)
+    ),
     pSigma_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
     dSigmaDT_
     (
@@ -102,6 +136,7 @@ Foam::gasMetalMixture::gasMetalMixture
 
     if (writeProperties_)
     {
+        // nu_ is defined in incompressibleTwoPhaseMixture
         const std::vector<std::reference_wrapper<volScalarField>> scalarFieldsForDiag
         {
             std::ref(Cp_), std::ref(k_), std::ref(rho_), std::ref(nu_)
@@ -124,21 +159,22 @@ Foam::gasMetalMixture::gasMetalMixture
 
     // --- Cycle for initial conditions
 
-    const dictionary& lfDict = mesh_.solverDict(liquidFraction_().name());
-    const scalar tolerance = lfDict.get<scalar>("tolerance");
-    const scalar maxIter = lfDict.getOrDefault<label>("maxIter", 1000);
+    const dictionary& h0Dict = mesh_.solverDict(h_.name() + "corr");
+    const scalar tolerance = h0Dict.get<scalar>("tolerance");
+    const scalar maxIter = h0Dict.getOrDefault<label>("maxIter", 1000);
     label nIter = 0;
     scalar residual;
 
-    Info<< "Fixed-point iterations for finding enthalpy:" << endl;
-
+    Info<< "Fixed-point iterations for correcting enthalpy:" << endl;
     // TODO(olegrog): Use Newton's iterations for boosting
     do
     {
-        h_ = thermo_.h(T_, liquidFraction_(), alpha2());
-        liquidFraction_().storePrevIter();
-        liquidFraction_.correct();
-        const volScalarField residualField = mag(liquidFraction_() - liquidFraction_().prevIter());
+        h_.storePrevIter();
+        h_ = thermo_.h(T_, liquidFraction_, vapourFraction_, alpha2());
+        liquidFraction_ = thermo_.liquidFraction(h_, hAtMelting_, alpha1());
+        vapourFraction_ = thermo_.vapourFraction(h_, hAtBoiling_, alpha1());
+
+        const volScalarField residualField = mag(h_ - h_.prevIter());
         residual = gMax(residualField);
 
         if (debug)
@@ -163,24 +199,28 @@ Foam::gasMetalMixture::gasMetalMixture
     {
         Info<< "Updating the BC for " << h_.name() << endl;
         // operator== is used to force the assignment of the boundary field
-        h_ == thermo_.h(T_, liquidFraction_(), alpha2());
+        h_ == thermo_.h(T_, liquidFraction_, vapourFraction_, alpha2());
     }
 
     Info<< endl;
 
-    correct();
+    // --- Correct all fields
+
+    correctThermo();
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volVectorField> Foam::gasMetalMixture::marangoniForce
-(
-    const volVectorField& gradT
-) const
+Foam::tmp<Foam::volVectorField> Foam::gasMetalMixture::marangoniForce() const
 {
     const volVectorField normal(fvc::reconstruct(nHatf()));
     const volTensorField I_nn(tensor::I - sqr(normal));
+
+    // gradT = fvc::grad(T_) is a less smooth alternative
+    const volVectorField gradT =
+        TPrimeEnthalpy_*fvc::grad(h_)
+      + TPrimeMetalFraction_*fvc::grad(alpha1());
 
     return dSigmaDT_*(gradT & I_nn)*mag(fvc::grad(alpha2()));
 }
@@ -189,7 +229,17 @@ Foam::tmp<Foam::volVectorField> Foam::gasMetalMixture::marangoniForce
 Foam::tmp<Foam::volScalarField> Foam::gasMetalMixture::solidPhaseDamping() const
 {
     return mushyCoeff_*alpha1()
-        *sqr(1 - liquidFraction_.inMetal())/(sqr(liquidFraction_.inMetal()) + SMALL);
+        *sqr(alpha1() - liquidFraction_)/(sqr(liquidFraction_) + SMALL);
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::gasMetalMixture::vapourPressure
+(
+    const dimensionedScalar& p0
+) const
+{
+    using constant::physicoChemical::R;
+    return p0*exp(thermo_.metalM()*thermo_.Hvapour()/R*(1/thermo_.Tboiling() - 1/T_));
 }
 
 
@@ -198,18 +248,42 @@ void Foam::gasMetalMixture::correct()
     immiscibleIncompressibleTwoPhaseMixture::correct();
 
     hAtMelting_ = thermo_.hAtMelting(alpha2());
-    liquidFraction_.correct(); // depends on alpha, h, hAtMelting
-    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_(), alpha2());
-    hPrimeGasFraction_ = thermo_.hPrimeGasFraction(T_, liquidFraction_.dGasFraction());
-    Cp_ = thermo_.Cp(T_, liquidFraction_(), alpha2());
-    k_ = thermo_.k(T_, liquidFraction_(), alpha2());
-    rho_ = alpha1()*rho1() + alpha2()*rho2();
+    hAtBoiling_ = thermo_.hAtBoiling(alpha2());
+    // rho_ = alpha1()*rho1_ + alpha2()*rho2_; // already evaluated in alphaEqnSubCycle.H
 }
 
 
-void Foam::gasMetalMixture::finalCorrect()
+void Foam::gasMetalMixture::calcDerivatives()
 {
-    liquidFraction_.finalCorrect();
+    const dimensionedScalar& Hfus = thermo_.Hfusion();
+    const dimensionedScalar& Hvap = thermo_.Hvapour();
+
+    TPrimeEnthalpy_ =
+        (
+            1
+          - Hfus*thermo_.liquidFractionPrimeEnthalpy(h_, hAtMelting_, alpha1())
+          - Hvap*thermo_.vapourFractionPrimeEnthalpy(h_, hAtBoiling_, alpha1())
+        )/Cp_;
+
+    TPrimeMetalFraction_ =
+        (
+            thermo_.sensibleEnthalpyPrimeGasFraction(T_)
+          + Hfus*thermo_.liquidFractionPrimeGasFraction(h_, hAtMelting_, alpha1())
+          + Hvap*thermo_.vapourFractionPrimeGasFraction(h_, hAtBoiling_, alpha1())
+        )/Cp_;
+}
+
+
+void Foam::gasMetalMixture::correctThermo()
+{
+    liquidFraction_ = thermo_.liquidFraction(h_, hAtMelting_, alpha1());
+    vapourFraction_ = thermo_.vapourFraction(h_, hAtBoiling_, alpha1());
+
+    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_, vapourFraction_, alpha2());
+    Cp_ = thermo_.Cp(T_, liquidFraction_, alpha2());
+    k_ = thermo_.k(T_, liquidFraction_, alpha2());
+
+    calcDerivatives();
 }
 
 

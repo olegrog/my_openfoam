@@ -77,10 +77,10 @@ solvers
     }
 
     // for initial conditions only
-    liquidFraction
+    hcorr
     {
-        tolerance       1e-17;
-        maxIter         1000;
+        tolerance       1e3;
+        maxIter         10;
     }
 }
 

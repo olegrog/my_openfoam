@@ -2,11 +2,13 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+    \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
+                            | Copyright (C) 2020 Oleg Rogozin
+-------------------------------------------------------------------------------
 License
-    This file is part of trueArrhenius.
+    This file is part of sigmoidFunction.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -21,25 +23,43 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::sigmoid::erf
+
+Description
+    Error function.
+
 \*---------------------------------------------------------------------------*/
 
-#include "makeTrueArrheniusTypes.H"
+#ifndef erf_H
+#define erf_H
 
-#include "trueArrhenius.H"
+namespace Foam
+{
+namespace sigmoid
+{
 
-#include "BirdCarreau.H"
-#include "Casson.H"
-#include "CrossPowerLaw.H"
-#include "HerschelBulkley.H"
-#include "Newtonian.H"
+struct erf
+{
+    template<int nPrimes>
+    static scalar value(scalar x);
+};
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+template<>
+scalar erf::value<0>(scalar x)
+{
+    using constant::mathematical::pi;
+    return Foam::erf(sqrt(pi)/2*x);
+}
 
-makeTrueArrheniusTypes(trueArrhenius, BirdCarreau);
-makeTrueArrheniusTypes(trueArrhenius, Casson);
-makeTrueArrheniusTypes(trueArrhenius, CrossPowerLaw);
-makeTrueArrheniusTypes(trueArrhenius, HerschelBulkley);
-makeTrueArrheniusTypes(trueArrhenius, Newtonian);
+template<>
+scalar erf::value<1>(scalar x)
+{
+    using constant::mathematical::pi;
+    return exp(-sqr(sqrt(pi)/2*x));
+}
 
+} // End namespace sigmoid
+} // End namespace Foam
 
-// ************************************************************************* //
+#endif
