@@ -4,7 +4,7 @@ rhok = rho*(1.0 - beta*(T - ambientTemperature));
 surfaceScalarField recoilPressure
 (
     (3 - evaporationCoeff)/4
-   *fvc::interpolate(mixture.vapourPressure(ambientPressure))
+   *fvc::interpolate(mixture.vapourPressure(ambientPressure), "interpolate(vapourPressure)")
    *fvc::snGrad(alpha2)
 );
 

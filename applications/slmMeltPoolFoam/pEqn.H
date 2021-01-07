@@ -8,7 +8,11 @@ else
 }
 
 surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU()));
-surfaceScalarField rAUfModified("rAUfModified", fvc::interpolate(2*rho/(rho1 + rho2)/UEqn.A()));
+surfaceScalarField rAUfModified
+(
+    "rAUfModified",
+    fvc::interpolate(2*rho/(rho1 + rho2)/UEqn.A(), "interpolate(rho|A)")
+);
 volVectorField HbyA(constrainHbyA(rAU()*UEqn.H(), U, p_rgh));
 surfaceScalarField phiHbyA
 (
