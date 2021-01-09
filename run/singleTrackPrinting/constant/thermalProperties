@@ -47,9 +47,9 @@ metal
     }
 }
 
-argon
+gas
 {
-    molWeight       39.95;
+    molWeight       39.95; // for Argon
     kCoeffs         (2.1527e-2 2.67e-5);
     // Air: 2.5e-2 for 293K, 1.1e-1 for 2000K
     CpCoeffs        (520 0); // = 2.5*R/M;

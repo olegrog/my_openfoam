@@ -1,0 +1,5 @@
+gasMetalThermalProperties.C
+
+gasMetalThermo/gasMetalThermo.C
+
+LIB = $(FOAM_USER_LIBBIN)/libgasMetalThermalProperties

@@ -8,7 +8,7 @@
                             | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of gasMetalThermalProperties.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -29,12 +29,7 @@ License
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::gasMetalThermo::gasMetalThermo
-(
-    const word& metalPhase,
-    const word& gasPhase,
-    const fvMesh& mesh
-)
+Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
 :
     IOdictionary
     (
@@ -48,10 +43,10 @@ Foam::gasMetalThermo::gasMetalThermo
         )
     ),
     mesh_(mesh),
-    metalDict_(subDict(metalPhase)),
+    metalDict_(subDict("metal")),
     solidDict_(metalDict_.subDict("solid")),
     liquidDict_(metalDict_.subDict("liquid")),
-    gasDict_(subDict(gasPhase)),
+    gasDict_(subDict("gas")),
     solid_(solidDict_),
     liquid_(liquidDict_),
     gas_(gasDict_),
@@ -65,13 +60,13 @@ Foam::gasMetalThermo::gasMetalThermo
     scalar hSolidus = solid_.Cp.integral(0, Tmelting_);
     scalar hLiquidus = hSolidus + Hfusion_;
     scalar hGasAtMelting = gas_.Cp.integral(0, Tmelting_);
-    scalar hBeforeBoiling = hLiquidus + liquid_.Cp.integral(Tmelting_, Tboiling_);
+    scalar hPreBoiling = hLiquidus + liquid_.Cp.integral(Tmelting_, Tboiling_);
 
     Info<< endl
         << "Solidus enthalpy = " << hSolidus << endl
         << "Liquidus enthalpy = " << hLiquidus << endl
         << "Gas enthalpy at Tmelting = " << hGasAtMelting << endl
-        << "Pre-boiling enthalpy = " << hBeforeBoiling << endl
+        << "Pre-boiling enthalpy = " << hPreBoiling << endl
         << "Solidus heat capacity = " << solid_.Cp.value(Tmelting_) << endl
         << "Liquidus heat capacity = " << liquid_.Cp.value(Tmelting_) << endl
         << "Solidus thermal conductivity = " << solid_.k.value(Tmelting_) << endl

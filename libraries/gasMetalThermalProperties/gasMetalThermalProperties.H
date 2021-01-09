@@ -8,7 +8,7 @@
                             | Copyright (C) 2020-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of gasMetalThermalProperties.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,21 +24,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::gasMetalMixture
+    Foam::gasMetalThermalProperties
 
 Description
-    Transport model for gas-metal mixture.
+    Base class for gas-metal mixture with thermal properties.
 
 SourceFiles
-    gasMetalMixture.C
+    gasMetalThermalProperties.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef gasMetalMixture_H
-#define gasMetalMixture_H
+#ifndef gasMetalThermalProperties_H
+#define gasMetalThermalProperties_H
 
-#include "immiscibleIncompressibleTwoPhaseMixture.H"
-#include "Function1.H"
+#include "twoPhaseMixture.H"
 
 #include "gasMetalThermo.H"
 
@@ -48,23 +47,28 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                        Class gasMetalMixture Declaration
+                    Class gasMetalThermalProperties Declaration
 \*---------------------------------------------------------------------------*/
 
-class gasMetalMixture
-:
-    public immiscibleIncompressibleTwoPhaseMixture
+class gasMetalThermalProperties
 {
-    // Private data
+protected:
 
-        //- Reference to the mesh
-        const fvMesh& mesh_;
+    // Protected data
 
         //- Thermophysical model
         const gasMetalThermo thermo_;
 
         //- Flag to write auxiliary fields
         const bool writeProperties_;
+
+        // References
+
+            // Reference to the metal fraction
+            const volScalarField& alphaM_;
+
+            // Reference to the gas fraction
+            const volScalarField& alphaG_;
 
         // Fields
 
@@ -92,25 +96,13 @@ class gasMetalMixture
             //- Thermal conductivity [W/m/K]
             volScalarField k_;
 
-            //- Density [kg/m^3]
-            volScalarField rho_;
-
             //- Derivative of temperature w.r.t. enthalpy [K*kg/J]
             volScalarField TPrimeEnthalpy_;
 
             //- Derivative of temperature w.r.t. metal fraction [K]
             volScalarField TPrimeMetalFraction_;
 
-        // Constants
-
-            //- Surface tension as a function of temperature
-            autoPtr<Function1<scalar>> pSigma_;
-
-            //- Derivative of the surface tension w.r.t temperature [kg/s^2/K]
-            const dimensionedScalar dSigmaDT_;
-
-            //- Coefficient related to the permeability of mushy layer [kg/m^3/s]
-            const dimensionedScalar mushyCoeff_;
+private:
 
     // Private Member Functions
 
@@ -118,27 +110,27 @@ class gasMetalMixture
         void calcDerivatives();
 
         //- No copy construct
-        gasMetalMixture(const gasMetalMixture&) = delete;
+        gasMetalThermalProperties(const gasMetalThermalProperties&) = delete;
 
         //- No copy assignment
-        void operator=(const gasMetalMixture&) = delete;
+        void operator=(const gasMetalThermalProperties&) = delete;
 
 public:
 
     // Static data
 
         // Declare name of the class and its debug switch
-        ClassName("gasMetalMixture");
+        ClassName("gasMetalThermalProperties");
 
     //- Constructor
-    gasMetalMixture
+    gasMetalThermalProperties
     (
-        const volVectorField& U,
-        const surfaceScalarField& phi
+        const fvMesh& mesh,
+        const twoPhaseMixture& mixture
     );
 
     //- Destructor
-    virtual ~gasMetalMixture() = default;
+    virtual ~gasMetalThermalProperties() = default;
 
     // Member Functions
 
@@ -148,6 +140,18 @@ public:
             const gasMetalThermo& thermo() const
             {
                 return thermo_;
+            }
+
+            //- Return temperature [K]
+            const volScalarField& T() const
+            {
+                return T_;
+            }
+
+            //- Return enthalpy [J/kg]
+            volScalarField& h()
+            {
+                return h_;
             }
 
             //- Return liquid fraction [-]
@@ -162,12 +166,6 @@ public:
                 return vapourFraction_;
             }
 
-            //- Return temperature [K]
-            const volScalarField& T() const
-            {
-                return T_;
-            }
-
             //- Return heat capacity at constant pressure [J/kg/K]
             const volScalarField& Cp() const
             {
@@ -180,46 +178,25 @@ public:
                 return k_;
             }
 
-            //- Return enthalpy [J/kg]
-            volScalarField& h()
-            {
-                return h_;
-            }
-
-            //- Return density [kg/m^3]
-            volScalarField& rho()
-            {
-                return rho_;
-            }
-
             //- Return the derivative of temperature w.r.t. enthalpy [K*kg/J]
-            tmp<volScalarField> TPrimeEnthalpy() const
+            const volScalarField& TPrimeEnthalpy() const
             {
                 return TPrimeEnthalpy_;
             }
 
             //- Return the derivative of temperature w.r.t. metal fraction [K]
-            tmp<volScalarField> TPrimeMetalFraction() const
+            const volScalarField& TPrimeMetalFraction() const
             {
                 return TPrimeMetalFraction_;
             }
 
         // Evaluation
 
-            //- Return the thermal Marangoni force [N/m^3]
-            tmp<volVectorField> marangoniForce() const;
-
-            //- Return the solid-phase damping coefficient [N/m^3]
-            tmp<volScalarField> solidPhaseDamping() const;
-
-            //- Return the vapour pressure [Pa]
-            tmp<volScalarField> vapourPressure(const dimensionedScalar& p0) const;
-
             //- Correct alpha-dependent fields
-            void correct() override;
+            virtual void correct();
 
             //- Correct enthalpy-dependent fields
-            void correctThermo();
+            virtual void correctThermo();
 };
 
 

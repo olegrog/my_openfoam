@@ -33,15 +33,15 @@ volVectorField U
 #include "createPhi.H"
 
 Info<< "Reading transport and thermal properties\n" << endl;
-gasMetalMixture mixture(U, phi);
+incompressibleGasMetalMixture mixture(U, phi);
 
-volScalarField& rho = mixture.rho();
+volScalarField& alpha1(mixture.alpha1());
+volScalarField& alpha2(mixture.alpha2());
 const volScalarField& T = mixture.T();
 
 const gasMetalThermo& thermo = mixture.thermo();
-const dimensionedScalar molarMass = thermo.metalM();
-const dimensionedScalar Hvapour = thermo.Hvapour();
-const dimensionedScalar Tboiling = thermo.Tboiling();
+const dimensionedScalar& rho1 = mixture.rho1();
+const dimensionedScalar& rho2 = mixture.rho2();
 
 // Uncomment this to analyze the difference in implementations of |\grad\alpha|
 /*
@@ -187,6 +187,22 @@ IOdictionary problemProperties
 );
 dimensionedScalar ambientPressure("ambientPressure", problemProperties);
 dimensionedScalar ambientTemperature("ambientTemperature", problemProperties);
+
+
+// Need to store rho for ddt(rho, U)
+volScalarField rho
+(
+    IOobject
+    (
+        "rho",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::NO_WRITE
+    ),
+    alpha1*rho1 + alpha2*rho2
+);
+rho.oldTime();
 
 // Mass flux
 surfaceScalarField rhoPhi

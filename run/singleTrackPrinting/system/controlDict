@@ -54,9 +54,4 @@ maxDeltaT       1;
 
 writeProperties yes;
 
-DebugSwitches
-{
-    gasMetalMixture     1;
-}
-
 // ************************************************************************* //

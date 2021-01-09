@@ -29,7 +29,8 @@ Application
     slmMeltPoolFoam
 
 Description
-    Solver for thermo-fluid-dynamic model of SLM based on interIsoFoam.
+    Solver for thermo-fluid-dynamic model of selective laser melting (SLM)
+    based on interIsoFoam.
 
 \*---------------------------------------------------------------------------*/
 
@@ -46,7 +47,7 @@ Description
 #include "CorrectPhi.H"
 #include "dynamicRefineFvMesh.H"
 
-#include "gasMetalMixture.H"
+#include "incompressibleGasMetalMixture.H"
 
 volScalarField surfaceGaussian
 (
@@ -182,7 +183,8 @@ int main(int argc, char *argv[])
             laserHeatSource =
                 (runTime < timeStop)*laserPower
                *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
-            const volVectorField gradAlpha1 = fvc::grad(alpha1);
+            // "nHat" is used according to the interfaceProperties class
+            const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
 
             // --- Enthalpy corrector loop
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));

@@ -1,0 +1,3 @@
+incompressibleGasMetalMixture.C
+
+LIB = $(FOAM_USER_LIBBIN)/libincompressibleGasMetalMixture

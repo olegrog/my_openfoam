@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-phases (metal argon);
+phases (metal gas);
 
 metal
 {
@@ -30,7 +30,7 @@ metal
     rho             7500; // Kim
 }
 
-argon
+gas
 {
     transportModel  Newtonian;
     nu              2.76e-4; // Argon: nu = 2.76e-4, mu = 7.9e-5
@@ -51,5 +51,6 @@ sigma
 
 beta            beta            [ K^-1 ] 8.25e-05;
 mushyCoeff      mushyCoeff      [ kg/m^3/s ] 1e+3; // 1e+12 for PDAS=750nm
+sigmoid         erf; // tanh
 
 // ************************************************************************* //

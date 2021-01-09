@@ -91,24 +91,16 @@ public:
     // Member Functions
 
         //- Apply the sigmoid function to a field
-        template<class T>
-        tmp<volScalarField> value(const T& field) const;
+        tmp<volScalarField> value(const volScalarField& field) const;
 
         //- Apply the derivative of the sigmoid function to a field
-        template<class T>
-        tmp<volScalarField> derivative(const T& field) const;
+        tmp<volScalarField> derivative(const volScalarField& field) const;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "sigmoidFunctionTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

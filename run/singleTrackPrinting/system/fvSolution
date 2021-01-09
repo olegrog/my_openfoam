@@ -75,13 +75,6 @@ solvers
         tolerance       1e-8;
         relTol          0;
     }
-
-    // for initial conditions only
-    hcorr
-    {
-        tolerance       1e3;
-        maxIter         10;
-    }
 }
 
 PIMPLE

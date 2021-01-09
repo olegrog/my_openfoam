@@ -66,4 +66,24 @@ Foam::autoPtr<Foam::sigmoidFunction> Foam::sigmoidFunction::New
 }
 
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::value
+(
+    const volScalarField& field
+) const
+{
+    return (b_ - a_)/2*value0(2*field/(b_ - a_)) + (a_ + b_)/2;
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::derivative
+(
+    const volScalarField& field
+) const
+{
+    return value1(2*field/(b_ - a_));
+}
+
+
 // ************************************************************************* //
