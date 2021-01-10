@@ -13,5 +13,4 @@ EXE_LIBS = \
     -limmiscibleIncompressibleTwoPhaseMixture \
     -lfiniteVolume \
     -L$(FOAM_USER_LIBBIN) \
-    -lgasMetalThermalProperties \
-
+    -lgasMetalThermalProperties
