@@ -109,7 +109,7 @@ class gasMetalThermo
 
         //- Return metal phase fraction (liquid/vapour) [-]
         template<class T1, class T2>
-        tmp<volScalarField> metalPhaseFraction
+        tmp<T1> metalPhaseFraction
         (
             const T1& h,
             const T1& hAtPhaseTransition,
@@ -120,7 +120,7 @@ class gasMetalThermo
 
         //- Return derivative of a metal phase fraction w.r.t. enthalpy [kg/J]
         template<class T1, class T2>
-        tmp<volScalarField> metalPhaseFractionPrimeEnthalpy
+        tmp<T1> metalPhaseFractionPrimeEnthalpy
         (
             const T1& h,
             const T1& hAtPhaseTransition,
@@ -131,7 +131,7 @@ class gasMetalThermo
 
         //- Return derivative of a metal phase fraction w.r.t. gas fraction [-]
         template<class T1, class T2>
-        tmp<volScalarField> metalPhaseFractionPrimeGasFraction
+        tmp<T1> metalPhaseFractionPrimeGasFraction
         (
             const T1& h,
             const T1& hAtPhaseTransition,
@@ -201,7 +201,7 @@ public:
 
             //- Heat capacity at constant pressure [J/kg/K]
             template<class T1, class T2, class T3>
-            tmp<volScalarField> Cp
+            tmp<T1> Cp
             (
                 const T1& T,
                 const T2& liquidFraction,
@@ -210,7 +210,7 @@ public:
 
             //- Thermal conductivity [W/m/K]
             template<class T1, class T2, class T3>
-            tmp<volScalarField> k
+            tmp<T1> k
             (
                 const T1& T,
                 const T2& liquidFraction,
@@ -219,41 +219,35 @@ public:
 
             //- Specific enthalpy [J/kg]
             template<class T1, class T2, class T3>
-            tmp<volScalarField> h
+            tmp<T3> h
             (
                 const T1& T,
                 const T2& liquidFraction,
-                const T2& vapourFraction,
                 const T3& gasFraction,
                 const word& name = "h"
             ) const;
 
             //- Specific enthalpy at the melting temperature [J/kg]
             template<class T1>
-            tmp<volScalarField> hAtMelting(const T1& gasFraction) const;
-
-            //- Specific enthalpy at the boiling temperature [J/kg]
-            template<class T1>
-            tmp<volScalarField> hAtBoiling(const T1& gasFraction) const;
+            tmp<T1> hAtMelting(const T1& gasFraction) const;
 
             //- Derivative of sensible enthalpy w.r.t. gas fraction [J/kg]
             template<class T1>
-            tmp<volScalarField> sensibleEnthalpyPrimeGasFraction(const T1& T) const;
+            tmp<T1> sensibleEnthalpyPrimeGasFraction(const T1& T) const;
 
             //- Temperature [K]
             template<class T1, class T2, class T3>
-            tmp<volScalarField> T
+            tmp<T1> T
             (
                 const T1& h,
                 const T1& hAtMelting,
                 const T2& liquidFraction,
-                const T2& vapourFraction,
                 const T3& gasFraction
             ) const;
 
             //- Liquid fraction [-]
             template<class T1, class T2>
-            tmp<volScalarField> liquidFraction
+            tmp<T1> liquidFraction
             (
                 const T1& h,
                 const T1& hAtMelting,
@@ -263,21 +257,9 @@ public:
                 return metalPhaseFraction(h, hAtMelting, metalFraction, Hfusion_, "liquid");
             }
 
-            //- Vapour fraction [-]
-            template<class T1, class T2>
-            tmp<volScalarField> vapourFraction
-            (
-                const T1& h,
-                const T1& hAtBoiling,
-                const T2& metalFraction
-            ) const
-            {
-                return metalPhaseFraction(h, hAtBoiling, metalFraction, Hvapour_, "vapour");
-            }
-
             //- Derivative of liquid fraction w.r.t. enthalpy [kg/J]
             template<class T1, class T2>
-            tmp<volScalarField> liquidFractionPrimeEnthalpy
+            tmp<T1> liquidFractionPrimeEnthalpy
             (
                 const T1& h,
                 const T1& hAtMelting,
@@ -290,24 +272,9 @@ public:
                 );
             }
 
-            //- Derivative of vapour fraction w.r.t. enthalpy [kg/J]
-            template<class T1, class T2>
-            tmp<volScalarField> vapourFractionPrimeEnthalpy
-            (
-                const T1& h,
-                const T1& hAtBoiling,
-                const T2& metalFraction
-            ) const
-            {
-                return metalPhaseFractionPrimeEnthalpy
-                (
-                    h, hAtBoiling, metalFraction, Hvapour_, "vapour"
-                );
-            }
-
             //- Derivative of liquid fraction w.r.t. gas fraction [-]
             template<class T1, class T2>
-            tmp<volScalarField> liquidFractionPrimeGasFraction
+            tmp<T1> liquidFractionPrimeGasFraction
             (
                 const T1& h,
                 const T1& hAtMelting,
@@ -320,25 +287,6 @@ public:
                 return metalPhaseFractionPrimeGasFraction
                 (
                     h, hAtMelting, metalFraction, Hfusion_, hPreMeltingPrime, "liquid"
-                );
-            }
-
-            //- Derivative of vapour fraction w.r.t. gas fraction [-]
-            template<class T1, class T2>
-            tmp<volScalarField> vapourFractionPrimeGasFraction
-            (
-                const T1& h,
-                const T1& hAtBoiling,
-                const T2& metalFraction
-            ) const
-            {
-                const scalar hPreBoilingPrime =
-                     gas_.Cp.integral(0, Tboiling_) - solid_.Cp.integral(0, Tmelting_)
-                   - Hfusion_ - liquid_.Cp.integral(Tmelting_, Tboiling_);
-
-                return metalPhaseFractionPrimeGasFraction
-                (
-                    h, hAtBoiling, metalFraction, Hvapour_, hPreBoilingPrime, "vapour"
                 );
             }
 };

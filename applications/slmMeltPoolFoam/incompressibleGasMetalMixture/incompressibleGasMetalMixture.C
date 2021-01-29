@@ -89,10 +89,10 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
     const volTensorField I_nn(tensor::I - sqr(normal));
     const volVectorField gradAlphaM = fvc::grad(alphaM_);
 
-    // gradT = fvc::grad(T_) is a less smooth alternative
-    const volVectorField gradT =
-        TPrimeEnthalpy()*fvc::grad(h_)
-      + TPrimeMetalFraction()*gradAlphaM;
+    const volVectorField gradT = fvc::grad(T_);
+
+    // This is an alternative formula:
+    //  gradT = TPrimeEnthalpy()*fvc::grad(h_) + TPrimeMetalFraction()*gradAlphaM;
 
     return dSigmaDT_*(gradT & I_nn)*mag(gradAlphaM);
 }
@@ -100,7 +100,8 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
 
 Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::solidPhaseDamping() const
 {
-    volScalarField mollifiedPhi = pSigmoid_->value((h_ - hAtMelting_)/thermo_.Hfusion());
+    volScalarField mollifiedPhi =
+        pSigmoid_->value((h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL));
     return mushyCoeff_*alphaM_
         *sqr(1 - mollifiedPhi)/(sqr(mollifiedPhi) + SMALL);
 }

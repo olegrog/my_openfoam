@@ -57,7 +57,7 @@ Foam::scalar gasMetalAverage
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class T1, class T2, class T3>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::Cp
+Foam::tmp<T1> Foam::gasMetalThermo::Cp
 (
     const T1& T,
     const T2& liquidFraction,
@@ -69,7 +69,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::Cp
         pos(liquidFraction - (1 - gasFraction)/2 - VSMALL)
     );
 
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         "Cp",
         mesh_,
@@ -84,14 +84,14 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::Cp
 
 
 template<class T1, class T2, class T3>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::k
+Foam::tmp<T1> Foam::gasMetalThermo::k
 (
     const T1& T,
     const T2& liquidFraction,
     const T3& gasFraction
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         "k",
         mesh_,
@@ -106,21 +106,20 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::k
 
 
 template<class T1, class T2, class T3>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::h
+Foam::tmp<T3> Foam::gasMetalThermo::h
 (
     const T1& T,
     const T2& liquidFraction,
-    const T2& vapourFraction,
     const T3& gasFraction,
     const word& name
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T3>
     (
         name,
         mesh_,
         dimEnergy/dimMass,
-        [this](scalar T, scalar phi, scalar psi, scalar alphaG)
+        [this](scalar T, scalar phi, scalar alphaG)
         {
             scalar alphaM = 1 - alphaG;
             scalar piecewise =
@@ -129,15 +128,15 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::h
               : solid_.Cp.integral(0, Tmelting_) + liquid_.Cp.integral(Tmelting_, T);
 
             return alphaG*gas_.Cp.integral(0, T) + alphaM*piecewise
-                + Hfusion_*phi + Hvapour_*psi;
+                + Hfusion_*phi;
         },
-        T, liquidFraction, vapourFraction, gasFraction
+        T, liquidFraction, gasFraction
     );
 }
 
 
 template<class T1>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::hAtMelting
+Foam::tmp<T1> Foam::gasMetalThermo::hAtMelting
 (
     const T1& gasFraction
 ) const
@@ -145,36 +144,20 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::hAtMelting
     return h
     (
         geometricUniformField<scalar>(Tmelting_),
-        geometricUniformField<scalar>(0.5),
-        geometricUniformField<scalar>(0),
-        gasFraction, "hAtMelting"
+        ((1 - gasFraction)/2)(),
+        gasFraction,
+        "hAtMelting"
     );
 }
 
 
 template<class T1>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::hAtBoiling
-(
-    const T1& gasFraction
-) const
-{
-    return h
-    (
-        geometricUniformField<scalar>(Tboiling_),
-        geometricUniformField<scalar>(1),
-        geometricUniformField<scalar>(0.5),
-        gasFraction, "hAtBoiling"
-    );
-}
-
-
-template<class T1>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::sensibleEnthalpyPrimeGasFraction
+Foam::tmp<T1> Foam::gasMetalThermo::sensibleEnthalpyPrimeGasFraction
 (
     const T1& T
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         "sensibleEnthalpyPrimeGasFraction",
         mesh_,
@@ -194,26 +177,25 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::sensibleEnthalpyPrimeGasFr
 
 
 template<class T1, class T2, class T3>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::T
+Foam::tmp<T1> Foam::gasMetalThermo::T
 (
     const T1& h,
     const T1& hAtMelting,
     const T2& liquidFraction,
-    const T2& vapourFraction,
     const T3& gasFraction
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         "T",
         mesh_,
         dimTemperature,
-        [this](scalar h, scalar hAtMelting, scalar phi, scalar psi, scalar alphaG)
+        [this](scalar h, scalar hAtMelting, scalar phi, scalar alphaG)
         {
             scalar alphaM = 1 - alphaG;
             scalar A = alphaG*gas_.Cp.derivative(0);
             scalar B = alphaG*gas_.Cp.value(0);
-            scalar C = h - Hfusion_*phi - Hvapour_*psi - alphaM*solid_.Cp.integral(0, Tmelting_);
+            scalar C = h - Hfusion_*phi - alphaM*solid_.Cp.integral(0, Tmelting_);
 
             A +=
                 h < hAtMelting
@@ -233,13 +215,13 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::T
               ? (Foam::sqrt(sqr(B) + 2*A*C) - B)/A
               : C/B;
         },
-        h, hAtMelting, liquidFraction, vapourFraction, gasFraction
+        h, hAtMelting, liquidFraction, gasFraction
     );
 }
 
 
 template<class T1, class T2>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFraction
+Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFraction
 (
     const T1& h,
     const T1& hAtPhaseTransition,
@@ -248,7 +230,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFraction
     const word& phaseName
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         phaseName + "Fraction",
         mesh_,
@@ -272,7 +254,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFraction
 
 
 template<class T1, class T2>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFractionPrimeEnthalpy
+Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFractionPrimeEnthalpy
 (
     const T1& h,
     const T1& hAtPhaseTransition,
@@ -281,7 +263,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFractionPrimeEnt
     const word& phaseName
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         phaseName + "FractionPrimeEnthalpy",
         mesh_,
@@ -303,7 +285,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFractionPrimeEnt
 
 
 template<class T1, class T2>
-Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFractionPrimeGasFraction
+Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFractionPrimeGasFraction
 (
     const T1& h,
     const T1& hAtPhaseTransition,
@@ -313,7 +295,7 @@ Foam::tmp<Foam::volScalarField> Foam::gasMetalThermo::metalPhaseFractionPrimeGas
     const word& phaseName
 ) const
 {
-    return generateGeometricField<volScalarField>
+    return generateGeometricField<T1>
     (
         phaseName + "FractionPrimeGasFraction",
         mesh_,

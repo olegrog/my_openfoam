@@ -39,7 +39,6 @@ volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 const volScalarField& T = mixture.T();
 
-const gasMetalThermo& thermo = mixture.thermo();
 const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
 

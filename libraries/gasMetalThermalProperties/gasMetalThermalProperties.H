@@ -38,6 +38,7 @@ SourceFiles
 #define gasMetalThermalProperties_H
 
 #include "twoPhaseMixture.H"
+#include "surfaceInterpolate.H"
 
 #include "gasMetalThermo.H"
 
@@ -81,14 +82,8 @@ protected:
             //- Specific enthalpy at the melting temperature [J/kg]
             volScalarField hAtMelting_;
 
-            //- Specific enthalpy at the boiling temperature [J/kg]
-            volScalarField hAtBoiling_;
-
             //- Liquid fraction in the gas-metal mixture [-]
             volScalarField liquidFraction_;
-
-            //- Vapour fraction in the gas-metal mixture [-]
-            volScalarField vapourFraction_;
 
             //- Heat capacity at constant pressure [J/kg/K]
             volScalarField Cp_;
@@ -97,10 +92,10 @@ protected:
             volScalarField k_;
 
             //- Derivative of temperature w.r.t. enthalpy [K*kg/J]
-            volScalarField TPrimeEnthalpy_;
+            surfaceScalarField TPrimeEnthalpyf_;
 
             //- Derivative of temperature w.r.t. metal fraction [K]
-            volScalarField TPrimeMetalFraction_;
+            surfaceScalarField TPrimeMetalFractionf_;
 
 private:
 
@@ -160,16 +155,16 @@ public:
                 return liquidFraction_;
             }
 
-            //- Return vapour fraction [-]
-            const volScalarField& vapourFraction() const
-            {
-                return vapourFraction_;
-            }
-
             //- Return heat capacity at constant pressure [J/kg/K]
             const volScalarField& Cp() const
             {
                 return Cp_;
+            }
+
+            //- Return face-interpolated heat capacity at constant pressure [J/kg/K]
+            tmp<surfaceScalarField> Cpf() const
+            {
+                return fvc::interpolate(Cp_, "interpolate(Cp)");
             }
 
             //- Return thermal conductivity [W/m/K]
@@ -178,16 +173,22 @@ public:
                 return k_;
             }
 
-            //- Return the derivative of temperature w.r.t. enthalpy [K*kg/J]
-            const volScalarField& TPrimeEnthalpy() const
+            //- Return face-interpolated thermal conductivity [W/m/K]
+            tmp<surfaceScalarField> kf() const
             {
-                return TPrimeEnthalpy_;
+                return fvc::interpolate(k_, "interpolate(k)");
             }
 
-            //- Return the derivative of temperature w.r.t. metal fraction [K]
-            const volScalarField& TPrimeMetalFraction() const
+            //- Return the face-interpolated derivative of temperature w.r.t. enthalpy [K*kg/J]
+            const surfaceScalarField& TPrimeEnthalpyf() const
             {
-                return TPrimeMetalFraction_;
+                return TPrimeEnthalpyf_;
+            }
+
+            //- Return the face-interpolated derivative of temperature w.r.t. metal fraction [K]
+            const surfaceScalarField& TPrimeMetalFractionf() const
+            {
+                return TPrimeMetalFractionf_;
             }
 
         // Evaluation
@@ -197,6 +198,14 @@ public:
 
             //- Correct enthalpy-dependent fields
             virtual void correctThermo();
+
+            //- Return the redistribution function for interfacial heat sources
+            tmp<volScalarField> interfacialHeatSourceRedistribution
+            (
+                const volScalarField& rho,
+                const dimensionedScalar& rho1,
+                const dimensionedScalar& rho2
+            );
 };
 
 

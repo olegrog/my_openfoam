@@ -2,9 +2,9 @@
 
 volScalarField& h = mixture.h();
 const volScalarField& Cp = mixture.Cp();
-const volScalarField& k = mixture.k();
 const volScalarField& liquidFraction = mixture.liquidFraction();
 
+const gasMetalThermo& thermo = mixture.thermo();
 const dimensionedScalar& molarMass = thermo.metalM();
 const dimensionedScalar& Hvapour = thermo.Hvapour();
 const dimensionedScalar& Tboiling = thermo.Tboiling();

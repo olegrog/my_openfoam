@@ -75,7 +75,6 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
         T_.boundaryField()   // copy BC from the temperature field
     ),
     hAtMelting_(thermo_.hAtMelting(alphaG_)),
-    hAtBoiling_(thermo_.hAtBoiling(alphaG_)),
     liquidFraction_
     (
         IOobject
@@ -89,28 +88,15 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
         mesh,
         dimensionedScalar()
     ),
-    vapourFraction_
-    (
-        IOobject
-        (
-            "vapourFraction",
-            mesh.time().timeName(),
-            mesh,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar()
-    ),
     Cp_(thermo_.Cp(T_, liquidFraction_, alphaG_)),
     k_(thermo_.k(T_, liquidFraction_, alphaG_)),
-    TPrimeEnthalpy_
+    TPrimeEnthalpyf_
     (
-        volScalarField::New("TPrimeEnthalpy", mesh, dimTemperature*dimMass/dimEnergy)
+        surfaceScalarField::New("TPrimeEnthalpy", mesh, dimTemperature*dimMass/dimEnergy)
     ),
-    TPrimeMetalFraction_
+    TPrimeMetalFractionf_
     (
-        volScalarField::New("TPrimeMetalFraction", mesh, dimTemperature)
+        surfaceScalarField::New("TPrimeMetalFraction", mesh, dimTemperature)
     )
 {
     // --- Activate auto-writing of additional fields
@@ -125,6 +111,9 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
         {
             field.get().writeOpt() = IOobject::AUTO_WRITE;
         }
+
+        TPrimeEnthalpyf_.writeOpt() = IOobject::AUTO_WRITE;
+        TPrimeMetalFractionf_.writeOpt() = IOobject::AUTO_WRITE;
     }
 
     // --- Checks
@@ -145,7 +134,7 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
     {
         Info<< "Updating the BC for " << h_.name() << endl;
         // operator== is used to force the assignment of the boundary field
-        h_ == thermo_.h(T_, liquidFraction_, vapourFraction_, alphaG_);
+        h_ == thermo_.h(T_, liquidFraction_, alphaG_);
     }
 
     calcDerivatives();
@@ -157,41 +146,55 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
 void Foam::gasMetalThermalProperties::correct()
 {
     hAtMelting_ = thermo_.hAtMelting(alphaG_);
-    hAtBoiling_ = thermo_.hAtBoiling(alphaG_);
 }
 
 
 void Foam::gasMetalThermalProperties::calcDerivatives()
 {
     const dimensionedScalar& Hfus = thermo_.Hfusion();
-    const dimensionedScalar& Hvap = thermo_.Hvapour();
 
-    TPrimeEnthalpy_ =
+    TPrimeEnthalpyf_ =
+        fvc::interpolate
         (
-            1
-          - Hfus*thermo_.liquidFractionPrimeEnthalpy(h_, hAtMelting_, alphaM_)
-          - Hvap*thermo_.vapourFractionPrimeEnthalpy(h_, hAtBoiling_, alphaM_)
-        )/Cp_;
+            (1 - Hfus*thermo_.liquidFractionPrimeEnthalpy(h_, hAtMelting_, alphaM_))/Cp_,
+            "interpolate(TPrimeEnthalpy)"
+        );
 
-    TPrimeMetalFraction_ =
+    TPrimeMetalFractionf_ =
+        fvc::interpolate
         (
-            thermo_.sensibleEnthalpyPrimeGasFraction(T_)
-          + Hfus*thermo_.liquidFractionPrimeGasFraction(h_, hAtMelting_, alphaM_)
-          + Hvap*thermo_.vapourFractionPrimeGasFraction(h_, hAtBoiling_, alphaM_)
-        )/Cp_;
+            (
+                thermo_.sensibleEnthalpyPrimeGasFraction(T_)
+              + Hfus*thermo_.liquidFractionPrimeGasFraction(h_, hAtMelting_, alphaM_)
+            )/Cp_,
+            "interpolate(TPrimeMetalFraction)"
+        );
 }
 
 
 void Foam::gasMetalThermalProperties::correctThermo()
 {
     liquidFraction_ = thermo_.liquidFraction(h_, hAtMelting_, alphaM_);
-    vapourFraction_ = thermo_.vapourFraction(h_, hAtBoiling_, alphaM_);
 
-    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_, vapourFraction_, alphaG_);
+    T_ = thermo_.T(h_, hAtMelting_, liquidFraction_, alphaG_);
     Cp_ = thermo_.Cp(T_, liquidFraction_, alphaG_);
     k_ = thermo_.k(T_, liquidFraction_, alphaG_);
 
     calcDerivatives();
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::gasMetalThermalProperties::interfacialHeatSourceRedistribution
+(
+    const volScalarField& rho,
+    const dimensionedScalar& rhoM,
+    const dimensionedScalar& rhoG
+)
+{
+    const volScalarField CpM = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(0));
+    const volScalarField CpG = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(1));
+
+    return 2*rho*Cp_/(rhoM*CpM + rhoG*CpG);
 }
 
 

@@ -213,10 +213,10 @@ int main(int argc, char *argv[])
         {
             heatConvection = fvc::div(rhoPhi, h);
             // For debug: check that heatConduction is almost equal to heatConduction2
-            heatConduction = fvc::laplacian(k, T);
+            heatConduction = fvc::laplacian(mixture.kf(), T);
             heatConduction2 =
-                fvc::laplacian(k*mixture.TPrimeEnthalpy(), h)
-              + fvc::laplacian(k*mixture.TPrimeMetalFraction(), alpha1);
+                fvc::laplacian(mixture.kf()*mixture.TPrimeEnthalpyf(), h)
+              + fvc::laplacian(mixture.kf()*mixture.TPrimeMetalFractionf(), alpha1);
         }
 
         const dimensionedScalar effectiveLaserPower =
