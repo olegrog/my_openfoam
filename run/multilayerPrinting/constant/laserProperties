@@ -1,0 +1,25 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      laserProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+laserPower      [ W ]   113; // 113 for Trumpf TruPrint 1000
+absorptivity    [ ]     0.4;
+laserRadius     [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
+laserVelocity   [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
+coordStart      [ m ]   ( 0 0 0 );
+timeStop        [ s ]   0.0005;
+
+// ************************************************************************* //

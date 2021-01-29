@@ -1,0 +1,18 @@
+#!/bin/bash -e
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+application=`getApplication`
+
+runApplication blockMesh
+cp 0/alpha.metal.orig 0/alpha.metal
+runApplication setFields
+
+if [[ "$1" == "-parallel" ]]; then
+    runApplication decomposePar
+    runParallel -np 4 $application
+    runApplication reconstructPar
+else
+    runApplication $application
+fi
