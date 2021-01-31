@@ -105,24 +105,23 @@ int main(int argc, char *argv[])
             if (pimple.firstIter())
             {
                 mesh.update();
-                mixture.correct();
+
+                if (mesh.changing())
+                {
+                    mixture.correct();
+                }
+
+                // --- Calculate enthalpy-independent quantities
+                laserHeatSource =
+                    (runTime < timeStop)*laserPower
+                   *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+
+                // "nHat" is used according to the interfaceProperties class
+                const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
+                absorptivity = absorptivity0*mag(gradAlpha1);
             }
 
-            // --- Calculate enthalpy-independent quantities
-            laserHeatSource =
-                (runTime < timeStop)*laserPower
-               *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
-
-            // "nHat" is used according to the interfaceProperties class
-            const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
-            absorptivity = absorptivity0*mag(gradAlpha1);
-
-            // --- Enthalpy corrector loop
-            label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
-            for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
-            {
-                #include "hEqn.H"
-            }
+            #include "hEqn.H"
         }
 
         // -- Update passive fields
@@ -132,10 +131,14 @@ int main(int argc, char *argv[])
         if (writeProperties)
         {
             // For debug: check that heatConduction is almost equal to heatConduction2
-            heatConduction = fvc::laplacian(k, T);
+            heatConduction = fvc::laplacian(mixture.kf(), T);
+
+            const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
+
             heatConduction2 =
-                fvc::laplacian(k*mixture.TPrimeEnthalpy(), h)
-              + fvc::laplacian(k*mixture.TPrimeMetalFraction(), alpha1);
+                fvc::laplacian(kByCp, h)
+              - fvc::laplacian(Hfus*kByCp, liquidFraction)
+              - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2);
         }
 
         const dimensionedScalar effectiveLaserPower =

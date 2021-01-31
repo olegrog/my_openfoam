@@ -43,6 +43,8 @@ SourceFiles
 #include "Polynomial.H"
 #include "volFields.H"
 
+#include "sigmoidFunction.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -99,6 +101,9 @@ class gasMetalThermo
         //- Molecular weight [g/mol]
         const scalar metalW_, gasW_;
 
+        //- The sigmoid function
+        autoPtr<sigmoidFunction> pSigmoid_;
+
     // Private Member Functions
 
         //- Coeffs name
@@ -106,40 +111,6 @@ class gasMetalThermo
         {
             return word(name) + "Coeffs";
         }
-
-        //- Return metal phase fraction (liquid/vapour) [-]
-        template<class T1, class T2>
-        tmp<T1> metalPhaseFraction
-        (
-            const T1& h,
-            const T1& hAtPhaseTransition,
-            const T2& metalFraction,
-            const scalar latentHeat,
-            const word& phaseName
-        ) const;
-
-        //- Return derivative of a metal phase fraction w.r.t. enthalpy [kg/J]
-        template<class T1, class T2>
-        tmp<T1> metalPhaseFractionPrimeEnthalpy
-        (
-            const T1& h,
-            const T1& hAtPhaseTransition,
-            const T2& metalFraction,
-            const scalar latentHeat,
-            const word& phaseName
-        ) const;
-
-        //- Return derivative of a metal phase fraction w.r.t. gas fraction [-]
-        template<class T1, class T2>
-        tmp<T1> metalPhaseFractionPrimeGasFraction
-        (
-            const T1& h,
-            const T1& hAtPhaseTransition,
-            const T2& metalFraction,
-            const scalar latentHeat,
-            const scalar hPrePhaseTransitionPrime,
-            const word& phaseName
-        ) const;
 
         //- No copy construct
         gasMetalThermo(const gasMetalThermo&) = delete;
@@ -196,6 +167,12 @@ public:
                 return dimensionedScalar("gasM", dimMass/dimMoles, 1e-3*gasW_);
             }
 
+            //- Return sigmoid function
+            const sigmoidFunction& sigmoid() const
+            {
+                return *pSigmoid_;
+            }
+
 
         // Evaluation
 
@@ -233,7 +210,7 @@ public:
 
             //- Derivative of sensible enthalpy w.r.t. gas fraction [J/kg]
             template<class T1>
-            tmp<T1> sensibleEnthalpyPrimeGasFraction(const T1& T) const;
+            tmp<T1> HsPrimeAlphaG(const T1& T) const;
 
             //- Temperature [K]
             template<class T1, class T2, class T3>
@@ -245,50 +222,8 @@ public:
                 const T3& gasFraction
             ) const;
 
-            //- Liquid fraction [-]
-            template<class T1, class T2>
-            tmp<T1> liquidFraction
-            (
-                const T1& h,
-                const T1& hAtMelting,
-                const T2& metalFraction
-            ) const
-            {
-                return metalPhaseFraction(h, hAtMelting, metalFraction, Hfusion_, "liquid");
-            }
-
-            //- Derivative of liquid fraction w.r.t. enthalpy [kg/J]
-            template<class T1, class T2>
-            tmp<T1> liquidFractionPrimeEnthalpy
-            (
-                const T1& h,
-                const T1& hAtMelting,
-                const T2& metalFraction
-            ) const
-            {
-                return metalPhaseFractionPrimeEnthalpy
-                (
-                    h, hAtMelting, metalFraction, Hfusion_, "liquid"
-                );
-            }
-
-            //- Derivative of liquid fraction w.r.t. gas fraction [-]
-            template<class T1, class T2>
-            tmp<T1> liquidFractionPrimeGasFraction
-            (
-                const T1& h,
-                const T1& hAtMelting,
-                const T2& metalFraction
-            ) const
-            {
-                const scalar hPreMeltingPrime =
-                    gas_.Cp.integral(0, Tmelting_) - solid_.Cp.integral(0, Tmelting_);
-
-                return metalPhaseFractionPrimeGasFraction
-                (
-                    h, hAtMelting, metalFraction, Hfusion_, hPreMeltingPrime, "liquid"
-                );
-            }
+            //- Derivative of enthalpy at the melting temperature [J/kg]
+            dimensionedScalar hAtMeltingPrime() const;
 };
 
 

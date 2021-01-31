@@ -55,7 +55,8 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
     Hfusion_(metalDict_.get<scalar>("Hfusion")),
     Hvapour_(metalDict_.get<scalar>("Hvapour")),
     metalW_(metalDict_.get<scalar>("molWeight")),
-    gasW_(gasDict_.get<scalar>("molWeight"))
+    gasW_(gasDict_.get<scalar>("molWeight")),
+    pSigmoid_(sigmoidFunction::New(*this, 0, 1))
 {
     scalar hSolidus = solid_.Cp.integral(0, Tmelting_);
     scalar hLiquidus = hSolidus + Hfusion_;
@@ -77,6 +78,16 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::dimensionedScalar Foam::gasMetalThermo::hAtMeltingPrime() const
+{
+    return dimensionedScalar
+    (
+        "hAtMeltingPrime",
+        dimEnergy/dimMass,
+        gas_.Cp.integral(0, Tmelting_) - solid_.Cp.integral(0, Tmelting_) - Hfusion_/2
+    );
+}
 
 
 // ************************************************************************* //

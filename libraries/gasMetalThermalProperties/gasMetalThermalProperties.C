@@ -88,18 +88,16 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
         mesh,
         dimensionedScalar()
     ),
+    liquidFractionPrimeEnthalpy_
+    (
+        volScalarField::New("liquidFractionPrimeEnthalpy", mesh, dimMass/dimEnergy)
+    ),
     Cp_(thermo_.Cp(T_, liquidFraction_, alphaG_)),
     k_(thermo_.k(T_, liquidFraction_, alphaG_)),
-    TPrimeEnthalpyf_
-    (
-        surfaceScalarField::New("TPrimeEnthalpy", mesh, dimTemperature*dimMass/dimEnergy)
-    ),
-    TPrimeMetalFractionf_
-    (
-        surfaceScalarField::New("TPrimeMetalFraction", mesh, dimTemperature)
-    )
+    HsPrimeAlphaG_(thermo_.HsPrimeAlphaG(T_))
 {
     // --- Activate auto-writing of additional fields
+
     if (writeProperties_)
     {
         const std::vector<std::reference_wrapper<volScalarField>> scalarFieldsForWriting
@@ -111,9 +109,6 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
         {
             field.get().writeOpt() = IOobject::AUTO_WRITE;
         }
-
-        TPrimeEnthalpyf_.writeOpt() = IOobject::AUTO_WRITE;
-        TPrimeMetalFractionf_.writeOpt() = IOobject::AUTO_WRITE;
     }
 
     // --- Checks
@@ -132,12 +127,57 @@ Foam::gasMetalThermalProperties::gasMetalThermalProperties
 
     if (!h_.typeHeaderOk<volScalarField>())
     {
+        const dictionary& h0Dict = mesh.solverDict(h_.name() + "corr");
+        const scalar tolerance = h0Dict.get<scalar>("tolerance");
+        const scalar maxIter = h0Dict.getOrDefault<label>("maxIter", 1000);
+        label nIter = 0;
+        scalar residual;
+
+        Info<< "Fixed-point iterations for correcting enthalpy:" << endl;
+        do
+        {
+            h_.storePrevIter();
+            h_ = thermo_.h(T_, liquidFraction_, alphaG_);
+            calcMetalFractions();
+
+            const volScalarField residualField = mag(h_ - h_.prevIter());
+            residual = gMax(residualField);
+
+            if (debug)
+            {
+                Info<< " -- residual = " << residual << ", iteration = " << nIter + 1 << endl;
+            }
+        }
+        while (++nIter < maxIter && residual > tolerance);
+
+        if (residual > tolerance)
+        {
+            Info<< " -- not converged within " << nIter << " iterations, final residual = "
+                << residual << " > " << tolerance << endl;
+        }
+        else
+        {
+        Info<< " -- converged in " << nIter << " iterations, final residual = "
+            << residual << " < " << tolerance << endl;
+        }
+
         Info<< "Updating the BC for " << h_.name() << endl;
         // operator== is used to force the assignment of the boundary field
         h_ == thermo_.h(T_, liquidFraction_, alphaG_);
     }
 
-    calcDerivatives();
+    correctThermo();
+}
+
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::gasMetalThermalProperties::calcMetalFractions()
+{
+    const volScalarField x = (h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL);
+
+    liquidFraction_ = alphaM_*thermo_.sigmoid().value(x);
+    liquidFractionPrimeEnthalpy_ = thermo_.sigmoid().derivative(x)/thermo_.Hfusion();
 }
 
 
@@ -149,38 +189,14 @@ void Foam::gasMetalThermalProperties::correct()
 }
 
 
-void Foam::gasMetalThermalProperties::calcDerivatives()
-{
-    const dimensionedScalar& Hfus = thermo_.Hfusion();
-
-    TPrimeEnthalpyf_ =
-        fvc::interpolate
-        (
-            (1 - Hfus*thermo_.liquidFractionPrimeEnthalpy(h_, hAtMelting_, alphaM_))/Cp_,
-            "interpolate(TPrimeEnthalpy)"
-        );
-
-    TPrimeMetalFractionf_ =
-        fvc::interpolate
-        (
-            (
-                thermo_.sensibleEnthalpyPrimeGasFraction(T_)
-              + Hfus*thermo_.liquidFractionPrimeGasFraction(h_, hAtMelting_, alphaM_)
-            )/Cp_,
-            "interpolate(TPrimeMetalFraction)"
-        );
-}
-
-
 void Foam::gasMetalThermalProperties::correctThermo()
 {
-    liquidFraction_ = thermo_.liquidFraction(h_, hAtMelting_, alphaM_);
+    calcMetalFractions();
 
     T_ = thermo_.T(h_, hAtMelting_, liquidFraction_, alphaG_);
     Cp_ = thermo_.Cp(T_, liquidFraction_, alphaG_);
     k_ = thermo_.k(T_, liquidFraction_, alphaG_);
-
-    calcDerivatives();
+    HsPrimeAlphaG_ = thermo_.HsPrimeAlphaG(T_);
 }
 
 

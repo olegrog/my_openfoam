@@ -152,14 +152,14 @@ Foam::tmp<T1> Foam::gasMetalThermo::hAtMelting
 
 
 template<class T1>
-Foam::tmp<T1> Foam::gasMetalThermo::sensibleEnthalpyPrimeGasFraction
+Foam::tmp<T1> Foam::gasMetalThermo::HsPrimeAlphaG
 (
     const T1& T
 ) const
 {
     return generateGeometricField<T1>
     (
-        "sensibleEnthalpyPrimeGasFraction",
+        "HsPrimeAlphaG",
         mesh_,
         dimEnergy/dimMass,
         [this](scalar T)
@@ -216,104 +216,6 @@ Foam::tmp<T1> Foam::gasMetalThermo::T
               : C/B;
         },
         h, hAtMelting, liquidFraction, gasFraction
-    );
-}
-
-
-template<class T1, class T2>
-Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFraction
-(
-    const T1& h,
-    const T1& hAtPhaseTransition,
-    const T2& metalFraction,
-    const scalar latentHeat,
-    const word& phaseName
-) const
-{
-    return generateGeometricField<T1>
-    (
-        phaseName + "Fraction",
-        mesh_,
-        dimless,
-        [latentHeat](scalar h, scalar hAtPhaseTransition, scalar alphaM) -> scalar
-        {
-            scalar h1 = hAtPhaseTransition - alphaM*latentHeat/2;
-            scalar h2 = hAtPhaseTransition + alphaM*latentHeat/2;
-
-            if (h < h1) {
-                return 0;
-            } else if (h > h2) {
-                return alphaM;
-            } else {
-                return (h - h1)/latentHeat;
-            }
-        },
-        h, hAtPhaseTransition, metalFraction
-    );
-}
-
-
-template<class T1, class T2>
-Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFractionPrimeEnthalpy
-(
-    const T1& h,
-    const T1& hAtPhaseTransition,
-    const T2& metalFraction,
-    const scalar latentHeat,
-    const word& phaseName
-) const
-{
-    return generateGeometricField<T1>
-    (
-        phaseName + "FractionPrimeEnthalpy",
-        mesh_,
-        dimMass/dimEnergy,
-        [latentHeat](scalar h, scalar hAtPhaseTransition, scalar alphaM) -> scalar
-        {
-            scalar h1 = hAtPhaseTransition - alphaM*latentHeat/2;
-            scalar h2 = hAtPhaseTransition + alphaM*latentHeat/2;
-
-            if (h < h1 || h > h2) {
-                return 0;
-            } else {
-                return 1/latentHeat;
-            }
-        },
-        h, hAtPhaseTransition, metalFraction
-    );
-}
-
-
-template<class T1, class T2>
-Foam::tmp<T1> Foam::gasMetalThermo::metalPhaseFractionPrimeGasFraction
-(
-    const T1& h,
-    const T1& hAtPhaseTransition,
-    const T2& metalFraction,
-    const scalar latentHeat,
-    const scalar hPrePhaseTransitionPrime,
-    const word& phaseName
-) const
-{
-    return generateGeometricField<T1>
-    (
-        phaseName + "FractionPrimeGasFraction",
-        mesh_,
-        dimless,
-        [=](scalar h, scalar hAtPhaseTransition, scalar alphaM) -> scalar
-        {
-            scalar h1 = hAtPhaseTransition - alphaM*latentHeat/2;
-            scalar h2 = hAtPhaseTransition + alphaM*latentHeat/2;
-
-            if (h < h1) {
-                return 0;
-            } else if (h > h2) {
-                return -1;
-            } else {
-                return -hPrePhaseTransitionPrime/latentHeat;
-            }
-        },
-        h, hAtPhaseTransition, metalFraction
     );
 }
 

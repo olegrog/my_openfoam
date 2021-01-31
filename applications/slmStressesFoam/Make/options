@@ -2,6 +2,7 @@ EXE_INC = \
     -I../slmMeltPoolFoam \
     -I../../src \
     -I../../libraries/gasMetalThermalProperties/lnInclude \
+    -I../../libraries/sigmoidFunction/lnInclude \
     -I./quiescentGasMetalMixture/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
@@ -17,4 +18,5 @@ EXE_LIBS = \
     -lmeshTools \
     -L$(FOAM_USER_LIBBIN) \
     -lquiescentGasMetalMixture \
-    -lgasMetalThermalProperties
+    -lgasMetalThermalProperties \
+    -lsigmoidFunction

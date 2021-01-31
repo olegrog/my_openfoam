@@ -49,7 +49,6 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
 :
     immiscibleIncompressibleTwoPhaseMixture(U, phi),
     gasMetalThermalProperties(U.mesh(), *this),
-    pSigmoid_(sigmoidFunction::New(*this, 0, 1)),
     pSigma_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
     dSigmaDT_
     (
@@ -100,10 +99,10 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
 
 Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::solidPhaseDamping() const
 {
-    volScalarField mollifiedPhi =
-        pSigmoid_->value((h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL));
+    volScalarField liquidFractionInMetal =
+        thermo_.sigmoid().value((h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL));
     return mushyCoeff_*alphaM_
-        *sqr(1 - mollifiedPhi)/(sqr(mollifiedPhi) + SMALL);
+        *sqr(1 - liquidFractionInMetal)/(sqr(liquidFractionInMetal) + SMALL);
 }
 
 

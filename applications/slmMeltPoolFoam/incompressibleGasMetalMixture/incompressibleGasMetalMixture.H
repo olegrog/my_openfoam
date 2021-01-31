@@ -41,7 +41,6 @@ SourceFiles
 #include "Function1.H"
 
 #include "gasMetalThermalProperties.H"
-#include "sigmoidFunction.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,9 +57,6 @@ class incompressibleGasMetalMixture
     public gasMetalThermalProperties
 {
     // Private data
-
-        //- The sigmoid function
-        autoPtr<sigmoidFunction> pSigmoid_;
 
         // Constants
 

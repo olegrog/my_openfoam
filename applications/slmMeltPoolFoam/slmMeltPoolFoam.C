@@ -168,6 +168,10 @@ int main(int argc, char *argv[])
                         #include "meshCourantNo.H"
                     }
                 }
+
+                laserHeatSource =
+                    (runTime < timeStop)*laserPower
+                   *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
             }
 
             // --- Advect alpha field
@@ -175,16 +179,11 @@ int main(int argc, char *argv[])
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
+            // "nHat" is used according to the interfaceProperties class
+            const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
 
             // --- Momentum predictor
             #include "UEqn.H"
-
-            // --- Calculate enthalpy-independent quantities
-            laserHeatSource =
-                (runTime < timeStop)*laserPower
-               *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
-            // "nHat" is used according to the interfaceProperties class
-            const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
 
             // --- Enthalpy corrector loop
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
@@ -212,11 +211,16 @@ int main(int argc, char *argv[])
         if (writeProperties)
         {
             heatConvection = fvc::div(rhoPhi, h);
+
             // For debug: check that heatConduction is almost equal to heatConduction2
             heatConduction = fvc::laplacian(mixture.kf(), T);
+
+            const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
+
             heatConduction2 =
-                fvc::laplacian(mixture.kf()*mixture.TPrimeEnthalpyf(), h)
-              + fvc::laplacian(mixture.kf()*mixture.TPrimeMetalFractionf(), alpha1);
+                fvc::laplacian(kByCp, h)
+              - fvc::laplacian(Hfus*kByCp, liquidFraction)
+              - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2);
         }
 
         const dimensionedScalar effectiveLaserPower =

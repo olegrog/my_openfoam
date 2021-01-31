@@ -49,7 +49,7 @@ adjustTimeStep  yes;
 
 maxDeltaT       1;
 
-maxCo           0.05;
+maxCo           0.5;
 
 writeProperties yes;
 

@@ -22,8 +22,9 @@ solvers
         solver          PBiCGStab;
         preconditioner  DIC;
         tolerance       1e-10;
-        relTol          0;
+        relTol          0.01;
     }
+
     hcorr
     {
         tolerance       1e-17;
@@ -32,12 +33,7 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors    5; // for all variables
-    nEnthalpyCorrectors 3;
-
-    momentumPredictor   no;
-    nCorrectors         0;
-    nNonOrthogonalCorrectors 0;
+    nOuterCorrectors    20;
 
     residualControl
     {

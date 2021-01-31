@@ -85,24 +85,24 @@ protected:
             //- Liquid fraction in the gas-metal mixture [-]
             volScalarField liquidFraction_;
 
+            //- Derivative of the liquid fraction w.r.t. enthalpy [kg/J]
+            volScalarField liquidFractionPrimeEnthalpy_;
+
             //- Heat capacity at constant pressure [J/kg/K]
             volScalarField Cp_;
 
             //- Thermal conductivity [W/m/K]
             volScalarField k_;
 
-            //- Derivative of temperature w.r.t. enthalpy [K*kg/J]
-            surfaceScalarField TPrimeEnthalpyf_;
-
-            //- Derivative of temperature w.r.t. metal fraction [K]
-            surfaceScalarField TPrimeMetalFractionf_;
+            //- Thermal conductivity [J/kg]
+            volScalarField HsPrimeAlphaG_;
 
 private:
 
     // Private Member Functions
 
-        //- Calculate derivatives of temperature w.r.t. enthalpy and gas fraction
-        void calcDerivatives();
+        //- Calculate metal fractions
+        void calcMetalFractions();
 
         //- No copy construct
         gasMetalThermalProperties(const gasMetalThermalProperties&) = delete;
@@ -155,6 +155,12 @@ public:
                 return liquidFraction_;
             }
 
+            //- Return derivative of the liquid fraction w.r.t. enthalpy [kg/J]
+            const volScalarField& liquidFractionPrimeEnthalpy() const
+            {
+                return liquidFractionPrimeEnthalpy_;
+            }
+
             //- Return heat capacity at constant pressure [J/kg/K]
             const volScalarField& Cp() const
             {
@@ -179,16 +185,10 @@ public:
                 return fvc::interpolate(k_, "interpolate(k)");
             }
 
-            //- Return the face-interpolated derivative of temperature w.r.t. enthalpy [K*kg/J]
-            const surfaceScalarField& TPrimeEnthalpyf() const
+            //- Return face-interpolated derivative of sensible enthalpy w.r.t. gas fraction [W/m/K]
+            tmp<surfaceScalarField> HsPrimeAlphaGf() const
             {
-                return TPrimeEnthalpyf_;
-            }
-
-            //- Return the face-interpolated derivative of temperature w.r.t. metal fraction [K]
-            const surfaceScalarField& TPrimeMetalFractionf() const
-            {
-                return TPrimeMetalFractionf_;
+                return fvc::interpolate(HsPrimeAlphaG_, "interpolate(HsPrimeAlphaG)");
             }
 
         // Evaluation

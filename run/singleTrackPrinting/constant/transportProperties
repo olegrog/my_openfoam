@@ -51,6 +51,5 @@ sigma
 
 beta            beta            [ K^-1 ] 8.25e-05;
 mushyCoeff      mushyCoeff      [ kg/m^3/s ] 1e+3; // 1e+12 for PDAS=750nm
-sigmoid         erf; // tanh
 
 // ************************************************************************* //
