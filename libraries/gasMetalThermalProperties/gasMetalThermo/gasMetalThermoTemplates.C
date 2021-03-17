@@ -66,7 +66,7 @@ Foam::tmp<T1> Foam::gasMetalThermo::Cp
 {
     const T2 sharpLiquidFraction
     (
-        pos(liquidFraction - (1 - gasFraction)/2 - VSMALL)
+        (1 - gasFraction)*pos(liquidFraction - (1 - gasFraction)/2)
     );
 
     return generateGeometricField<T1>
