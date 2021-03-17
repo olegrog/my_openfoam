@@ -28,8 +28,7 @@ boundaryField
     }
     top
     {
-        type            fixedValue;
-        value           $internalField;
+        type            zeroGradient;
     }
     side
     {

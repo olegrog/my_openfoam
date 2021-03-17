@@ -35,7 +35,7 @@ gas
     transportModel  Newtonian;
     nu              2.76e-4; // Argon: nu = 2.76e-4, mu = 7.9e-5
     // Air: 1.516e-5 for 293K, 4.270e-4 for 2000K
-    rho             0.29; // Argon: 0.29
+    rho             2.9; // Argon: 0.29
     // Air: 1.204 for 293 K, 0.1553 for 2000K
 }
 

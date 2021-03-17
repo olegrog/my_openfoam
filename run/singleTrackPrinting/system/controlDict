@@ -29,7 +29,7 @@ deltaT          1e-7;
 
 writeControl    adjustableRunTime;  // use timeStep for debug
 
-writeInterval   5e-6;               // use 1 for debug
+writeInterval   2.5e-6;               // use 1 for debug
 
 purgeWrite      0;
 

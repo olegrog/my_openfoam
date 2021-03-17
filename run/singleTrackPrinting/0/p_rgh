@@ -21,16 +21,14 @@ internalField   uniform 0;
 
 boundaryField
 {
-    top
-    {
-        type            totalPressure;
-        p0              uniform 0;
-        value           uniform 0;
-    }
     ".*"
     {
         type            fixedFluxPressure;
-        value           uniform 0;
+    }
+    top
+    {
+        type            fixedValue;
+        value           $internalField;
     }
 }
 

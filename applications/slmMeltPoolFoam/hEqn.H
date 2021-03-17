@@ -5,8 +5,7 @@ evaporativeCooling =
 const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
 const volScalarField redistribution =
     mixture.interfacialHeatSourceRedistribution(rho, rho1, rho2);
-const volScalarField evaporativeCoolingPrime =
-    evaporativeCooling*molarMass*Hvap/R/Cp/sqr(T)*sign(T - Tboiling);
+const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap/R/Cp/sqr(T);
 // const surfaceScalarField liquidFractionPrimeEnthalpyf =
 //     fvc::interpolate(mixture.liquidFractionPrimeEnthalpy());
 
@@ -37,5 +36,10 @@ fvScalarMatrix hEqn
 );
 hEqn.solve();
 pp(h);
+
+if (gMin(h) < 0)
+{
+    runTime.writeAndEnd();
+}
 
 mixture.correctThermo();
