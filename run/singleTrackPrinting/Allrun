@@ -5,16 +5,15 @@
 
 application=`getApplication`
 
+runApplication blockMesh
+cp 0/alpha.metal.orig 0/alpha.metal
+runApplication setFields
+runApplication generatePowderBed alpha.metal
+
 if [[ "$1" == "-parallel" ]]; then
-    runApplication blockMesh
-    runApplication setFields
     runApplication decomposePar
-    runParallel -np 4 $application
+    runParallel -np 8 $application
     runApplication reconstructPar
 else
-    runApplication blockMesh
-    cp 0/alpha.metal.orig 0/alpha.metal
-    runApplication setFields
-    runApplication generatePowderBed alpha.metal
     runApplication $application
 fi
