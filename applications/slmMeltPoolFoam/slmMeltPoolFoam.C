@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
         #include "readDyMControls.H"
         #include "CourantNo.H"
         #include "alphaCourantNo.H"
+        #include "temperatureChange.H"
         #include "setDeltaT.H"
 
         ++runTime;

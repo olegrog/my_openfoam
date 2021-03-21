@@ -13,6 +13,14 @@ absorptivity =
    redistribution*max(dimensionedScalar(inv(dimLength)), gradAlpha1 & beamDirection)
    *(1 - (1 - absorptivity0)*exp(min(Zero, mesh.C().component(vector::Z)/2/laserRadius)));
 
+energySource =
+(
+  - fvc::laplacian(Hfus*kByCp, liquidFraction)
+  - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
+  + absorptivity*laserHeatSource
+  - redistribution*mag(gradAlpha1)*(radiativeCooling + evaporativeCooling)
+)/rho;
+
 pp(T);
 
 fvScalarMatrix hEqn
@@ -23,15 +31,9 @@ fvScalarMatrix hEqn
     fvm::laplacian(kByCp, h)
 //  - fvm::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
 //  + fvc::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
-  - fvc::laplacian(Hfus*kByCp, liquidFraction)
-  - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
-  + absorptivity*laserHeatSource
+  + rho*energySource
   + redistribution*mag(gradAlpha1)
-   *(
-      - radiativeCooling
-      - evaporativeCooling
-      - fvm::Sp(evaporativeCoolingPrime, h) + evaporativeCoolingPrime*h
-    )
+   *(evaporativeCoolingPrime*h - fvm::Sp(evaporativeCoolingPrime, h))
   //+ fvc::div(rho*U & turbulence->devReff())
 );
 hEqn.solve();

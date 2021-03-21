@@ -172,6 +172,21 @@ volScalarField heatConduction2
     dimPower/dimVolume
 );
 
+volScalarField energySource
+(
+    IOobject
+    (
+        "energySource",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+    ),
+    mesh,
+    dimPower/dimMass
+);
+
+
 Info<< "Reading problemProperties\n" << endl;
 IOdictionary problemProperties
 (
