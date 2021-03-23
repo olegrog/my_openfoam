@@ -15,11 +15,18 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-laserPower      [ W ]   113; // 113 for Trumpf TruPrint 1000
-absorptivity    [ ]     0.35;
-laserRadius     [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
-laserVelocity   [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
-coordStart      [ m ]   ( 0 0 0 );
-timeStop        [ s ]   0.0005;
+power       [ W ]   113; // 113 for Trumpf TruPrint 1000
+radius      [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
+velocity    [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
+coordStart  [ m ]   ( 0 0 0 );
+timeStop    [ s ]   0.0005;
+
+absorptivity
+{
+    type coordinateBased; // constant
+
+    value           0.35;
+    beamDirection   ( 0 0 -1 );
+}
 
 // ************************************************************************* //

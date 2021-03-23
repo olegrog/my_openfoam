@@ -3,6 +3,7 @@ EXE_INC = \
     -I../../libraries/gasMetalThermalProperties/lnInclude \
     -I./incompressibleGasMetalMixture/lnInclude \
     -I../../libraries/sigmoidFunction/lnInclude \
+    -I./interfacialLaserHeatSource/lnInclude \
     -I$(FOAM_SOLVERS)/multiphase/interIsoFoam \
     -I$(FOAM_SOLVERS)/multiphase/interFoam \
     -I$(FOAM_SOLVERS)/multiphase/VoF \
@@ -33,4 +34,5 @@ EXE_LIBS = \
     -lincompressibleGasMetalMixture \
     -lgasMetalThermalProperties \
     -lsigmoidFunction \
+    -linterfacialLaserHeatSource \
     -ltrueArrhenius

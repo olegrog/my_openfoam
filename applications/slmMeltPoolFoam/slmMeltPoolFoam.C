@@ -48,20 +48,7 @@ Description
 #include "dynamicRefineFvMesh.H"
 
 #include "incompressibleGasMetalMixture.H"
-
-volScalarField surfaceGaussian
-(
-    const volVectorField& x,
-    dimensionedVector x0,
-    dimensionedScalar radius
-)
-{
-    using constant::mathematical::pi;
-    volVectorField r = x - x0;
-    r.replace(vector::Z, 0);
-    return 2*exp(-2*magSqr(r/radius))/pi/sqr(radius);
-}
-
+#include "interfacialLaserHeatSource.H"
 
 // For debug
 auto pp = [](const volScalarField& f)
@@ -115,11 +102,6 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // --- Calculate time-dependent quantities
-        const dimensionedVector laserCoordinate
-        (
-            "laserCoordinate", coordStart + laserVelocity*runTime
-        );
-        const vector beamDirection(0, 0, -1);
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
 
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
@@ -170,9 +152,8 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                laserHeatSource =
-                    (runTime < timeStop)*laserPower
-                   *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
+                // This call is here since depends on mesh
+                laserHeatSource.update();
             }
 
             // --- Advect alpha field
@@ -181,7 +162,8 @@ int main(int argc, char *argv[])
 
             mixture.correct();
             // "nHat" is used according to the interfaceProperties class
-            const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
+            gradAlpha1 = fvc::grad(alpha1, "nHat");
+            laserHeatSource.correct();
 
             // --- Momentum predictor
             #include "UEqn.H"
@@ -225,11 +207,11 @@ int main(int argc, char *argv[])
         }
 
         const dimensionedScalar effectiveLaserPower =
-            fvc::domainIntegrate(absorptivity*laserHeatSource);
+            fvc::domainIntegrate(laserHeatSource.value());
 
         Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
             << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
-            << ", effective absorptivity = " << (effectiveLaserPower/laserPower).value()
+            << ", effective absorptivity = " << (effectiveLaserPower/laserHeatSource.power()).value()
             << endl;
 
         runTime.write();

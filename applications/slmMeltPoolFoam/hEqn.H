@@ -9,16 +9,15 @@ const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap
 // const surfaceScalarField liquidFractionPrimeEnthalpyf =
 //     fvc::interpolate(mixture.liquidFractionPrimeEnthalpy());
 
-absorptivity =
-   redistribution*max(dimensionedScalar(inv(dimLength)), gradAlpha1 & beamDirection)
-   *(1 - (1 - absorptivity0)*exp(min(Zero, mesh.C().component(vector::Z)/2/laserRadius)));
-
 energySource =
 (
   - fvc::laplacian(Hfus*kByCp, liquidFraction)
   - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
-  + absorptivity*laserHeatSource
-  - redistribution*mag(gradAlpha1)*(radiativeCooling + evaporativeCooling)
+  + redistribution*
+    (
+        laserHeatSource.value()
+      - mag(gradAlpha1)*(radiativeCooling + evaporativeCooling)
+    )
 )/rho;
 
 pp(T);
