@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     #include "createTime.H"
     #include "createMesh.H"
     #include "createControl.H"
+    #include "createTimeControls.H"
     #include "createFields.H"
     #include "createFieldRefs.H"
 
@@ -52,6 +53,9 @@ int main(int argc, char *argv[])
 
     while (runTime.run() && gMax(T) < maxTemperature)
     {
+        #include "readTimeControls.H"
+        #include "setDeltaT.H"
+
         ++runTime;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;

@@ -21,7 +21,7 @@ startTime           0;
 stopAt              endTime;
 endTime             500e3;
 deltaT              1e3;
-writeControl        runTime;
+writeControl        adjustableRunTime;
 writeInterval       10e3;
 purgeWrite          0;
 writeFormat         binary;
@@ -31,6 +31,11 @@ timeFormat          general;
 timePrecision       7;
 runTimeModifiable   yes;
 maxTemperature      700;    // stop simulation when this temperature is reached
+
+adjustTimeStep      yes;
+maxDeltaT           1e5;
+maxCo               50;
+maxDeltaY           0.01;   // maximum change of polymer fraction within a time step
 
 functions
 {
