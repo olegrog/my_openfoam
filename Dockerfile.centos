@@ -1,4 +1,4 @@
-FROM openfoamplus/of_v2006_centos73:latest
+FROM openfoamplus/of_v2012_centos73:release
 
 # boost-devel is used to build source-highlight from source
 RUN yum install -y epel-release \
@@ -7,17 +7,30 @@ RUN yum install -y epel-release \
  && yum clean all \
  && rm -rf /var/lib/apt/lists/*
 
-RUN echo "source $(ls /opt/OpenFOAM/setImage_*.sh)" >> /etc/profile.d/openfoam.sh
-
+# install vim-pathogen to colorizing OpenFOAM files
 RUN curl https://raw.githubusercontent.com/tpope/vim-pathogen/master/autoload/pathogen.vim \
     > /usr/share/vim/vimfiles/autoload/pathogen.vim
 
 # install source-highlight for colorize less
 ARG source_highlight="source-highlight-3.1.8"
-RUN wget ftp://ftp.gnu.org/gnu/src-highlite/"$source_highlight".tar.gz \
- && tar xf "$source_highlight".tar.gz \
+RUN curl ftp://ftp.gnu.org/gnu/src-highlite/"$source_highlight".tar.gz | tar xz \
  && cd "$source_highlight" \
- && ./configure && make -j2 && make install \
- && cd .. && rm -r "$source_highlight"*
+ && ./configure && make -j && make install \
+ && cd .. && rm -r "$source_highlight"
 
+# activate OpenFOAM at each run
+RUN echo openfoam > /etc/sysconfig/openfoam-selector
+
+# download the missed OpenFOAM source files
+ARG ofvers=v2012
+#ADD OpenFOAM-$ofvers.tgz /
+#RUN : \
+RUN curl -SL https://sourceforge.net/projects/openfoam/files/$ofvers/OpenFOAM-$ofvers.tgz | tar xz \
+ && cd OpenFOAM-$ofvers && mv applications src wmake /usr/lib/openfoam/openfoam/ \
+ && source /etc/profile.d/openfoam-selector.sh \
+ && cd /usr/lib/openfoam/openfoam/wmake/src && ./Allmake \
+ && cd /usr/lib/openfoam/openfoam && wmakeLnIncludeAll \
+ && rm -r /OpenFOAM-$ofvers
+
+# update a database for mlocate
 RUN updatedb
