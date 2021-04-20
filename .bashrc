@@ -27,22 +27,25 @@ shopt -s histappend
 export LESSOPEN="| $(which source-highlight) -i %s -f esc256 --style-file esc256.style"
 export LESS=" -R"
 
-# Search among OpenFOAM source
+# Search in the OpenFOAM distribution and among the local source code
 s() {
-    result=$(locate "/$1" | grep $WM_PROJECT_DIR | grep -v lnInclude)
-    if [[ $? > 0 ]]; then
+    local res1 res2
+    res1="$(locate "/$1" | grep $WM_PROJECT_DIR | grep -v lnInclude)"
+    res2="$(find ~/{src,libraries,applications} -wholename "*/$1*" | grep -vE 'lnInclude|Make')"
+    if [[ -z "$res1" && -z "$res2" ]]; then
         echo -e "${RED}Missing filename!${NC}"
-    elif [[ "$(wc -w <<< "$result")" > 1 ]]; then
+    elif [[ "$(wc -w <<< "$res1 $res2")" > 1 ]]; then
         echo -e "${RED}There are several files with the same name."
         echo -e "Specify the unique path using the parent directory.${NC}"
-        echo "$result" | tr ' ' '\n'
+        echo "$res1 $res2" | tr ' ' '\n'
+    elif [[ -w "$res1$res2" ]]; then
+        vim "$res1$res2"
     else
-        less -R $result
+        less -R "$res1$res2"
     fi
 }
 
 # Aliases
-alias g='git'
 alias grep='grep --color=auto'
 alias ls='ls --color=auto -G'
 alias ll='ls -l'
