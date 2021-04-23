@@ -1,10 +1,14 @@
+using constant::mathematical::twoPi;
+using constant::physicoChemical::R;     // universal gas constant
+using constant::physicoChemical::sigma; // Stefan--Boltzmann constant
+
 radiativeCooling = emissivity*sigma*(pow4(T) - pow4(ambientTemperature));
 evaporativeCooling =
-    evaporationCoeff*mixture.vapourPressure(ambientPressure)*Hvap*Foam::sqrt(molarMass/2/pi/R/T);
+    evaporationCoeff*mixture.vapourPressure(ambientPressure)*Hvap*Foam::sqrt(molarMass/twoPi/R/T);
 
 const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
-const volScalarField redistribution =
-    mixture.interfacialHeatSourceRedistribution(rho, rho1, rho2);
+const volScalarField& redistribution = mixture.surfaceHeatSourceRedistribution();
+const volScalarField magGradAlphaM = mag(mixture.gradAlphaM());
 const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap/R/Cp/sqr(T);
 // const surfaceScalarField liquidFractionPrimeEnthalpyf =
 //     fvc::interpolate(mixture.liquidFractionPrimeEnthalpy());
@@ -13,11 +17,8 @@ energySource =
 (
   - fvc::laplacian(Hfus*kByCp, liquidFraction)
   - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
-  + redistribution*
-    (
-        laserHeatSource.value()
-      - mag(gradAlpha1)*(radiativeCooling + evaporativeCooling)
-    )
+  + (*laserHeatSource)()
+  - redistribution*magGradAlphaM*(radiativeCooling + evaporativeCooling)
 )/rho;
 
 pp(T);
@@ -31,7 +32,7 @@ fvScalarMatrix hEqn
 //  - fvm::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
 //  + fvc::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
   + rho*energySource
-  + redistribution*mag(gradAlpha1)
+  + redistribution*magGradAlphaM
    *(evaporativeCoolingPrime*h - fvm::Sp(evaporativeCoolingPrime, h))
   //+ fvc::div(rho*U & turbulence->devReff())
 );

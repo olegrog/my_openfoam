@@ -1,3 +1,5 @@
 quiescentGasMetalMixture.C
 
+quiescentTwoPhaseMixture/quiescentTwoPhaseMixture.C
+
 LIB = $(FOAM_USER_LIBBIN)/libquiescentGasMetalMixture

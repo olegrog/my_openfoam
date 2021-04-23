@@ -31,13 +31,13 @@ Description
 
 SourceFiles
     gasMetalThermalProperties.C
+    gasMetalThermalPropertiesTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
 #ifndef gasMetalThermalProperties_H
 #define gasMetalThermalProperties_H
 
-#include "twoPhaseMixture.H"
 #include "surfaceInterpolate.H"
 
 #include "gasMetalThermo.H"
@@ -51,6 +51,7 @@ namespace Foam
                     Class gasMetalThermalProperties Declaration
 \*---------------------------------------------------------------------------*/
 
+template<class Mixture>
 class gasMetalThermalProperties
 {
 protected:
@@ -65,6 +66,9 @@ protected:
 
         // References
 
+            // Reference to the mixture
+            const Mixture& mixture_;
+
             // Reference to the metal fraction
             const volScalarField& alphaM_;
 
@@ -72,6 +76,9 @@ protected:
             const volScalarField& alphaG_;
 
         // Fields
+
+            //- Gradient of the metal fraction [1/m]
+            volVectorField gradAlphaM_;
 
             //- Temperature [K]
             volScalarField T_;
@@ -94,15 +101,27 @@ protected:
             //- Thermal conductivity [W/m/K]
             volScalarField k_;
 
-            //- Thermal conductivity [J/kg]
+            //- Derivative of the sensible enthalpy w.r.t. gas fraction [W/m/K]
             volScalarField HsPrimeAlphaG_;
 
 private:
+
+    // Private data
+
+        //- Flag to indicate whether to update redistribution_
+        mutable bool updatedRedistr_;
+
+        //- Heat source redistribution function
+        mutable tmp<volScalarField> tredistribution_;
+
 
     // Private Member Functions
 
         //- Calculate metal fractions
         void calcMetalFractions();
+
+        //- Calculate redistribution function for surface heat sources
+        void calcRedistribution() const;
 
         //- No copy construct
         gasMetalThermalProperties(const gasMetalThermalProperties&) = delete;
@@ -112,20 +131,19 @@ private:
 
 public:
 
-    // Static data
-
-        // Declare name of the class and its debug switch
-        ClassName("gasMetalThermalProperties");
+    //- Runtime type information
+    TypeName("gasMetalThermalProperties");
 
     //- Constructor
     gasMetalThermalProperties
     (
         const fvMesh& mesh,
-        const twoPhaseMixture& mixture
+        const Mixture& mixture
     );
 
     //- Destructor
     virtual ~gasMetalThermalProperties() = default;
+
 
     // Member Functions
 
@@ -135,6 +153,12 @@ public:
             const gasMetalThermo& thermo() const
             {
                 return thermo_;
+            }
+
+            //- Return gradient of the metal fraction [1/m]
+            const volVectorField& gradAlphaM() const
+            {
+                return gradAlphaM_;
             }
 
             //- Return temperature [K]
@@ -191,6 +215,9 @@ public:
                 return fvc::interpolate(HsPrimeAlphaG_, "interpolate(HsPrimeAlphaG)");
             }
 
+            //- Return redistribution function for surface heat sources
+            const volScalarField& surfaceHeatSourceRedistribution() const;
+
         // Evaluation
 
             //- Correct alpha-dependent fields
@@ -198,20 +225,18 @@ public:
 
             //- Correct enthalpy-dependent fields
             virtual void correctThermo();
-
-            //- Return the redistribution function for interfacial heat sources
-            tmp<volScalarField> interfacialHeatSourceRedistribution
-            (
-                const volScalarField& rho,
-                const dimensionedScalar& rho1,
-                const dimensionedScalar& rho2
-            );
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "gasMetalThermalPropertiesTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

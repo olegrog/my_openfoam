@@ -1,7 +1,3 @@
-#include "Read/laserProperties.H"
-
-bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
-
 Info<< "Reading transport and thermal properties\n" << endl;
 quiescentGasMetalMixture mixture(mesh);
 
@@ -26,62 +22,6 @@ volScalarField wasMelted
     dimensionedScalar()
 );
 
-volScalarField laserHeatSource
-(
-    IOobject
-    (
-        "laserHeatSource",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    dimPower/dimArea
-);
-
-volScalarField absorptivity
-(
-    IOobject
-    (
-        "absorptivity",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    inv(dimLength)
-);
-
-volScalarField heatConduction
-(
-    IOobject
-    (
-        "heatConduction",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    dimPower/dimVolume
-);
-
-volScalarField heatConduction2
-(
-    IOobject
-    (
-        "heatConduction2",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    dimPower/dimVolume
-);
-
 // Need to store rho for ddt(rho, h)
 volScalarField rho
 (
@@ -96,3 +36,9 @@ volScalarField rho
     alpha1*rho1 + alpha2*rho2
 );
 
+Info<< "Reading laser properties\n" << endl;
+autoPtr<volumetricLaserHeatSource> laserHeatSource
+(
+    volumetricLaserHeatSource::New(mesh)
+);
+Info<< endl;

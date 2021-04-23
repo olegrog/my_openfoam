@@ -64,15 +64,15 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
     scalar hPreBoiling = hLiquidus + liquid_.Cp.integral(Tmelting_, Tboiling_);
 
     Info<< endl
-        << "Solidus enthalpy = " << hSolidus << endl
-        << "Liquidus enthalpy = " << hLiquidus << endl
-        << "Gas enthalpy at Tmelting = " << hGasAtMelting << endl
-        << "Pre-boiling enthalpy = " << hPreBoiling << endl
-        << "Solidus heat capacity = " << solid_.Cp.value(Tmelting_) << endl
-        << "Liquidus heat capacity = " << liquid_.Cp.value(Tmelting_) << endl
-        << "Solidus thermal conductivity = " << solid_.k.value(Tmelting_) << endl
-        << "Liquidus thermal conductivity = " << liquid_.k.value(Tmelting_) << endl
-        << "Gas thermal conductivity at Tmelting = " << gas_.k.value(Tmelting_) << endl
+        << " -- Solidus enthalpy = " << hSolidus << endl
+        << " -- Liquidus enthalpy = " << hLiquidus << endl
+        << " -- Gas enthalpy at Tmelting = " << hGasAtMelting << endl
+        << " -- Pre-boiling enthalpy = " << hPreBoiling << endl
+        << " -- Solidus heat capacity = " << solid_.Cp.value(Tmelting_) << endl
+        << " -- Liquidus heat capacity = " << liquid_.Cp.value(Tmelting_) << endl
+        << " -- Solidus thermal conductivity = " << solid_.k.value(Tmelting_) << endl
+        << " -- Liquidus thermal conductivity = " << liquid_.k.value(Tmelting_) << endl
+        << " -- Gas thermal conductivity at Tmelting = " << gas_.k.value(Tmelting_) << endl
         << endl;
 }
 

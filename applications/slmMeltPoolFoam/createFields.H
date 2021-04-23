@@ -40,10 +40,6 @@ const volScalarField& T = mixture.T();
 const dimensionedScalar& rho1 = mixture.rho1();
 const dimensionedScalar& rho2 = mixture.rho2();
 
-// "nHat" is used according to the interfaceProperties class
-volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
-interfacialLaserHeatSource laserHeatSource(alpha1, gradAlpha1);
-
 // Uncomment this to analyze the difference in implementations of |\grad\alpha|
 /*
 {
@@ -74,20 +70,6 @@ volScalarField wasMelted
     ),
     mesh,
     dimensionedScalar()
-);
-
-volScalarField absorptivity
-(
-    IOobject
-    (
-        "absorptivity",
-        runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
-    ),
-    mesh,
-    inv(dimLength)
 );
 
 volScalarField radiativeCooling
@@ -290,3 +272,10 @@ mesh.setFluxRequired(p_rgh.name());
 mesh.setFluxRequired(mixture.phase1Name());
 
 isoAdvection advector(mixture.alpha1(), phi, U);
+
+Info<< "Reading laser properties\n" << endl;
+autoPtr<surfaceLaserHeatSource> laserHeatSource
+(
+    surfaceLaserHeatSource::New(mixture, advector)
+);
+Info<< endl;

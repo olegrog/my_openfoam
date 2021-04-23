@@ -1,0 +1,15 @@
+surfaceLaserHeatSource/surfaceLaserHeatSource.C
+
+gradAlphaHeatSource/gradAlphaHeatSource.C
+gradAlphaHeatSource/absorptionModel/absorptionModel/absorptionModel.C
+gradAlphaHeatSource/absorptionModel/constant/constant.C
+gradAlphaHeatSource/absorptionModel/coordinateBased/coordinateBased.C
+
+rayTracingHeatSource/rayTracingHeatSource.C
+rayTracingHeatSource/rayTracingParticle/rayTracingParticle.C
+rayTracingHeatSource/rayTracingParticle/rayTracingParticleIO.C
+rayTracingHeatSource/reflectionModel/reflectionModel/reflectionModel.C
+rayTracingHeatSource/reflectionModel/noReflection/noReflection.C
+rayTracingHeatSource/reflectionModel/Fresnel/Fresnel.C
+
+LIB = $(FOAM_USER_LIBBIN)/libsurfaceLaserHeatSources

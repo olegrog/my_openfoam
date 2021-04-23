@@ -1,0 +1,26 @@
+EXE_INC = \
+    -I../../../src \
+    -I../../../libraries/laserHeatSource/lnInclude \
+    -I../../../libraries/gasMetalThermalProperties/lnInclude \
+    -I../../../libraries/sigmoidFunction/lnInclude \
+    -I../incompressibleGasMetalMixture/lnInclude \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/geometricVoF/lnInclude \
+    -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
+    -I$(LIB_SRC)/transportModels/immiscibleIncompressibleTwoPhaseMixture/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/lagrangian/basic/lnInclude
+
+EXE_LIBS = \
+    -limmiscibleIncompressibleTwoPhaseMixture \
+    -lgeometricVoF \
+    -lfiniteVolume \
+    -lmeshTools \
+    -llagrangian \
+    -L$(FOAM_USER_LIBBIN) \
+    -llaserHeatSource \
+    -lincompressibleGasMetalMixture

@@ -55,7 +55,7 @@ writeProperties yes;
 
 DebugSwitches
 {
-    gasMetalThermalProperties     1;
+    quiescentGasMetalThermalProperties  0;
 }
 
 // ************************************************************************* //

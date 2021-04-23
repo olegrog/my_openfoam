@@ -33,10 +33,10 @@ License
 
 namespace Foam
 {
-    namespace absorptivity
+    namespace absorption
     {
         defineTypeName(constant);
-        addToRunTimeSelectionTable(absorptivityModel, constant, dictionary);
+        addToRunTimeSelectionTable(absorptionModel, constant, dictionary);
     }
 }
 

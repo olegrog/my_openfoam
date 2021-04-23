@@ -25,7 +25,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "absorptivityModel.H"
+#include "surfaceLaserHeatSource.H"
 
 #include "error.H"
 
@@ -33,41 +33,63 @@ License
 
 namespace Foam
 {
-    defineTypeName(absorptivityModel);
-    defineRunTimeSelectionTable(absorptivityModel, dictionary);
+    defineTypeName(surfaceLaserHeatSource);
+    defineRunTimeSelectionTable(surfaceLaserHeatSource, mixtureAdvector);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::absorptivityModel> Foam::absorptivityModel::New
+Foam::autoPtr<Foam::surfaceLaserHeatSource> Foam::surfaceLaserHeatSource::New
 (
-    const dictionary& dict
+    const incompressibleGasMetalMixture& mixture,
+    const isoAdvection& advector
 )
 {
-    const word modelType(dict.get<word>("type"));
+    const IOdictionary dict
+    (
+        IOobject
+        (
+            "laserProperties",
+            mixture.U().time().constant(),
+            mixture.U().db(),
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE,
+            false // Do not register
+        )
+    );
 
-    Info<< "Selecting absorptivityModel " << modelType << endl;
+    const word modelType(dict.subDict("source").get<word>("type"));
 
-    const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
+    Info<< "Selecting surface laser heat source model " << modelType << endl;
+
+    const auto cstrIter = mixtureAdvectorConstructorTablePtr_->cfind(modelType);
 
     if (!cstrIter.found())
     {
         FatalIOErrorInLookup
         (
             dict,
-            "absorptivityModel",
+            "surfaceLaserHeatSource",
             modelType,
-            *dictionaryConstructorTablePtr_
+            *mixtureAdvectorConstructorTablePtr_
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<absorptivityModel>(cstrIter()(dict));
+    return autoPtr<surfaceLaserHeatSource>(cstrIter()(mixture, advector));
 }
 
 
-Foam::absorptivityModel::absorptivityModel(const dictionary& dict)
+Foam::surfaceLaserHeatSource::surfaceLaserHeatSource
+(
+    const word& modelType,
+    const incompressibleGasMetalMixture& mixture,
+    const isoAdvection& advector
+)
 :
-    A_("value", dimless, dict)
+    laserHeatSource(advector.alpha().mesh()),
+    modelDict_(subDict("source").subDict(modelType + "Model")),
+    mixture_(mixture),
+    advector_(advector)
 {}
 
 

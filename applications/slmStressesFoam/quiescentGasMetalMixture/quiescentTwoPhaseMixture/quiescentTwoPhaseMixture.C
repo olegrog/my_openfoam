@@ -8,7 +8,7 @@
                             | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of slmStressesFoam.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -25,45 +25,34 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "coordinateBased.H"
-
-#include "addToRunTimeSelectionTable.H"
-
-#include "interfacialLaserHeatSource.H"
+#include "quiescentTwoPhaseMixture.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    namespace absorptivity
-    {
-        defineTypeName(coordinateBased);
-        addToRunTimeSelectionTable(absorptivityModel, coordinateBased, dictionary);
-    }
+    defineTypeName(quiescentTwoPhaseMixture);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::absorptivity::coordinateBased::coordinateBased(const dictionary& dict)
+Foam::quiescentTwoPhaseMixture::quiescentTwoPhaseMixture(const fvMesh& mesh)
 :
-    absorptivityModel(dict),
-    beamDirection_(dict.get<vector>("beamDirection"))
+    IOdictionary
+    (
+        IOobject
+        (
+            "transportProperties",
+            mesh.time().constant(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        )
+    ),
+    twoPhaseMixture(mesh, *this),
+    rho1_("rho", dimDensity, subDict(phase1Name_)),
+    rho2_("rho", dimDensity, subDict(phase2Name_))
 {}
-
-
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::tmp<Foam::volScalarField> Foam::absorptivity::coordinateBased::value
-(
-    const volScalarField& alphaM,
-    const volVectorField& gradAlphaM,
-    const interfacialLaserHeatSource& laser
-) const
-{
-    const fvMesh& mesh = alphaM.mesh();
-    return max(dimensionedScalar(gradAlphaM.dimensions()), gradAlphaM & beamDirection_)
-        *(1 - (1 - A_)*exp(min(Zero, -(mesh.C() & beamDirection_)/2/laser.radius())));
-}
 
 
 // ************************************************************************* //

@@ -55,4 +55,12 @@ maxDeltaT       1;
 
 writeProperties yes;
 
+DebugSwitches
+{
+    incompressibleGasMetalThermalProperties 0;
+    rayTracing 1;
+    rayTracingCloud 1;
+    rayTracingParticle 0;
+}
+
 // ************************************************************************* //

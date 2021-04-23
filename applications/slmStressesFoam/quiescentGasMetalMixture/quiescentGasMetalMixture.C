@@ -27,43 +27,27 @@ License
 
 #include "quiescentGasMetalMixture.H"
 
-#include "constants.H"
-
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(quiescentGasMetalMixture, 0);
-}
+    defineTypeName(quiescentGasMetalMixture);
 
+    defineTemplateTypeNameAndDebugWithName
+    (
+        gasMetalThermalProperties<quiescentGasMetalMixture>,
+        "quiescentGasMetalThermalProperties",
+        0
+    );
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::quiescentGasMetalMixture::quiescentGasMetalMixture(const fvMesh& mesh)
 :
-    IOdictionary
-    (
-        IOobject
-        (
-            "transportProperties",
-            mesh.time().constant(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        )
-    ),
-    twoPhaseMixture(mesh, *this),
-    gasMetalThermalProperties(mesh, *this),
-    rho1_("rho", dimDensity, subDict(phase1Name_)),
-    rho2_("rho", dimDensity, subDict(phase2Name_))
-{
-    // --- Checks
-
-    if (rho1_ < rho2_)
-    {
-        FatalError << "Metal is lighter than ambient gas." << exit(FatalError);
-    }
-}
+    quiescentTwoPhaseMixture(mesh),
+    gasMetalThermalProperties(mesh, *this)
+{}
 
 
 // ************************************************************************* //

@@ -27,7 +27,7 @@ Class
     Foam::quiescentGasMetalMixture
 
 Description
-    Transport model for quiescent gas-metal mixture.
+    Transport model for a quiescent gas-metal mixture.
 
 SourceFiles
     quiescentGasMetalMixture.C
@@ -37,9 +37,7 @@ SourceFiles
 #ifndef quiescentGasMetalMixture_H
 #define quiescentGasMetalMixture_H
 
-#include "IOdictionary.H"
-#include "twoPhaseMixture.H"
-
+#include "quiescentTwoPhaseMixture.H"
 #include "gasMetalThermalProperties.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -48,22 +46,14 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                Class quiescentGasMetalMixture Declaration
+                  Class quiescentGasMetalMixture Declaration
 \*---------------------------------------------------------------------------*/
 
 class quiescentGasMetalMixture
 :
-    public IOdictionary,
-    public twoPhaseMixture,
-    public gasMetalThermalProperties
+    public quiescentTwoPhaseMixture,
+    public gasMetalThermalProperties<quiescentGasMetalMixture>
 {
-    // Private data
-
-        // Phase1 density [kg/m^3]
-        dimensionedScalar rho1_;
-
-        // Phase2 density [kg/m^3]
-        dimensionedScalar rho2_;
 
     // Private Member Functions
 
@@ -75,31 +65,14 @@ class quiescentGasMetalMixture
 
 public:
 
-    // Static data
-
-        // Declare name of the class and its debug switch
-        ClassName("quiescentGasMetalMixture");
+    //- Runtime type information
+    TypeName("quiescentGasMetalMixture");
 
     //- Constructor
     quiescentGasMetalMixture(const fvMesh& mesh);
 
     //- Destructor
-    virtual ~quiescentGasMetalMixture() = default;
-
-    // Member functions
-
-        //- Return phase1 density [kg/m^3]
-        const dimensionedScalar& rho1() const
-        {
-            return rho1_;
-        }
-
-        //- Return phase2 density [kg/m^3]
-        const dimensionedScalar& rho2() const
-        {
-            return rho2_;
-        };
-
+    ~quiescentGasMetalMixture() override = default;
 };
 
 

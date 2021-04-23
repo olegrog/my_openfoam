@@ -54,7 +54,7 @@ namespace Foam
 class incompressibleGasMetalMixture
 :
     public immiscibleIncompressibleTwoPhaseMixture,
-    public gasMetalThermalProperties
+    public gasMetalThermalProperties<incompressibleGasMetalMixture>
 {
     // Private data
 
@@ -69,6 +69,7 @@ class incompressibleGasMetalMixture
             //- Coefficient related to the permeability of mushy layer [kg/m^3/s]
             const dimensionedScalar mushyCoeff_;
 
+
     // Private Member Functions
 
         //- No copy construct
@@ -79,10 +80,8 @@ class incompressibleGasMetalMixture
 
 public:
 
-    // Static data
-
-        // Declare name of the class and its debug switch
-        ClassName("incompressibleGasMetalMixture");
+    //- Runtime type information
+    TypeName("incompressibleGasMetalMixture");
 
     //- Constructor
     incompressibleGasMetalMixture
@@ -92,7 +91,8 @@ public:
     );
 
     //- Destructor
-    virtual ~incompressibleGasMetalMixture() = default;
+    ~incompressibleGasMetalMixture() override = default;
+
 
     // Member Functions
 

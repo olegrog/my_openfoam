@@ -36,6 +36,13 @@ License
 namespace Foam
 {
     defineTypeNameAndDebug(incompressibleGasMetalMixture, 0);
+
+    defineTemplateTypeNameAndDebugWithName
+    (
+        gasMetalThermalProperties<incompressibleGasMetalMixture>,
+        "incompressibleGasMetalThermalProperties",
+        0
+    );
 }
 
 
@@ -61,7 +68,7 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
     // --- Diagnostic info
 
     Info<< endl
-        << "Surface tension = " << pSigma_->value(0) << " + ("
+        << " -- Surface tension = " << pSigma_->value(0) << " + ("
         << dSigmaDT_.value() << ")*T\n" << endl;
 
     // --- Activate auto-writing of additional fields
@@ -69,13 +76,6 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
     {
         // nu_ is defined in incompressibleTwoPhaseMixture
         nu_.writeOpt() = IOobject::AUTO_WRITE;
-    }
-
-    // --- Checks
-
-    if (rho1() < rho2())
-    {
-        FatalError << "Metal is lighter than ambient gas." << exit(FatalError);
     }
 }
 

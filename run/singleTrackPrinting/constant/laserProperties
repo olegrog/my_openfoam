@@ -18,15 +18,42 @@ FoamFile
 power       [ W ]   113; // 113 for Trumpf TruPrint 1000
 radius      [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
 velocity    [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
-coordStart  [ m ]   ( 0 0 0 );
+coordStart  [ m ]   ( 0 0 1e-4 );
 timeStop    [ s ]   0.0005;
 
-absorptivity
+beam
 {
-    type coordinateBased; // constant
+    type    Gaussian; // divergeGaussian
+    direction           ( 0 0 -1 );
+    waveLength  [ m ]   1e-6;
+}
 
-    value           0.35;
-    beamDirection   ( 0 0 -1 );
+source
+{
+    type    rayTracing; // gradAlpha
+
+    gradAlphaModel
+    {
+        absorption
+        {
+            type    coordinateBased; // constant
+            absorptivity    0.35;
+        }
+    }
+
+    rayTracingModel
+    {
+        nr              10; //20
+        nTheta          20; //20
+        maxr            2;
+
+        reflection
+        {
+            type    Fresnel; // none
+            n       3.27; // refractive index
+            k       4.48; // extinction coefficient
+        }
+    }
 }
 
 // ************************************************************************* //

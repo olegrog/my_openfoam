@@ -1,8 +1,6 @@
 pp(T);
 
 const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
-const volScalarField redistribution =
-    mixture.interfacialHeatSourceRedistribution(rho, rho1, rho2);
 
 // const surfaceScalarField liquidFractionPrimeEnthalpyf =
 //     fvc::interpolate(mixture.liquidFractionPrimeEnthalpy());
@@ -16,7 +14,7 @@ fvScalarMatrix hEqn
 //  + fvc::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
   - fvc::laplacian(Hfus*kByCp, liquidFraction)
   - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
-  + redistribution*absorptivity*laserHeatSource
+  + (*laserHeatSource)()
 );
 hEqn.solve();
 pp(h);

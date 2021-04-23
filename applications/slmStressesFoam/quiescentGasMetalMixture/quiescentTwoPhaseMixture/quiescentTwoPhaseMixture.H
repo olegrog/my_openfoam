@@ -8,7 +8,7 @@
                             | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of slmMeltPoolFoam.
+    This file is part of slmStressesFoam.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,63 +24,76 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::absorptivity::constant
+    Foam::quiescentTwoPhaseMixture
 
 Description
-    Constant absorptivity.
+    Transport model for a quiescent two-phase mixture.
+
+SourceFiles
+    quiescentTwoPhaseMixture.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef absorptivity_constant_H
-#define absorptivity_constant_H
+#ifndef quiescentTwoPhaseMixture_H
+#define quiescentTwoPhaseMixture_H
 
-#include "absorptivityModel.H"
+#include "IOdictionary.H"
+#include "twoPhaseMixture.H"
+
+#include "gasMetalThermalProperties.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace absorptivity
-{
 
 /*---------------------------------------------------------------------------*\
-                        Class constant Declaration
+                  Class quiescentTwoPhaseMixture Declaration
 \*---------------------------------------------------------------------------*/
 
-class constant
+class quiescentTwoPhaseMixture
 :
-    public absorptivityModel
+    public IOdictionary,
+    public twoPhaseMixture
 {
+    // Private data
+
+        // Phase1 density [kg/m3]
+        dimensionedScalar rho1_;
+
+        // Phase2 density [kg/m3]
+        dimensionedScalar rho2_;
 
 public:
 
     //- Runtime type information
-    TypeName("constant");
+    TypeName("quiescentTwoPhaseMixture");
 
     //- Constructor
-    constant(const dictionary& dict) : absorptivityModel(dict) {}
+    quiescentTwoPhaseMixture(const fvMesh& mesh);
 
     //- Destructor
-    virtual ~constant() = default;
+    ~quiescentTwoPhaseMixture() override = default;
 
-    // Member Functions
 
-        //- Return the absorptivity field
-        tmp<volScalarField> value
-        (
-            const volScalarField& alphaM,
-            const volVectorField& gradAlphaM,
-            const interfacialLaserHeatSource& laser
-        ) const final
+    // Member functions
+
+        //- Return phase1 density [kg/m3]
+        const dimensionedScalar& rho1() const
         {
-            return A_*mag(gradAlphaM);
+            return rho1_;
+        }
+
+        //- Return phase2 density [kg/m3]
+        const dimensionedScalar& rho2() const
+        {
+            return rho2_;
         }
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace absorptivity
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

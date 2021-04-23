@@ -1,7 +1,0 @@
-interfacialLaserHeatSource.C
-
-absorptivityModel/absorptivityModel/absorptivityModel.C
-absorptivityModel/constant/constant.C
-absorptivityModel/coordinateBased/coordinateBased.C
-
-LIB = $(FOAM_USER_LIBBIN)/libinterfacialLaserHeatSource

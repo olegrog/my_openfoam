@@ -48,7 +48,7 @@ Description
 #include "dynamicRefineFvMesh.H"
 
 #include "incompressibleGasMetalMixture.H"
-#include "interfacialLaserHeatSource.H"
+#include "surfaceLaserHeatSource.H"
 
 // For debug
 auto pp = [](const volScalarField& f)
@@ -81,10 +81,6 @@ int main(int argc, char *argv[])
 
     #include "CourantNo.H"
     #include "setInitialDeltaT.H"
-
-    using constant::mathematical::pi;
-    using constant::physicoChemical::R;     // universal gas constant
-    using constant::physicoChemical::sigma; // Stefan--Boltzmann constant
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
     Info<< "\nStarting time loop\n" << endl;
@@ -151,9 +147,6 @@ int main(int argc, char *argv[])
                         #include "meshCourantNo.H"
                     }
                 }
-
-                // This call is here since depends on mesh
-                laserHeatSource.update();
             }
 
             // --- Advect alpha field
@@ -161,9 +154,7 @@ int main(int argc, char *argv[])
             #include "alphaEqnSubCycle.H"
 
             mixture.correct();
-            // "nHat" is used according to the interfaceProperties class
-            gradAlpha1 = fvc::grad(alpha1, "nHat");
-            laserHeatSource.correct();
+            laserHeatSource->correct();
 
             // --- Momentum predictor
             #include "UEqn.H"
@@ -206,13 +197,7 @@ int main(int argc, char *argv[])
               - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2);
         }
 
-        const dimensionedScalar effectiveLaserPower =
-            fvc::domainIntegrate(laserHeatSource.value());
-
-        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
-            << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
-            << ", effective absorptivity = " << (effectiveLaserPower/laserHeatSource.power()).value()
-            << endl;
+        #include "effectiveAbsorptivity.H"
 
         runTime.write();
         runTime.printExecutionTime(Info);

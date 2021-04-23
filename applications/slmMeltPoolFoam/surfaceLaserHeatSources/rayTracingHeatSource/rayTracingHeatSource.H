@@ -5,7 +5,8 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2021 Oleg Rogozin
+                  laserDTRM | Copyright (C) 2017-2019 OpenCFD Ltd.
+       rayTracingHeatSource | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -24,73 +25,71 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::absorptivityModel
+    Foam::rayTracingHeatSource
 
 Description
-    Abstract base class for absorptivity model for interfacial heat source.
+    The surface laser heat source calculated from ray tracing.
+
+SourceFiles
+    rayTracingHeatSource.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef absorptivityModel_H
-#define absorptivityModel_H
+#ifndef rayTracingHeatSource_H
+#define rayTracingHeatSource_H
 
-#include "volFields.H"
-#include "runTimeSelectionTables.H"
+#include "surfaceLaserHeatSource.H"
+#include "reflectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-class interfacialLaserHeatSource;
-
 /*---------------------------------------------------------------------------*\
-                        Class absorptivityModel Declaration
+                     Class rayTracingHeatSource Declaration
 \*---------------------------------------------------------------------------*/
 
-class absorptivityModel
+class rayTracingHeatSource
+:
+    public surfaceLaserHeatSource
 {
+    // Private data
 
-protected:
+        //- Dictionary
+        const dictionary dict_;
 
-    // Protected data
+        //- Number of theta angles
+        const label nTheta_;
 
-        //- Absorptivity coefficient []
-        const dimensionedScalar A_;
+        //- Number of radials
+        const label nr_;
+
+        //- Maximum radius
+        const label maxr_;
+
+        //- The reflection model
+        autoPtr<reflectionModel> reflectionModelPtr_;
+
+    // Private Member Functions
+
+        //- Calculate the heat source
+        void calcSource() final;
 
 public:
 
     //- Runtime type information
-    TypeName("absorptivityModel");
-
-    //- Declare run-time constructor selection tables
-    declareRunTimeSelectionTable
-    (
-        autoPtr,
-        absorptivityModel,
-        dictionary,
-        (const dictionary& dict),
-        (dict)
-    );
+    TypeName("rayTracing");
 
     //- Constructor
-    absorptivityModel(const dictionary& dict);
-
-    //- Selector
-    static autoPtr<absorptivityModel> New(const dictionary& dict);
+    rayTracingHeatSource
+    (
+        const incompressibleGasMetalMixture& mixture,
+        const isoAdvection& advector
+    );
 
     //- Destructor
-    virtual ~absorptivityModel() = default;
-
-    // Member Functions
-
-        //- Return the absorptivity field
-        virtual tmp<volScalarField> value
-        (
-            const volScalarField& alphaM,
-            const volVectorField& gradAlphaM,
-            const interfacialLaserHeatSource& laser
-        ) const = 0;
+    ~rayTracingHeatSource() final = default;
 };
 
 

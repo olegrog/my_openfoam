@@ -32,7 +32,7 @@ solvers
 
         nAlphaCorr      1;
         nAlphaSubCycles 1;
-        cAlpha          1;
+        cAlpha          1;  // Note: cAlpha is not used by isoAdvector
     }
 
     p_rgh

@@ -1,0 +1,14 @@
+EXE_INC = \
+    -I../../../src \
+    -I../../../libraries/laserHeatSource/lnInclude \
+    -I../../../libraries/gasMetalThermalProperties/lnInclude \
+    -I../../../libraries/sigmoidFunction/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lmeshTools \
+    -L$(FOAM_USER_LIBBIN) \
+    -llaserHeatSource

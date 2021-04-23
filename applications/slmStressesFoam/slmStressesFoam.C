@@ -36,6 +36,7 @@ Description
 #include "pimpleControl.H"
 
 #include "quiescentGasMetalMixture.H"
+#include "volumetricLaserHeatSource.H"
 
 volScalarField surfaceGaussian
 (
@@ -93,10 +94,6 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // --- Calculate time-dependent quantities
-        const dimensionedVector laserCoordinate
-        (
-            "laserCoordinate", coordStart + laserVelocity*runTime
-        );
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
 
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
@@ -111,43 +108,15 @@ int main(int argc, char *argv[])
                     mixture.correct();
                 }
 
-                // --- Calculate enthalpy-independent quantities
-                laserHeatSource =
-                    (runTime < timeStop)*laserPower
-                   *surfaceGaussian(mesh.C(), laserCoordinate, laserRadius);
-
-                // "nHat" is used according to the interfaceProperties class
-                const volVectorField gradAlpha1 = fvc::grad(alpha1, "nHat");
-                absorptivity = absorptivity0*mag(gradAlpha1);
+                laserHeatSource->correct();
             }
 
             #include "hEqn.H"
         }
 
-        // -- Update passive fields
-
         wasMelted = Foam::max(wasMelted, liquidFraction);
 
-        if (writeProperties)
-        {
-            // For debug: check that heatConduction is almost equal to heatConduction2
-            heatConduction = fvc::laplacian(mixture.kf(), T);
-
-            const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
-
-            heatConduction2 =
-                fvc::laplacian(kByCp, h)
-              - fvc::laplacian(Hfus*kByCp, liquidFraction)
-              - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2);
-        }
-
-        const dimensionedScalar effectiveLaserPower =
-            fvc::domainIntegrate(absorptivity*laserHeatSource);
-
-        Info<< "Real energy input = " << (fvc::domainIntegrate(rho*h) - totalEnthalpy).value()
-            << ", laser input = " << (effectiveLaserPower*runTime.deltaT()).value()
-            << ", effective absorptivity = " << (effectiveLaserPower/laserPower).value()
-            << endl;
+        #include "effectiveAbsorptivity.H"
 
         runTime.write();
         runTime.printExecutionTime(Info);

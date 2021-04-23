@@ -1,11 +1,13 @@
 EXE_INC = \
-    -I../slmMeltPoolFoam \
     -I../../src \
     -I../../libraries/gasMetalThermalProperties/lnInclude \
     -I../../libraries/sigmoidFunction/lnInclude \
     -I./quiescentGasMetalMixture/lnInclude \
+    -I../../libraries/laserHeatSource/lnInclude \
+    -I./volumetricLaserHeatSources/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I../slmMeltPoolFoam \
     -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
@@ -19,4 +21,6 @@ EXE_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
     -lquiescentGasMetalMixture \
     -lgasMetalThermalProperties \
-    -lsigmoidFunction
+    -lsigmoidFunction \
+    -llaserHeatSource \
+    -lvolumetricLaserHeatSources

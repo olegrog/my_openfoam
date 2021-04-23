@@ -23,69 +23,46 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::absorptivity::coordinateBased
-
-Description
-    Nonuniform coordinate-based absorptivity.
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef absorptivity_coordinateBased_H
-#define absorptivity_coordinateBased_H
+#include "reflectionModel.H"
 
-#include "absorptivityModel.H"
+#include "error.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace absorptivity
+    defineTypeName(reflectionModel);
+    defineRunTimeSelectionTable(reflectionModel, dictionary);
+}
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+Foam::autoPtr<Foam::reflectionModel> Foam::reflectionModel::New
+(
+    const dictionary& dict
+)
 {
+    const word modelType(dict.get<word>("type"));
 
-/*---------------------------------------------------------------------------*\
-                        Class coordinateBased Declaration
-\*---------------------------------------------------------------------------*/
+    Info<< "Selecting reflectionModel " << modelType << endl;
 
-class coordinateBased
-:
-    public absorptivityModel
-{
-    // Private data
+    const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
 
-        //- Beam direction
-        const vector beamDirection_;
-
-public:
-
-    //- Runtime type information
-    TypeName("coordinateBased");
-
-    //- Constructor
-    coordinateBased(const dictionary& dict);
-
-    //- Destructor
-    virtual ~coordinateBased() = default;
-
-    // Member Functions
-
-        //- Return the absorptivity field
-        tmp<volScalarField> value
+    if (!cstrIter.found())
+    {
+        FatalIOErrorInLookup
         (
-            const volScalarField& alphaM,
-            const volVectorField& gradAlphaM,
-            const interfacialLaserHeatSource& laser
-        ) const final;
-};
+            dict,
+            "reflectionModel",
+            modelType,
+            *dictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
+    }
 
+    return autoPtr<reflectionModel>(cstrIter()(dict));
+}
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace absorptivity
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
