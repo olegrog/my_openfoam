@@ -156,8 +156,8 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
         }
         else
         {
-        Info<< " -- converged in " << nIter << " iterations, final residual = "
-            << residual << " < " << tolerance << endl;
+            Info<< " -- converged in " << nIter << " iterations, final residual = "
+                << residual << " < " << tolerance << endl;
         }
 
         Info<< "Updating the BC for " << h_.name() << endl;
