@@ -24,71 +24,74 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::reflection::Fresnel
+    Foam::scattering::noScattering
 
 Description
-    General Fresnel reflection model between gas and absorbing media.
-
-    J.A. Stratton. Electromagnetic theory. 1941. Chapter 9.
+    Dummy scattering model for 'none'
 
 SourceFiles
-    Fresnel.C
+    noScattering.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef reflection_Fresnel_H
-#define reflection_Fresnel_H
+#ifndef scattering_noScattering_H
+#define scattering_noScattering_H
 
-#include "reflectionModel.H"
+#include "scatteringModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace reflection
+namespace scattering
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class Fresnel Declaration
+                         Class noScattering Declaration
 \*---------------------------------------------------------------------------*/
 
-class Fresnel
+class noScattering
 :
-    public reflectionModel
+    public scatteringModel
 {
-    // Private data
-
-        //- Refractive index of metal
-        const scalar n_;
-
-        //- Extinction coefficient of metal
-        const scalar k_;
 
 public:
 
     //- Runtime type information
-    TypeName("Fresnel");
+    TypeName("none");
 
     //- Constructor
-    Fresnel(const dictionary& dict);
+    noScattering(const dictionary& dict) : scatteringModel(dict) {}
 
     //- Destructor
-    ~Fresnel() final = default;
+    ~noScattering() final = default;
 
 
     // Member Functions
 
-        //- Return reflected direction
-        vector R(const vector& incident, const vector& n) const final;
+        //- Return direction of reflection
+        vector reflection(const vector& i, const vector& n) const final
+        {
+            return vector::zero;
+        }
+
+        //- Return direction of refraction
+        vector refraction(const vector& i, const vector& n) const final
+        {
+            return i;
+        }
 
         //- Return reflectivity
-        scalar rho(const scalar incidentAngle) const final;
+        scalar rho(scalar cosTheta) const final
+        {
+            return 0;
+        }
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace reflection
+} // End namespace scattering
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

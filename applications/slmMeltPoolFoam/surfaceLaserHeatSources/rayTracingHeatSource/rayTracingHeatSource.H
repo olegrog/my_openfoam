@@ -39,7 +39,7 @@ SourceFiles
 #define rayTracingHeatSource_H
 
 #include "surfaceLaserHeatSource.H"
-#include "reflectionModel.H"
+#include "scatteringModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -68,8 +68,11 @@ class rayTracingHeatSource
         //- Maximum radius
         const label maxr_;
 
-        //- The reflection model
-        autoPtr<reflectionModel> reflectionModelPtr_;
+        //- Flag to write OBJ file for inspection in ParaView
+        const bool writeOBJ_;
+
+        //- The scattering model
+        autoPtr<scatteringModel> scatteringModelPtr_;
 
     // Private Member Functions
 

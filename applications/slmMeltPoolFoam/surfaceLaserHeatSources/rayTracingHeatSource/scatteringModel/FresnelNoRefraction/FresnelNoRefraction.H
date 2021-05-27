@@ -23,44 +23,63 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Class
+    Foam::scattering::FresnelNoRefraction
+
+Description
+    General Fresnel's relations without refraction.
+
+SourceFiles
+    FresnelNoRefraction.C
+
 \*---------------------------------------------------------------------------*/
 
-#include "gradAlphaHeatSource.H"
+#ifndef scattering_FresnelNoRefraction_H
+#define scattering_FresnelNoRefraction_H
 
-#include "addToRunTimeSelectionTable.H"
+#include "Fresnel.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeName(gradAlphaHeatSource);
-    addToRunTimeSelectionTable(surfaceLaserHeatSource, gradAlphaHeatSource, mixtureAdvector);
-}
-
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
-
-Foam::gradAlphaHeatSource::gradAlphaHeatSource
-(
-    const incompressibleGasMetalMixture& mixture,
-    const isoAdvection& advector
-)
-:
-    surfaceLaserHeatSource(typeName, mixture, advector),
-    absorptionModelPtr_(absorptionModel::New(modelDict_.subDict("absorption")))
-{}
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void Foam::gradAlphaHeatSource::calcSource()
+namespace scattering
 {
-    const volScalarField& redistribution = mixture_.surfaceHeatSourceRedistribution();
-    const volVectorField& gradAlphaM = mixture_.gradAlphaM();
 
-    startTimer();
-    source_ = redistribution*beam().I()*absorptionModelPtr_->A(gradAlphaM, *this);
-    stopTimer();
-}
+/*---------------------------------------------------------------------------*\
+                    Class FresnelNoRefraction Declaration
+\*---------------------------------------------------------------------------*/
 
+class FresnelNoRefraction
+:
+    public Fresnel
+{
+public:
+
+    //- Runtime type information
+    TypeName("FresnelNoRefraction");
+
+    //- Constructor
+    FresnelNoRefraction(const dictionary& dict) : Fresnel(dict) {}
+
+    //- Destructor
+    ~FresnelNoRefraction() final = default;
+
+
+    // Member Functions
+
+        //- Return direction of refraction
+        vector refraction(const vector& i, const vector& n) const final;
+};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace scattering
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

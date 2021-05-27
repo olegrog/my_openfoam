@@ -5,8 +5,8 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-icoReactingMultiphaseInterFoam | Copyright (C) 2017-2019 OpenCFD Ltd
-            slmMeltPoolFoam | Copyright (C) 2021 Oleg Rogozin
+               DTRMParticle | Copyright (C) 2017-2019 OpenCFD Ltd
+         rayTracingParticle | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -52,16 +52,15 @@ Foam::rayTracingParticle::rayTracingParticle
     particle(mesh, is, readFields, newFormat),
     p0_(Zero),
     p1_(Zero),
-    I0_(0),
-    I_(0),
-    dA_(0),
+    dQ0_(0),
+    dQ_(0),
     isTransmissive_(-1)
 {
     if (readFields)
     {
         if (is.format() == IOstream::ASCII)
         {
-            is >> p0_ >> p1_ >> I0_ >> I_ >> dA_ >> isTransmissive_;
+            is >> p0_ >> p1_ >> dQ0_ >> dQ_ >> isTransmissive_;
         }
         else if (!is.checkLabelSize<>() || !is.checkScalarSize<>())
         {
@@ -71,9 +70,8 @@ Foam::rayTracingParticle::rayTracingParticle
 
             readRawScalar(is, p0_.data(), vector::nComponents);
             readRawScalar(is, p1_.data(), vector::nComponents);
-            readRawScalar(is, &I0_);
-            readRawScalar(is, &I_);
-            readRawScalar(is, &dA_);
+            readRawScalar(is, &dQ0_);
+            readRawScalar(is, &dQ_);
             is.readRaw(reinterpret_cast<char*>(&isTransmissive_), sizeof(bool));
 
             is.endRawRead();
@@ -104,9 +102,8 @@ void Foam::rayTracingParticle::writeProperties
 
     writeProp("p0", p0_);
     writeProp("p1", p1_);
-    writeProp("I0", I0_);
-    writeProp("I", I_);
-    writeProp("dA", dA_);
+    writeProp("dQ0", dQ0_);
+    writeProp("dQ", dQ_);
     writeProp("isTransmissive", isTransmissive_);
 
     #undef writeProp
@@ -120,9 +117,8 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const rayTracingParticle& p)
         os  << static_cast<const particle&>(p)
             << token::SPACE << p.p0_
             << token::SPACE << p.p1_
-            << token::SPACE << p.I0_
-            << token::SPACE << p.I_
-            << token::SPACE << p.dA_
+            << token::SPACE << p.dQ0_
+            << token::SPACE << p.dQ_
             << token::SPACE << p.isTransmissive_;
     }
     else

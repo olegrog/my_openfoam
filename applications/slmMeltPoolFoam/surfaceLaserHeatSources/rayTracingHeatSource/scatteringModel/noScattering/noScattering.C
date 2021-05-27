@@ -25,7 +25,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "noReflection.H"
+#include "noScattering.H"
 
 #include "addToRunTimeSelectionTable.H"
 
@@ -33,10 +33,10 @@ License
 
 namespace Foam
 {
-    namespace reflection
+    namespace scattering
     {
-        defineTypeName(noReflection);
-        addToRunTimeSelectionTable(reflectionModel, noReflection, dictionary);
+        defineTypeName(noScattering);
+        addToRunTimeSelectionTable(scatteringModel, noScattering, dictionary);
     }
 }
 

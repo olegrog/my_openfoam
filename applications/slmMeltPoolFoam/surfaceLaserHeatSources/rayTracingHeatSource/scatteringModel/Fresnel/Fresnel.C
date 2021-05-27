@@ -28,58 +28,78 @@ License
 #include "Fresnel.H"
 
 #include "addToRunTimeSelectionTable.H"
+#include "constants.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    namespace reflection
+    namespace scattering
     {
-        defineTypeName(Fresnel);
-        addToRunTimeSelectionTable(reflectionModel, Fresnel, dictionary);
+        defineTypeNameAndDebug(Fresnel, 0);
+        addToRunTimeSelectionTable(scatteringModel, Fresnel, dictionary);
     }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::reflection::Fresnel::Fresnel(const dictionary& dict)
+Foam::scattering::Fresnel::Fresnel(const dictionary& dict)
 :
-    reflectionModel(dict),
+    scatteringModel(dict),
     n_(dict.get<scalar>("n")),
     k_(dict.get<scalar>("k"))
-{}
+{
+    using constant::mathematical::pi;
+
+    Info<< " -- Normal absorptivity = " << 1 - rho(1) << endl;
+    DebugInfo
+        << " -- Absorptivity (pi/6) = " << 1 - rho(cos(pi/6)) << nl
+        << " -- Absorptivity (pi/3) = " << 1 - rho(cos(pi/3)) << nl
+        << " -- Grazing absorptivity = " << 1 - rho(0) << endl;
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::scalar Foam::reflection::Fresnel::rho(const scalar incidentAngle) const
-{
-    scalar sinTheta = sin(incidentAngle);
-    scalar cosTheta = cos(incidentAngle);
-
-    scalar r = sqr(n_) - sqr(k_) - sqr(sinTheta);
-    scalar sqrP = (sqrt(sqr(r) + sqr(2*n_*k_)) - r)/2;
-    scalar sqrQ = (sqrt(sqr(r) + sqr(2*n_*k_)) + r)/2;
-    scalar q = sqrt(sqrQ), p = sqrt(sqrP);
-
-    scalar rhoP =
-        (sqr((sqr(n_) - sqr(k_))*cosTheta - q) + sqr(2*n_*k_*cosTheta - p))
-       /(sqr((sqr(n_) - sqr(k_))*cosTheta + q) + sqr(2*n_*k_*cosTheta + p));
-
-    scalar rhoN = (sqr(q - cosTheta) + sqrP)/(sqr(q + cosTheta) + sqrP);
-
-    return (rhoP + rhoN)/2;
-}
-
-
-Foam::vector Foam::reflection::Fresnel::R
+Foam::vector Foam::scattering::Fresnel::reflection
 (
     const vector& i,
     const vector& n
 ) const
 {
     return i - 2*n*(i & n);
+}
+
+
+Foam::vector Foam::scattering::Fresnel::refraction
+(
+    const vector& i,
+    const vector& n
+) const
+{
+    scalar sinTheta = sqrt(1 - sqr(i & n));
+    scalar r = sqr(n_) - sqr(k_) - sqr(sinTheta);
+    scalar p = sqrt((sqrt(sqr(r) + sqr(2*n_*k_)) + r)/2);
+
+    return (i - n*(p + (i & n))).normalise();
+}
+
+
+Foam::scalar Foam::scattering::Fresnel::rho(scalar cosTheta) const
+{
+    scalar sinTheta = sqrt(1 - sqr(cosTheta));
+    scalar tanTheta = sinTheta/cosTheta;
+
+    scalar r = sqr(n_) - sqr(k_) - sqr(sinTheta);
+    scalar sqrP = (sqrt(sqr(r) + sqr(2*n_*k_)) + r)/2;
+    scalar sqrQ = (sqrt(sqr(r) + sqr(2*n_*k_)) - r)/2;
+    scalar p = sqrt(sqrP);
+
+    scalar rhoN = (sqr(p - cosTheta) + sqrQ)/(sqr(p + cosTheta) + sqrQ);
+    scalar rhoP = rhoN*(sqr(p - sinTheta*tanTheta) + sqrQ)/(sqr(p + sinTheta*tanTheta) + sqrQ);
+
+    return (rhoP + rhoN)/2;
 }
 
 

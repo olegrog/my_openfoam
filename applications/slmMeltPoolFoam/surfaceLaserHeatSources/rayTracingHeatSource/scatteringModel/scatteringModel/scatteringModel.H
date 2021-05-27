@@ -24,68 +24,83 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::reflection::noReflection
+    Foam::scatteringModel
 
 Description
-    Dummy reflection model for 'none'
-
-SourceFiles
-    noReflection.C
+    Abstract base class for radiation scattering.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef reflection_noReflection_H
-#define reflection_noReflection_H
+#ifndef scatteringModel_H
+#define scatteringModel_H
 
-#include "reflectionModel.H"
+#include "runTimeSelectionTables.H"
+#include "dictionary.H"
+#include "scalar.H"
+#include "vector.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace reflection
-{
 
 /*---------------------------------------------------------------------------*\
-                         Class noReflection Declaration
+                       Class scatteringModel Declaration
 \*---------------------------------------------------------------------------*/
 
-class noReflection
-:
-    public reflectionModel
+class scatteringModel
 {
+    // Private data
+
+        // Scattering threshold
+        const scalar threshold_;
 
 public:
 
     //- Runtime type information
-    TypeName("none");
+    TypeName("scatteringModel");
+
+    // Declare runtime constructor selection table
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        scatteringModel,
+        dictionary,
+        (const dictionary& dict),
+        (dict)
+    );
 
     //- Constructor
-    noReflection(const dictionary& dict) : reflectionModel(dict) {}
+    scatteringModel(const dictionary& dict);
+
+    //- Selector
+    static autoPtr<scatteringModel> New(const dictionary& dict);
 
     //- Destructor
-    ~noReflection() final = default;
+    virtual ~scatteringModel() = default;
 
 
     // Member Functions
 
-        //- Return reflectivity
-        scalar rho(const scalar incidentAngle) const final
+        //- Return scattering threshold
+        scalar threshold() const
         {
-            return 0;
+            return threshold_;
         }
 
-        //- Return reflected direction
-        vector R(const vector& incident, const vector& n) const final
-        {
-            return vector::zero;
-        }
+        //- Return direction of reflection
+        virtual vector reflection(const vector& i, const vector& n) const = 0;
+
+        //- Return direction of refraction
+        virtual vector refraction(const vector& i, const vector& n) const = 0;
+
+        //- Return reflectivity
+        virtual scalar rho(scalar cosTheta) const = 0;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace reflection
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

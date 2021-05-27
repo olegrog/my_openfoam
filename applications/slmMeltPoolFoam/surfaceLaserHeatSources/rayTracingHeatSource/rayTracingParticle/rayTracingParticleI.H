@@ -5,8 +5,8 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-icoReactingMultiphaseInterFoam | Copyright (C) 2017-2019 OpenCFD Ltd
-            slmMeltPoolFoam | Copyright (C) 2021 Oleg Rogozin
+               DTRMParticle | Copyright (C) 2017-2019 OpenCFD Ltd
+         rayTracingParticle | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -30,109 +30,54 @@ License
 
 inline Foam::rayTracingParticle::trackingData::trackingData
 (
-    Cloud<rayTracingParticle>& spc,
-    const interpolationCell<scalar>& AInterp,
-    const interpolationCellPoint<vector>& gradAlphaMInterp,
-    const boolField& reflectedCell,
-    const reflectionModel& reflection,
+    Cloud<rayTracingParticle>& cloud,
+    const reconstructionSchemes& surf,
+    const scatteringModel& scattering,
+    const volScalarField& alphaM,
+    const volVectorField& gradAlphaM,
     volScalarField& Q
 )
 :
-    particle::trackingData(spc),
-    AInterp_(AInterp),
-    gradAlphaMInterp_(gradAlphaMInterp),
-    reflectingCells_(reflectedCell),
-    reflection_(reflection),
+    particle::trackingData(cloud),
+    surf_(surf),
+    scatteringModel_(scattering),
+    alphaM_(alphaM),
+    gradAlphaM_(gradAlphaM),
     Q_(Q)
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline const Foam::interpolationCell<Foam::scalar>&
-Foam::rayTracingParticle::trackingData::AInterp() const
+inline const Foam::reconstructionSchemes&
+Foam::rayTracingParticle::trackingData::surf() const
 {
-    return AInterp_;
+    return surf_;
 }
 
 
-inline const Foam::interpolationCellPoint<Foam::vector>&
-Foam::rayTracingParticle::trackingData::gradAlphaMInterp() const
+inline const Foam::scatteringModel&
+Foam::rayTracingParticle::trackingData::scattering() const
 {
-    return gradAlphaMInterp_;
-}
-
-inline const Foam::boolField&
-Foam::rayTracingParticle::trackingData::reflectingCells() const
-{
-    return reflectingCells_;
+    return scatteringModel_;
 }
 
 
-inline const Foam::reflectionModel&
-Foam::rayTracingParticle::trackingData::reflection() const
+inline Foam::scalar Foam::rayTracingParticle::trackingData::alphaM(label celli) const
 {
-    return reflection_;
+    return alphaM_[celli];
+}
+
+
+inline Foam::vector Foam::rayTracingParticle::trackingData::gradAlphaM(label celli) const
+{
+    return gradAlphaM_[celli];
 }
 
 
 inline Foam::scalar& Foam::rayTracingParticle::trackingData::Q(label celli)
 {
     return Q_[celli];
-}
-
-
-inline const Foam::point& Foam::rayTracingParticle::p0() const
-{
-    return p0_;
-}
-
-
-inline const Foam::point& Foam::rayTracingParticle::p1() const
-{
-    return p1_;
-}
-
-
-inline Foam::scalar Foam::rayTracingParticle::I0() const
-{
-    return I0_;
-}
-
-
-inline Foam::scalar Foam::rayTracingParticle::I() const
-{
-    return I_;
-}
-
-
-inline Foam::scalar Foam::rayTracingParticle::dA() const
-{
-    return dA_;
-}
-
-
-inline Foam::scalar& Foam::rayTracingParticle::dA()
-{
-    return dA_;
-}
-
-
-inline Foam::point& Foam::rayTracingParticle::p1()
-{
-    return p1_;
-}
-
-
-inline Foam::scalar& Foam::rayTracingParticle::I0()
-{
-    return I0_;
-}
-
-
-inline Foam::scalar& Foam::rayTracingParticle::I()
-{
-    return I_;
 }
 
 

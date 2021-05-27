@@ -24,67 +24,75 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::reflectionModel
+    Foam::scattering::Fresnel
 
 Description
-    Abstract base class for radiation reflection and refraction.
+    General Fresnel's relations for vacuum and absorbing media.
+
+    J.A. Stratton. Electromagnetic theory. 1941. Chapter 9.
+    M. Modest. Radiative heat transfer. 2013. Chapter 2.5.
+
+SourceFiles
+    Fresnel.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef reflectionModel_H
-#define reflectionModel_H
+#ifndef scattering_Fresnel_H
+#define scattering_Fresnel_H
 
-#include "runTimeSelectionTables.H"
-#include "volFields.H"
+#include "scatteringModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+namespace scattering
+{
 
 /*---------------------------------------------------------------------------*\
-                       Class reflectionModel Declaration
+                           Class Fresnel Declaration
 \*---------------------------------------------------------------------------*/
 
-class reflectionModel
+class Fresnel
+:
+    public scatteringModel
 {
+    // Private data
+
+        //- Refractive index of metal
+        const scalar n_;
+
+        //- Absorptive index of metal
+        const scalar k_;
+
 public:
 
     //- Runtime type information
-    TypeName("reflectionModel");
-
-    // Declare runtime constructor selection table
-    declareRunTimeSelectionTable
-    (
-        autoPtr,
-        reflectionModel,
-        dictionary,
-        (const dictionary& dict),
-        (dict)
-    );
+    TypeName("Fresnel");
 
     //- Constructor
-    reflectionModel(const dictionary& dict) {}
-
-    //- Selector
-    static autoPtr<reflectionModel> New(const dictionary& dict);
+    Fresnel(const dictionary& dict);
 
     //- Destructor
-    virtual ~reflectionModel() = default;
+    ~Fresnel() override = default;
 
 
     // Member Functions
 
-        //- Return reflected direction
-        virtual vector R(const vector& incident, const vector& n) const = 0;
+        //- Return direction of reflection
+        vector reflection(const vector& i, const vector& n) const override;
 
-        //- Return reflectivity from medium1 to medium2 and a incident angle.
-        virtual scalar rho(const scalar incidentAngle) const = 0;
+        //- Return direction of refraction
+        vector refraction(const vector& i, const vector& n) const override;
+
+        //- Return reflectivity
+        scalar rho(scalar cosTheta) const override;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace scattering
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

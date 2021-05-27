@@ -56,6 +56,16 @@ class surfaceLaserHeatSource
 :
     public laserHeatSource
 {
+
+    // Private data
+
+        //- Total time spent calculating the heat source
+        scalar elapsedTime_;
+
+        //- Time stamp for starting the heat source calculation
+        scalar startTime_;
+
+
 protected:
 
     // Protected data
@@ -68,6 +78,22 @@ protected:
 
         //- Reference to isoAdvector
         const isoAdvection& advector_;
+
+
+    // Protected Member Functions
+
+        //- Start timer (should be called in calcSource)
+        void startTimer()
+        {
+            startTime_ = mesh_.time().elapsedCpuTime();
+        }
+
+        //- Stop timer (should be called in calcSource)
+        void stopTimer()
+        {
+            elapsedTime_ += mesh_.time().elapsedCpuTime() - startTime_;
+        }
+
 
 public:
 
@@ -104,6 +130,15 @@ public:
 
     //- Destructor
     ~surfaceLaserHeatSource() override = default;
+
+
+    // Member functions
+
+        //- Return total time spent calculating the heat source
+        scalar elapsedTime() const
+        {
+            return elapsedTime_;
+        }
 };
 
 

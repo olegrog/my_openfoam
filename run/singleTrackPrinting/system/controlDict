@@ -57,10 +57,12 @@ writeProperties yes;
 
 DebugSwitches
 {
+    isoAdvection 0;
+    reconstructionSchemes 0;
     incompressibleGasMetalThermalProperties 0;
-    rayTracing 1;
-    rayTracingCloud 1;
+    rayTracing 0;
     rayTracingParticle 0;
+    Fresnel 0;
 }
 
 // ************************************************************************* //

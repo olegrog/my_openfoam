@@ -25,7 +25,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "reflectionModel.H"
+#include "scatteringModel.H"
 
 #include "error.H"
 
@@ -33,20 +33,20 @@ License
 
 namespace Foam
 {
-    defineTypeName(reflectionModel);
-    defineRunTimeSelectionTable(reflectionModel, dictionary);
+    defineTypeName(scatteringModel);
+    defineRunTimeSelectionTable(scatteringModel, dictionary);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::reflectionModel> Foam::reflectionModel::New
+Foam::autoPtr<Foam::scatteringModel> Foam::scatteringModel::New
 (
     const dictionary& dict
 )
 {
     const word modelType(dict.get<word>("type"));
 
-    Info<< "Selecting reflectionModel " << modelType << endl;
+    Info<< "Selecting scatteringModel " << modelType << endl;
 
     const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
 
@@ -55,14 +55,20 @@ Foam::autoPtr<Foam::reflectionModel> Foam::reflectionModel::New
         FatalIOErrorInLookup
         (
             dict,
-            "reflectionModel",
+            "scatteringModel",
             modelType,
             *dictionaryConstructorTablePtr_
         ) << exit(FatalIOError);
     }
 
-    return autoPtr<reflectionModel>(cstrIter()(dict));
+    return autoPtr<scatteringModel>(cstrIter()(dict));
 }
+
+
+Foam::scatteringModel::scatteringModel(const dictionary& dict)
+:
+    threshold_(dict.getOrDefault("threshold", 1e-3))
+{}
 
 
 // ************************************************************************* //

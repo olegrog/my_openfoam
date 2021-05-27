@@ -25,41 +25,31 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "gradAlphaHeatSource.H"
+#include "FresnelNoRefraction.H"
 
 #include "addToRunTimeSelectionTable.H"
+#include "constants.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeName(gradAlphaHeatSource);
-    addToRunTimeSelectionTable(surfaceLaserHeatSource, gradAlphaHeatSource, mixtureAdvector);
+    namespace scattering
+    {
+        defineTypeName(FresnelNoRefraction);
+        addToRunTimeSelectionTable(scatteringModel, FresnelNoRefraction, dictionary);
+    }
 }
 
-// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::gradAlphaHeatSource::gradAlphaHeatSource
+Foam::vector Foam::scattering::FresnelNoRefraction::refraction
 (
-    const incompressibleGasMetalMixture& mixture,
-    const isoAdvection& advector
-)
-:
-    surfaceLaserHeatSource(typeName, mixture, advector),
-    absorptionModelPtr_(absorptionModel::New(modelDict_.subDict("absorption")))
-{}
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-void Foam::gradAlphaHeatSource::calcSource()
+    const vector& i,
+    const vector& n
+) const
 {
-    const volScalarField& redistribution = mixture_.surfaceHeatSourceRedistribution();
-    const volVectorField& gradAlphaM = mixture_.gradAlphaM();
-
-    startTimer();
-    source_ = redistribution*beam().I()*absorptionModelPtr_->A(gradAlphaM, *this);
-    stopTimer();
+    return i;
 }
 
 

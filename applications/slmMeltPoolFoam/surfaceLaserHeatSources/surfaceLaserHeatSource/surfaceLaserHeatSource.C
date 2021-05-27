@@ -87,6 +87,8 @@ Foam::surfaceLaserHeatSource::surfaceLaserHeatSource
 )
 :
     laserHeatSource(advector.alpha().mesh()),
+    elapsedTime_(0),
+    startTime_(0),
     modelDict_(subDict("source").subDict(modelType + "Model")),
     mixture_(mixture),
     advector_(advector)

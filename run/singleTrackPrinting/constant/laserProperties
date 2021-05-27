@@ -43,15 +43,17 @@ source
 
     rayTracingModel
     {
-        nr              10; //20
-        nTheta          20; //20
+        nr              10;
+        nTheta          20;
         maxr            2;
+        writeOBJ        true;
 
-        reflection
+        scattering
         {
-            type    Fresnel; // none
-            n       3.27; // refractive index
-            k       4.48; // extinction coefficient
+            threshold   1e-3; // do not scatter if the particle energy contribution is lower
+            type        Fresnel;
+            n           3.27; // refractive index
+            k           4.48; // absorptive index
         }
     }
 }

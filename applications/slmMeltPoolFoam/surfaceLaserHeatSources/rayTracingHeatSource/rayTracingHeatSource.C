@@ -62,7 +62,8 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
     nTheta_(modelDict_.get<label>("nTheta")),
     nr_(modelDict_.get<label>("nr")),
     maxr_(modelDict_.get<label>("maxr")),
-    reflectionModelPtr_(reflectionModel::New(modelDict_.subDict("reflection")))
+    writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
+    scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
 {}
 
 
@@ -72,73 +73,80 @@ void Foam::rayTracingHeatSource::calcSource()
 {
     using constant::mathematical::pi;
 
-    source_.primitiveFieldRef() = 0;
-    Cloud<rayTracingParticle> cloud(mesh_, "cloud", IDLList<rayTracingParticle>());
+    startTimer();
 
-    // Initialise the rayTracing particles
-    const vector lPosition = position().value();
-    const vector lDir = beam().direction();
+    // 1. Prepare calculations
+
+    const scalar dr = maxr_*radius().value()/nr_;
+    const scalar dTheta = 2*pi/nTheta_;
+    const scalar maxTrackLength = mesh_.bounds().mag();
+
+    source_.primitiveFieldRef() = 0;
+    label nMissed = 0;
+    scalar totalPower = 0;
+    scalar totalArea = 0;
+
+    const scalar laserPower = power().value();
+    const point laserPos = position().value();
+    const vector laserDir = beam().direction();
 
     DebugInfo
-        << "Laser position: " << lPosition << nl
-        << "Laser direction: " << lDir << endl;
+        << "Laser position = " << laserPos << nl
+        << "Laser direction = " << laserDir << endl;
 
-    vector rArea = Zero;
+    // A unit vector normal to the laser direction
+    vector vHatInPlane = Zero;
     {
         Random rnd(1234);
-        scalar magr = 0.0;
+        scalar magr = 0;
 
         while (magr < VSMALL)
         {
-            vector v = rnd.sample01<vector>();
-            rArea = v - (v & lDir)*lDir;
-            magr = mag(rArea);
+            const vector v = rnd.sample01<vector>();
+            vHatInPlane = v - (v & laserDir)*laserDir;
+            magr = mag(vHatInPlane);
         }
     }
-    rArea.normalise();
+    vHatInPlane.normalise();
 
-    scalar dr = maxr_*radius().value()/nr_;
-    scalar dTheta = 2*pi/nTheta_;
-    scalar maxTrackLength = mesh_.bounds().mag();
-    label nMissed = 0;
-    point p0 = lPosition;
-    scalar power = 0;
-    scalar area = 0;
-    point p1(p0);
+    // 2. Generate a cloud of rayTracing particles
+
+    Cloud<rayTracingParticle> cloud(mesh_, "cloud", IDLList<rayTracingParticle>());
+    particle::particleCount_ = 0;
 
     for (label ri = 0; ri < nr_; ri++)
     {
         // TODO: nonuniform step along radial axis (should be implemented in laserBeam)
-        scalar r1 = SMALL + dr*ri;
-        scalar r2 = r1 + dr;
-        scalar rP = (r1 + r2)/2;
-        vector localR = rP*rArea;
+        const scalar r1 = SMALL + dr*ri;
+        const scalar r2 = r1 + dr;
+        const scalar rP = (r1 + r2)/2;
+        const point localR = rP*vHatInPlane;
 
-        scalar theta0 = 0;
         for (label thetai = 0; thetai < nTheta_; thetai++)
         {
-            scalar theta1 = theta0 + SMALL + dTheta*thetai;
-            scalar theta2 = theta1 + dTheta;
-            scalar thetaP = (theta1 + theta2)/2;
+            const scalar theta1 = SMALL + dTheta*thetai;
+            const scalar theta2 = theta1 + dTheta;
+            const scalar thetaP = (theta1 + theta2)/2;
 
-            quaternion Q(lDir, thetaP);
+            const quaternion Q(laserDir, thetaP);
 
-            vector localPos = Q.R() & localR;
-            p0 = lPosition + localPos;
-            p1 = p0 + maxTrackLength*lDir/2;
+            const point localPos = Q.R() & localR;
+            const point p0 = laserPos + localPos;
+            const point p1 = p0 + maxTrackLength*laserDir;
 
-            scalar Ip = beam().I(p0);
-            scalar dAi = (sqr(r2) - sqr(r1))*dTheta/2;
+            const scalar Ip = beam().I(p0)/laserPower; // [1/m2]
+            const scalar dA = (sqr(r2) - sqr(r1))*dTheta/2; // [m2]
+            const scalar dQ = Ip*dA; // fraction of the energy source transmitted by the ray
 
-            power += Ip*dAi;
-            area += dAi;
+            totalPower += dQ*laserPower;
+            totalArea += dA;
 
-            label cellI = mesh_.findCell(p0);
+            const label cellI = mesh_.findCell(p0);
 
             if (cellI != -1)
             {
                 // Create a new particle
-                auto pPtr = autoPtr<rayTracingParticle>::New(mesh_, p0, p1, Ip, cellI, dAi, false);
+                auto pPtr = autoPtr<rayTracingParticle>::New(mesh_, p0, p1, dQ, cellI, false);
 
                 // Add to cloud
                 cloud.addParticle(pPtr.release());
@@ -149,8 +157,7 @@ void Foam::rayTracingHeatSource::calcSource()
                 if (++nMissed <= 10)
                 {
                     WarningInFunction
-                        << "Cannot find owner cell for focalPoint at "
-                        << p0 << endl;
+                        << "Cannot find owner cell for point at " << p0 << endl;
                 }
             }
         }
@@ -162,108 +169,75 @@ void Foam::rayTracingHeatSource::calcSource()
     }
 
     DebugInfo
-        << "Total power of the laser: " << power << nl
-        << "Total area of the laser: " << area << nl
-        << endl;
+        << "Total power of the laser = " << totalPower << nl
+        << "Total area of the laser = " << totalArea << endl;
 
-
-    tmp<volScalarField> treflectingCells = volScalarField::New
-    (
-        "reflectingCellsVol",
-        mesh_,
-        dimensionedScalar()
-    );
-    volScalarField& reflectingCellsVol = treflectingCells.ref();
-
-    boolField reflectingCells(mesh_.nCells(), false);
-    volScalarField A = mag(mixture_.gradAlphaM());
-    const interpolationCell<scalar> AInterp(A);
-
-    forAll(A, cellI)
-    {
-        if (A[cellI] > ROOTSMALL)
-        {
-            reflectingCells[cellI] = true;
-            reflectingCellsVol[cellI] = 1;
-        }
-    }
-
-    auto gradAlphaMInterpPtr =
-        autoPtr<interpolationCellPoint<vector>>::New(mixture_.gradAlphaM());
+    // 3. Prepare the tracking data
 
     rayTracingParticle::trackingData td
     (
         cloud,
-        AInterp,
-        gradAlphaMInterpPtr,
-        reflectingCells,
-        *reflectionModelPtr_,
+        const_cast<isoAdvection&>(advector_).surf(),
+        scatteringModelPtr_,
+        mixture_.alpha1(),
+        mixture_.gradAlphaM(),
         source_
     );
 
-    Info<< "Move particles..."
-        << returnReduce(cloud.size(), sumOp<label>()) << endl;
+    // 4. Evolve the cloud
+    DebugInfo
+        << "Generate particles..." << returnReduce(cloud.size(), sumOp<label>()) << endl;
 
-    cloud.move(cloud, td, mesh_.time().deltaTValue());
+    cloud.move(cloud, td, 0);
 
-    // Normalize by cell volume
-    source_.primitiveFieldRef() /= mesh_.V();
+    DebugInfo
+        << "Final number of particles..." << returnReduce(cloud.size(), sumOp<label>()) << endl;
 
-    // TODO: remove this
-    const volScalarField& redistribution = mixture_.surfaceHeatSourceRedistribution();
-    source_ *= redistribution;
+    // 5. Normalise and dimensionalise the heat source
+    source_.primitiveFieldRef() *= laserPower/mesh_.V();
 
-    if (debug)
+    // 6. Dump particles paths using the Wavefront OBJ file format
+    if (writeOBJ_)
     {
-        Info<< "Final number of particles..."
-            << returnReduce(cloud.size(), sumOp<label>()) << endl;
-
-        OFstream osRef(type() + ":particlePath.obj");
+        OFstream osRef(type() + "ParticlePath.obj");
         label vertI = 0;
 
-        List<pointField> positions(Pstream::nProcs());
         List<pointField> p0(Pstream::nProcs());
+        List<pointField> p1(Pstream::nProcs());
 
-        DynamicList<point>  positionsMyProc;
-        DynamicList<point>  p0MyProc;
+        DynamicList<point> p0MyProc, p1MyProc;
 
         for (const rayTracingParticle& p : cloud)
         {
-            positionsMyProc.append(p.position());
             p0MyProc.append(p.p0());
+            p1MyProc.append(p.position());
         }
 
-        positions[Pstream::myProcNo()].transfer(positionsMyProc);
         p0[Pstream::myProcNo()].transfer(p0MyProc);
+        p1[Pstream::myProcNo()].transfer(p1MyProc);
 
-        Pstream::gatherList(positions);
-        Pstream::scatterList(positions);
         Pstream::gatherList(p0);
         Pstream::scatterList(p0);
+        Pstream::gatherList(p1);
+        Pstream::scatterList(p1);
 
         for (label proci = 0; proci < Pstream::nProcs(); ++proci)
         {
-            const pointField& pos = positions[proci];
-            const pointField& pfinal = p0[proci];
-            forAll(pos, i)
+            const pointField& pStart = p0[proci];
+            const pointField& pFinal = p1[proci];
+
+            forAll(pStart, i)
             {
-                meshTools::writeOBJ(osRef, pos[i]);
-                vertI++;
-                meshTools::writeOBJ(osRef, pfinal[i]);
-                vertI++;
-                osRef << "l " << vertI-1 << ' ' << vertI << nl;
+                meshTools::writeOBJ(osRef, pStart[i], pFinal[i], vertI);
             }
         }
 
         osRef.flush();
-
-        Info << "Total energy absorbed: " << fvc::domainIntegrate(source_).value() << endl;
-
-        if (mesh_.time().outputTime())
-        {
-            reflectingCellsVol.write();
-        }
     }
+
+    DebugInfo << "Total power absorbed = " << fvc::domainIntegrate(source_).value() << endl;
+
+    stopTimer();
 }
 
 

@@ -200,6 +200,7 @@ int main(int argc, char *argv[])
         #include "effectiveAbsorptivity.H"
 
         runTime.write();
+        #include "timeConsumption.H"
         runTime.printExecutionTime(Info);
     }
 

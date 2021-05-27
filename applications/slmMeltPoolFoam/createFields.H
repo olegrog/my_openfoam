@@ -182,7 +182,7 @@ volScalarField rho
         runTime.timeName(),
         mesh,
         IOobject::READ_IF_PRESENT,
-        IOobject::NO_WRITE
+        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     alpha1*rho1 + alpha2*rho2
 );
@@ -272,6 +272,21 @@ mesh.setFluxRequired(p_rgh.name());
 mesh.setFluxRequired(mixture.phase1Name());
 
 isoAdvection advector(mixture.alpha1(), phi, U);
+
+// Fields recon::centre and recon::normal are auto-written by default in reconstructionSchemes.
+// We turn off this feature if the corresponding debug switch is false
+if (!reconstructionSchemes::debug)
+{
+    const std::vector<std::reference_wrapper<const volVectorField>> vectorFieldsForWriting
+    {
+        std::cref(advector.surf().centre()), std::cref(advector.surf().normal())
+    };
+
+    for (auto& field : vectorFieldsForWriting)
+    {
+        const_cast<volVectorField&>(field.get()).writeOpt() = IOobject::NO_WRITE;
+    }
+}
 
 Info<< "Reading laser properties\n" << endl;
 autoPtr<surfaceLaserHeatSource> laserHeatSource

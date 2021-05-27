@@ -27,7 +27,6 @@ solvers
         reconstructionScheme plicRDF;
 
         writeSurfCells  false;
-        writeBoundedCells false;
         writeIsoFaces   false;
 
         nAlphaCorr      1;

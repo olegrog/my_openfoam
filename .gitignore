@@ -23,6 +23,7 @@ processor*
 *.gz
 *.foam
 *.msh
+*.obj
 
 # Results files
 *.vtk
