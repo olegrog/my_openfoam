@@ -53,10 +53,10 @@ namespace viscosityModels
                            Class trueArrhenius Declaration
 \*---------------------------------------------------------------------------*/
 
-template<class ViscousModel>
+template<class ViscosityModel>
 class trueArrhenius
 :
-    public ViscousModel
+    public ViscosityModel
 {
     // Private data
 
@@ -102,16 +102,16 @@ public:
 
 
     //- Destructor
-    ~trueArrhenius() override;
+    ~trueArrhenius() final = default;
 
 
     // Member Functions
 
         //- Correct the laminar viscosity
-        void correct() override;
+        void correct() final;
 
         //- Read transportProperties dictionary
-        bool read(const dictionary& viscosityProperties) override;
+        bool read(const dictionary& viscosityProperties) final;
 };
 
 
