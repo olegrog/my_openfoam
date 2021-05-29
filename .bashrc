@@ -9,7 +9,7 @@ export NC='\033[0m'
 # Command line
 _parse_error_code() {
     local code=$?
-    [[ $code > 0 ]] || return
+    [[ $code -gt 0 ]] || return
     echo "[$code] "
 }
 # \[..color..\] should be used to preserve correct shell line width
@@ -27,22 +27,53 @@ shopt -s histappend
 export LESSOPEN="| $(which source-highlight) -i %s -f esc256 --style-file esc256.style"
 export LESS=" -R"
 
-# Search in the OpenFOAM distribution and among the local source code
-s() {
+# Find files in the OpenFOAM distribution and among the local source code
+_find_openfoam_files() {
     local res1 res2
-    res1="$(locate "/$1" | grep $WM_PROJECT_DIR | grep -v lnInclude)"
+    res1="$(locate "/$1" | grep "$WM_PROJECT_DIR" | grep -v lnInclude)"
     res2="$(find ~/{src,libraries,applications} -wholename "*/$1*" | grep -vE 'lnInclude|Make')"
-    if [[ -z "$res1" && -z "$res2" ]]; then
-        echo -e "${RED}Missing filename!${NC}"
-    elif [[ "$(wc -w <<< "$res1 $res2")" > 1 ]]; then
-        echo -e "${RED}There are several files with the same name."
-        echo -e "Specify the unique path using the parent directory.${NC}"
-        echo "$res1 $res2" | tr ' ' '\n'
-    elif [[ -w "$res1$res2" ]]; then
-        vim "$res1$res2"
+    if [[ -z "$res1$res2" ]]; then
+        echo -e "${RED}Missing filename!${NC}" >&2
     else
-        less -R "$res1$res2"
+        echo -e "$res1\n$res2"
     fi
+}
+
+# Open an OpenFOAM file
+s() {
+    local files
+    files="$(_find_openfoam_files "$1")"
+    [[ -z "$files" ]] && return 1
+    if [[ "$(wc -w <<< "$files")" -gt 1 ]]; then
+        echo -e "${RED}There are several files with the same name." >&2
+        echo -e "Specify the unique path using the parent directory.${NC}" >&2
+        echo "$files" | tr ' ' '\n' >&2
+        return 2
+    fi
+    local file=${files/$'\n'}
+    if [[ -w "$file" ]]; then
+        vim "$file"
+    else
+        less -R "$file"
+    fi
+}
+
+# List files in an OpenFOAM directory
+d() {
+    local files
+    declare -A dirs
+    files="$(_find_openfoam_files "$1")"
+    for file in $files; do
+        if [[ -f "$file" && "$file" =~ "$1"$ ]]; then
+            dirs["$(dirname "$file")"]=1
+        elif [[ -d "$file" && "$file" =~ "$1"$ ]]; then
+            dirs["$file"]=1
+        fi
+    done
+    for dir in "${!dirs[@]}"; do
+        echo -e "Directory: ${BBLUE}$dir${NC}"
+        ls "$dir"
+    done
 }
 
 # Aliases
