@@ -17,3 +17,16 @@ if [[ "$1" == "-parallel" ]]; then
 else
     runApplication $application
 fi
+
+dir=rayTracing
+if [[ -d "$dir" ]]; then
+    ../../tools/obj2vtkseries.py "$dir" > "$dir"/"$dir".vtk.series
+    run() { runApplication $@; }
+    for obj in $(find "$dir" -name '*.obj'); do
+        vtk="${obj%obj}vtk"
+        [[ -f "$vtk" ]] && continue
+        run objToVTK "$obj" "$vtk"
+        run() { $@ >> log.objToVTK; }
+    done
+fi
+echo "All is done!"

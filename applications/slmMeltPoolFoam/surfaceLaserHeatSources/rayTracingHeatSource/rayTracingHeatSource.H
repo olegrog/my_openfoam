@@ -38,8 +38,11 @@ SourceFiles
 #ifndef rayTracingHeatSource_H
 #define rayTracingHeatSource_H
 
+#include "Cloud.H"
+
 #include "surfaceLaserHeatSource.H"
 #include "scatteringModel.H"
+#include "rayTracingParticle.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -75,6 +78,9 @@ class rayTracingHeatSource
         autoPtr<scatteringModel> scatteringModelPtr_;
 
     // Private Member Functions
+
+        //- Write particle paths in the Wavefront OBJ file format
+        void writeOBJ(const Cloud<rayTracingParticle>& cloud);
 
         //- Calculate the heat source
         void calcSource() final;

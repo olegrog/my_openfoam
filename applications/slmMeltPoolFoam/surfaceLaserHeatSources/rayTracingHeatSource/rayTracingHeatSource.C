@@ -29,11 +29,9 @@ License
 #include "rayTracingHeatSource.H"
 
 #include "addToRunTimeSelectionTable.H"
-#include "Cloud.H"
 #include "constants.H"
 #include "Random.H"
-
-#include "rayTracingParticle.H"
+#include "OBJstream.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -68,6 +66,39 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+void Foam::rayTracingHeatSource::writeOBJ(const Cloud<rayTracingParticle>& cloud)
+{
+    const fileName outputFile
+    (
+        type() / word::printf("ParticlePath_%06d.obj", mesh_.time().timeIndex())
+    );
+
+    // Collect rays (straight lines) from all the processors
+    List<DynamicList<Pair<point>>> allRays(Pstream::nProcs());
+    for (const rayTracingParticle& p : cloud)
+    {
+        allRays[Pstream::myProcNo()].append(Pair<point>(p.p0(), p.position()));
+    }
+    Pstream::gatherList(allRays);
+
+    if (Pstream::master())
+    {
+        mkDir(outputFile.path());
+        OBJstream os(outputFile);
+
+        forAll(allRays, proci)
+        {
+            for (const Pair<point>& p : allRays[proci])
+            {
+                os.write(linePointRef(p.first(), p.second()));
+            }
+        }
+
+        os.flush();
+    }
+}
+
 
 void Foam::rayTracingHeatSource::calcSource()
 {
@@ -185,54 +216,24 @@ void Foam::rayTracingHeatSource::calcSource()
     );
 
     // 4. Evolve the cloud
+
     DebugInfo
-        << "Generate particles..." << returnReduce(cloud.size(), sumOp<label>()) << endl;
+        << "Initial number of particles = " << returnReduce(cloud.size(), sumOp<label>()) << endl;
 
     cloud.move(cloud, td, 0);
 
     DebugInfo
-        << "Final number of particles..." << returnReduce(cloud.size(), sumOp<label>()) << endl;
+        << "Final number of particles = " << returnReduce(cloud.size(), sumOp<label>()) << endl;
 
-    // 5. Normalise and dimensionalise the heat source
+    // 5. Dimensionalise the laser heat source
+
     source_.primitiveFieldRef() *= laserPower/mesh_.V();
 
-    // 6. Dump particles paths using the Wavefront OBJ file format
-    if (writeOBJ_)
+    // 6. Dump particles trajectories
+
+    if (writeOBJ_ && mesh_.time().writeTime())
     {
-        OFstream osRef(type() + "ParticlePath.obj");
-        label vertI = 0;
-
-        List<pointField> p0(Pstream::nProcs());
-        List<pointField> p1(Pstream::nProcs());
-
-        DynamicList<point> p0MyProc, p1MyProc;
-
-        for (const rayTracingParticle& p : cloud)
-        {
-            p0MyProc.append(p.p0());
-            p1MyProc.append(p.position());
-        }
-
-        p0[Pstream::myProcNo()].transfer(p0MyProc);
-        p1[Pstream::myProcNo()].transfer(p1MyProc);
-
-        Pstream::gatherList(p0);
-        Pstream::scatterList(p0);
-        Pstream::gatherList(p1);
-        Pstream::scatterList(p1);
-
-        for (label proci = 0; proci < Pstream::nProcs(); ++proci)
-        {
-            const pointField& pStart = p0[proci];
-            const pointField& pFinal = p1[proci];
-
-            forAll(pStart, i)
-            {
-                meshTools::writeOBJ(osRef, pStart[i], pFinal[i], vertI);
-            }
-        }
-
-        osRef.flush();
+        writeOBJ(cloud);
     }
 
     DebugInfo << "Total power absorbed = " << fvc::domainIntegrate(source_).value() << endl;

@@ -5,4 +5,5 @@
 
 cleanCase
 rm -f 0/alpha.metal
+rm -rf rayTracing
 

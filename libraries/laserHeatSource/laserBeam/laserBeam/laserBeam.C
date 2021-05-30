@@ -78,7 +78,7 @@ Foam::laserBeam::laserBeam
     laser_(laser),
     direction_(dict.get<vector>("direction").normalise())
 {
-    if (notEqual(mag(direction_), 1))
+    if (mag(direction_) < SMALL)
     {
         FatalError << "The beam direction is not specified." << exit(FatalError);
     }
