@@ -56,19 +56,18 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
 :
     immiscibleIncompressibleTwoPhaseMixture(U, phi),
     gasMetalThermalProperties(U.mesh(), *this),
-    pSigma_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
+    sigmaPtr_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
     dSigmaDT_
     (
         "dSigmaDT",
         this->sigmaK()().dimensions()/dimTemperature*dimLength,
-        pSigma_->value(1) - pSigma_->value(0)
+        sigmaPtr_->value(1) - sigmaPtr_->value(0)
     ),
     mushyCoeff_("mushyCoeff", *this)
 {
     // --- Diagnostic info
 
-    Info<< endl
-        << " -- Surface tension = " << pSigma_->value(0) << " + ("
+    Info<< " -- Surface tension = " << sigmaPtr_->value(0) << " + ("
         << dSigmaDT_.value() << ")*T\n" << endl;
 
     // --- Activate auto-writing of additional fields

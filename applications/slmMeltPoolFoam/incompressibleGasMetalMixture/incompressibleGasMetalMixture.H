@@ -61,7 +61,7 @@ class incompressibleGasMetalMixture
         // Constants
 
             //- Surface tension as a function of temperature
-            autoPtr<Function1<scalar>> pSigma_;
+            autoPtr<Function1<scalar>> sigmaPtr_;
 
             //- Derivative of the surface tension w.r.t temperature [kg/s^2/K]
             const dimensionedScalar dSigmaDT_;

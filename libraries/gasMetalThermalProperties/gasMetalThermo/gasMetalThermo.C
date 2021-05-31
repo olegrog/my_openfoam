@@ -56,7 +56,7 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
     Hvapour_(metalDict_.get<scalar>("Hvapour")),
     metalW_(metalDict_.get<scalar>("molWeight")),
     gasW_(gasDict_.get<scalar>("molWeight")),
-    pSigmoid_(sigmoidFunction::New(*this, 0, 1))
+    sigmoidPtr_(sigmoidFunction::New(*this, 0, 1))
 {
     scalar hSolidus = solid_.Cp.integral(0, Tmelting_);
     scalar hLiquidus = hSolidus + Hfusion_;

@@ -25,8 +25,9 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "error.H"
 #include "sigmoidFunction.H"
+
+#include "error.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 

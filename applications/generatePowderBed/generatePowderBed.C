@@ -33,7 +33,7 @@ Description
 #include "fvCFD.H"
 #include "cutCellIso.H"
 
-//*************************************//
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using constant::mathematical::pi;
 
@@ -79,7 +79,7 @@ tmp<volScalarField> VolumeOfFluid(const fvMesh& mesh, scalarField& f)
 }
 
 
-//*************************************//
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
 
     word alphaName = args.get<word>(1);
 
-    // -- Read an alpha field
     Info<< "Reading field " << alphaName << endl;
     volScalarField alpha
     (
@@ -104,7 +103,6 @@ int main(int argc, char *argv[])
         mesh
     );
 
-    // -- Read a dictionary
     const word dictName("powderBedProperties");
     Info<< "Reading " << dictName << endl;
     IOdictionary dict
@@ -136,14 +134,14 @@ int main(int argc, char *argv[])
 
     scalar volumeFraction = 0;  // for theoretical prediction
 
-    // -- Generate substrate
+    // --- Generate substrate
     {
         scalarField f = substratePosition.value() - (mesh.points() & substrateNormal);
         alpha = VolumeOfFluid(mesh, f);
         volumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
     }
 
-    // -- Generate balls
+    // --- Generate balls
     Random random(seed);
     for (int j = -2; j <= 2; j++)
     {
@@ -157,7 +155,7 @@ int main(int argc, char *argv[])
             scalarField f = -generateBall(mesh.points(), vector(X, Y, Z), R);
             alpha += VolumeOfFluid(mesh, f);
 
-            // -- Evaluate the volume of ball (full or cut)
+            // Evaluate the volume of ball (full or cut)
             // TODO(olegrog): improve accuracy by adding spherical caps
             if
             (
@@ -170,14 +168,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    // -- Save the result
+    // --- Save the result
     alpha.clip(0, 1);
     alpha.correctBoundaryConditions();
     Info<< "Writing field " << alphaName << endl;
     ISstream::defaultPrecision(18);
     alpha.write();
 
-    // -- Analyze the result
+    // --- Analyze the result
     Info<< nl << alphaName << ": volume fraction = "
         << alpha.weightedAverage(mesh.Vsc()).value()
         << " theoretical = " << volumeFraction

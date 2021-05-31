@@ -48,7 +48,6 @@ namespace Foam
 
 class sigmoidFunction
 {
-
     // Private data
 
         //- Minimum value of sigmoid
@@ -64,6 +63,7 @@ class sigmoidFunction
 
         //- Apply the derivative of the normalized sigmoid function to a field
         virtual tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const = 0;
+
 public:
 
     //- Runtime type information

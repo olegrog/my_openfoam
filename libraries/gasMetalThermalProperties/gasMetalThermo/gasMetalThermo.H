@@ -102,7 +102,7 @@ class gasMetalThermo
         const scalar metalW_, gasW_;
 
         //- The sigmoid function
-        autoPtr<sigmoidFunction> pSigmoid_;
+        autoPtr<sigmoidFunction> sigmoidPtr_;
 
     // Private Member Functions
 
@@ -170,7 +170,7 @@ public:
             //- Return sigmoid function
             const sigmoidFunction& sigmoid() const
             {
-                return *pSigmoid_;
+                return *sigmoidPtr_;
             }
 
 
