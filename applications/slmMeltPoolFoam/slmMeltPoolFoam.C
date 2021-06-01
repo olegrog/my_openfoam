@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
         #include "setDeltaT.H"
 
         ++runTime;
+        bool reduceTimeStep = false;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -176,6 +177,8 @@ int main(int argc, char *argv[])
             {
                 turbulence->correct();
             }
+
+            if (pimple.corr() + 1 == pimple.nCorrPIMPLE()) reduceTimeStep = true;
         }
 
         // --- Update passive fields
@@ -202,6 +205,12 @@ int main(int argc, char *argv[])
         runTime.write();
         #include "timeConsumption.H"
         runTime.printExecutionTime(Info);
+
+        if (reduceTimeStep)
+        {
+            Info<< "Halve the time step since all PIMPLE iterations were used" << endl;
+            runTime.setDeltaT(runTime.deltaTValue()/2, false);
+        }
     }
 
     Info<< "End\n" << endl;
