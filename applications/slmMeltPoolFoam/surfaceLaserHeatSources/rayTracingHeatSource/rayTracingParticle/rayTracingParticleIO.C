@@ -54,13 +54,13 @@ Foam::rayTracingParticle::rayTracingParticle
     p1_(Zero),
     dQ0_(0),
     dQ_(0),
-    isTransmissive_(-1)
+    isBeingAbsorbed_(-1)
 {
     if (readFields)
     {
         if (is.format() == IOstream::ASCII)
         {
-            is >> p0_ >> p1_ >> dQ0_ >> dQ_ >> isTransmissive_;
+            is >> p0_ >> p1_ >> dQ0_ >> dQ_ >> isBeingAbsorbed_;
         }
         else if (!is.checkLabelSize<>() || !is.checkScalarSize<>())
         {
@@ -72,7 +72,7 @@ Foam::rayTracingParticle::rayTracingParticle
             readRawScalar(is, p1_.data(), vector::nComponents);
             readRawScalar(is, &dQ0_);
             readRawScalar(is, &dQ_);
-            is.readRaw(reinterpret_cast<char*>(&isTransmissive_), sizeof(bool));
+            is.readRaw(reinterpret_cast<char*>(&isBeingAbsorbed_), sizeof(bool));
 
             is.endRawRead();
         }
@@ -104,7 +104,7 @@ void Foam::rayTracingParticle::writeProperties
     writeProp("p1", p1_);
     writeProp("dQ0", dQ0_);
     writeProp("dQ", dQ_);
-    writeProp("isTransmissive", isTransmissive_);
+    writeProp("isBeingAbsorbed", isBeingAbsorbed_);
 
     #undef writeProp
 }
@@ -119,7 +119,7 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const rayTracingParticle& p)
             << token::SPACE << p.p1_
             << token::SPACE << p.dQ0_
             << token::SPACE << p.dQ_
-            << token::SPACE << p.isTransmissive_;
+            << token::SPACE << p.isBeingAbsorbed_;
     }
     else
     {

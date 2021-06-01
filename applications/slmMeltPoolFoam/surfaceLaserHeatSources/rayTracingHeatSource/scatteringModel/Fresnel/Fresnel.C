@@ -52,11 +52,11 @@ Foam::scattering::Fresnel::Fresnel(const dictionary& dict)
 {
     using constant::mathematical::pi;
 
-    Info<< " -- Normal absorptivity = " << 1 - rho(1) << endl;
+    Info<< " -- Normal absorptivity = " << 1 - R(1) << endl;
     DebugInfo
-        << " -- Absorptivity (pi/6) = " << 1 - rho(cos(pi/6)) << nl
-        << " -- Absorptivity (pi/3) = " << 1 - rho(cos(pi/3)) << nl
-        << " -- Grazing absorptivity = " << 1 - rho(0) << endl;
+        << " -- Absorptivity (pi/6) = " << 1 - R(cos(pi/6)) << nl
+        << " -- Absorptivity (pi/3) = " << 1 - R(cos(pi/3)) << nl
+        << " -- Grazing absorptivity = " << 1 - R(0) << endl;
 }
 
 
@@ -86,7 +86,7 @@ Foam::vector Foam::scattering::Fresnel::refraction
 }
 
 
-Foam::scalar Foam::scattering::Fresnel::rho(scalar cosTheta) const
+Foam::scalar Foam::scattering::Fresnel::R(scalar cosTheta) const
 {
     scalar sinTheta = sqrt(1 - sqr(cosTheta));
     scalar tanTheta = sinTheta/cosTheta;
@@ -96,10 +96,10 @@ Foam::scalar Foam::scattering::Fresnel::rho(scalar cosTheta) const
     scalar sqrQ = (sqrt(sqr(r) + sqr(2*n_*k_)) - r)/2;
     scalar p = sqrt(sqrP);
 
-    scalar rhoN = (sqr(p - cosTheta) + sqrQ)/(sqr(p + cosTheta) + sqrQ);
-    scalar rhoP = rhoN*(sqr(p - sinTheta*tanTheta) + sqrQ)/(sqr(p + sinTheta*tanTheta) + sqrQ);
+    scalar RN = (sqr(p - cosTheta) + sqrQ)/(sqr(p + cosTheta) + sqrQ);
+    scalar RP = RN*(sqr(p - sinTheta*tanTheta) + sqrQ)/(sqr(p + sinTheta*tanTheta) + sqrQ);
 
-    return (rhoP + rhoN)/2;
+    return (RP + RN)/2;
 }
 
 

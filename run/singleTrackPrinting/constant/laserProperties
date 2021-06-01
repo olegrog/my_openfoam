@@ -50,7 +50,7 @@ source
 
         scattering
         {
-            threshold   1e-3; // do not scatter if the particle energy contribution is lower
+            threshold   1e-4; // do not scatter if the particle energy contribution is lower
             type        Fresnel;
             n           3.27; // refractive index
             k           4.48; // absorptive index

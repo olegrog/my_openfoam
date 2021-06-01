@@ -86,7 +86,7 @@ public:
         vector refraction(const vector& i, const vector& n) const override;
 
         //- Return reflectivity
-        scalar rho(scalar cosTheta) const override;
+        scalar R(scalar cosTheta) const override;
 };
 
 

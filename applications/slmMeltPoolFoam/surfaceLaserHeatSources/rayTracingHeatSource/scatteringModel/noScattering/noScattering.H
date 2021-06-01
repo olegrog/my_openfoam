@@ -82,7 +82,7 @@ public:
         }
 
         //- Return reflectivity
-        scalar rho(scalar cosTheta) const final
+        scalar R(scalar cosTheta) const final
         {
             return 0;
         }

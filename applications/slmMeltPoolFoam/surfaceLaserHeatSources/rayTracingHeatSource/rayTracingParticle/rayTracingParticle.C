@@ -48,7 +48,7 @@ Foam::rayTracingParticle::rayTracingParticle
     const vector& targetPosition,
     const scalar dQ,
     const label cellI,
-    const bool isTransmissive
+    const bool isBeingAbsorbed
 )
 :
     particle(mesh, position, cellI),
@@ -56,7 +56,7 @@ Foam::rayTracingParticle::rayTracingParticle
     p1_(targetPosition),
     dQ0_(dQ),
     dQ_(dQ),
-    isTransmissive_(isTransmissive)
+    isBeingAbsorbed_(isBeingAbsorbed)
 {}
 
 
@@ -67,7 +67,7 @@ Foam::rayTracingParticle::rayTracingParticle(const rayTracingParticle& p)
     p1_(p.p1_),
     dQ0_(p.dQ0_),
     dQ_(p.dQ_),
-    isTransmissive_(p.isTransmissive_)
+    isBeingAbsorbed_(p.isBeingAbsorbed_)
 {}
 
 
@@ -84,6 +84,60 @@ bool Foam::rayTracingParticle::move
     td.keepParticle = true;
     reset(); // to set stepFraction = 0
 
+    // Function for translating energy from the particle to the heat source in the cell
+    auto absorb = [&td, this](scalar cellI, scalar absorptionFraction)
+    {
+        if (absorptionFraction < SMALL) return;
+
+        scalar deltaQ = min(dQ0_*absorptionFraction, dQ_);
+        td.Q(cellI) += deltaQ;
+        dQ_ -= deltaQ;
+
+        DebugInfo
+            << " --- absorbed energy = " << deltaQ
+            << ", absorptionFraction = " << absorptionFraction
+            << ", alphaM = " << td.alphaM(cellI) << endl;
+    };
+
+    // Function returning the unit normal vector directed to the gas using VoF subcell information
+    auto getVoFNormal = [&td](scalar cellI)
+    {
+        vector nHat = -td.surf().normal()[cellI];
+        nHat.normalise();
+        DebugInfo << " --- nHat (VoF) = " << nHat << endl;
+        return nHat;
+    };
+
+    // Function returning the unit normal vector directed to the gas using gradAlphaM
+    auto getGradAlphaNormal = [&td](scalar cellI)
+    {
+        vector nHat = -td.gradAlphaM(cellI);
+        nHat.normalise();
+        DebugInfo << " --- nHat (gradAlphaM) = " << nHat << endl;
+        return nHat;
+    };
+
+    // Function returning the distance to the ray-interface intersection point in terms of
+    // the path traversed by the particle inside the cell
+    auto getPathToInterface = [&td](scalar cellI, const point& p0, const vector& dsv)
+    {
+        vector C = td.surf().centre()[cellI];
+        vector normal = -td.surf().normal()[cellI];
+        plane interfacePlane(C, normal, true); // true means to normalise the normal
+        scalar ds = mag(dsv);
+        scalar pathToInterface = interfacePlane.normalIntersect(p0, dsv/ds)/ds;
+        DebugInfo << " --- pathToInterface = " << pathToInterface << endl;
+        return pathToInterface;
+    };
+
+    // Function returning true if the entire traversed path goes inside the transparent medium
+    auto pathGoesInsideGas = [](scalar cosTheta, scalar pathToInterface)
+    {
+        return
+            (cosTheta < -SMALL && pathToInterface < 0) // outcoming && in the previous cell
+         || (cosTheta > SMALL && pathToInterface > 1); // incoming && in the next cell
+    };
+
     // surfCellTol is used in plicRDF.C and gradAlpha.C
     const scalar alphaTol = td.surf().modelDict().getOrDefault<scalar>("surfCellTol", 1e-8);
     const scalar maxTrackLength = mesh().bounds().mag();
@@ -91,7 +145,8 @@ bool Foam::rayTracingParticle::move
     const vector s = p1_ - p0_;
 
     DebugInfo
-        << "Particle #" << origId() << " is moving into direction " << s/mag(s) << endl;
+        << "Particle #" << origId() << " is moving into direction " << s/mag(s)
+        << " and transmit " << dQ0_ << " of the laser power" << endl;
 
     do
     {
@@ -113,120 +168,173 @@ bool Foam::rayTracingParticle::move
             continue;
         }
 
-        // If the particle have propagated through a transparent medium, then continue
-        if (td.alphaM(cellI) < alphaTol) continue;
+        const vector incidentDir = dsv/ds;
 
-        // If the particle is transmissive and inside an absorbing cell, then absorb
-        // proportionally to its traversed path in the cell
-        if (isTransmissive_)
+        // A. Do nothing if the cell consists of transparent medium only
+        if (td.alphaM(cellI) < alphaTol)
         {
-            const scalar cellDelta = cbrt(mesh().cellVolumes()[cellI]);
-            const scalar deltaQ = min(dQ0_*ds/cellDelta, dQ_);
+            if (isBeingAbsorbed_)
+            {
+                DebugInfo
+                    << " +++ (1) particle to be absorbed enters the gas cell #"
+                    << cellI << endl;
+                isBeingAbsorbed_ = false;
+            }
+            continue;
+        }
 
-            td.Q(cellI) += deltaQ;
-            dQ_ -= deltaQ;
+        // B. Replace scattering by full absorption for low-energy particles
+        if (dQ_ < td.scattering().threshold() && dQ_ < td.alphaM(cellI))
+        {
+            DebugInfo << " +++ (2) low-energy particle" << endl;
+            absorb(cellI, 1);
+            if (dQ_ < SMALL)
+            {
+                stepFraction() = 1;
+                break;
+            }
+            else
+            {
+                continue;
+            }
+        }
 
-            DebugInfo
-                << " --- absorbed energy = " << deltaQ
-                << ", alphaM = " << td.alphaM(cellI) << endl;
+        // C. Absorb if the particle is marked as being absorbed and inside an absorbing medium
+        if (isBeingAbsorbed_)
+        {
+            // A particle to be absorbed always starts from the ray-interface intersection point
+            // and penetrates the absorbing medium; therefore, absorb energy as much as possible.
+            if (stepFraction()*mag(s) - ds < smallLength)
+            {
+                DebugInfo << " +++ (3) the first absorbing cell" << endl;
+                const scalar cellSize = cbrt(mesh().cellVolumes()[cellI]);
+                absorb(cellI, min(td.alphaM(cellI), ds/cellSize));
+            }
+            else
+            {
+                const vector nHat = getVoFNormal(cellI);
+
+                // Absorb proportionally to the traversed path in the absorbing medium
+                if (mag(nHat) > SMALL)
+                {
+                    const scalar cosTheta = -incidentDir & nHat;
+                    const scalar pathToInterface = getPathToInterface(cellI, p0, dsv);
+
+                    // Unmark the particle as being absorbed if it propagates through the gas only
+                    if (pathGoesInsideGas(cosTheta, pathToInterface))
+                    {
+                        DebugInfo << " +++ (4) particle is no longer absorbed" << endl;
+                        isBeingAbsorbed_ = false;
+                    }
+                    else
+                    {
+                        const scalar pathToInterfaceInMetal =
+                            cosTheta < 0 ? pathToInterface : 1 - pathToInterface;
+                        DebugInfo
+                            << " +++ (5) absorbing cell with interface" << nl
+                            << " --- pathToInterfaceInMetal = " << pathToInterfaceInMetal << endl;
+                        absorb(cellI, min(td.alphaM(cellI), pathToInterfaceInMetal));
+                    }
+                }
+                // Absorb proportionally to the metal fraction in the absence of subcell data
+                else
+                {
+                    DebugInfo << " +++ (6) absorbing cell without interface" << endl;
+                    absorb(cellI, td.alphaM(cellI));
+                }
+            }
 
             // Terminate propagation when all energy is exhausted
-            if (dQ_ <= SMALL)
+            if (dQ_ < SMALL)
             {
                 stepFraction() = 1;
                 DebugInfo << " +++ all energy has been absorbed" << endl;
                 break;
             }
         }
-        // If the particle is not transmissive and hit the reconstructed interface, then scatter
+        // D. Scatter if the particle is not being absorbed and hit the gas-metal interface
         else
         {
-            bool useGradAlpha = true;
-            const vector incidentDir = dsv/ds;
+            scalar transmissivity = 0;
             point intersectionP = p0;
-            vector nHat = -td.surf().normal()[cellI]; // directed to the gas
-            nHat.normalise();
-            scalar cosTheta = -incidentDir & nHat;
+            vector nHat = getVoFNormal(cellI);
+            scalar cosTheta = -incidentDir & nHat; // positive for incoming rays
 
-            if (mag(nHat) > ROOTVSMALL)
+            // 1. Determine the ray-interface intersection point and the related quantities
+            if (mag(nHat) > SMALL)
             {
-                DebugInfo << " --- normal = " << nHat << endl;
+                const scalar pathToInterface = getPathToInterface(cellI, p0, dsv);
 
-                // Do not scatter outcoming rays
-                if (cosTheta < SMALL)
+                // Do not scatter rays that has not reached the absorbing medium
+                if (pathGoesInsideGas(cosTheta, pathToInterface))
                 {
+                    DebugInfo << " +++ (7) particle does not hit the interface" << endl;
+                    continue;
+                }
+                // Scatter rays that enter the absorbing medium inside the cell
+                else if (cosTheta > SMALL && pathToInterface > SMALL)
+                {
+                    DebugInfo << " +++ (8) particle hit the interface inside the cell" << endl;
+                    intersectionP += pathToInterface*dsv;
+                }
+                // Scatter rays that enter the absorbing medium at the face
+                else
+                {
+                    nHat = getGradAlphaNormal(cellI);
+
                     DebugInfo
-                        << " --- alphaM = " << td.alphaM(cellI) << nl
-                        << " --- cosTheta = " << cosTheta << nl
-                        << " +++ particle is outcoming" << endl;
-                    continue;
-                }
-
-                // Use subcell VoF information to determine the ray-interface intersection point
-                const vector C = td.surf().centre()[cellI];
-                const plane interfacePlane(C, nHat, false);
-                const scalar pathToInterface = interfacePlane.normalIntersect(p0, incidentDir);
-
-                DebugInfo
-                    << " --- centre = " << C << nl
-                    << " --- pathToInterface = " << pathToInterface
-                    << ", relative = " << pathToInterface/ds << endl;
-
-                if (pathToInterface >= ds)
-                {
-                    DebugInfo << " +++ particle does not hit the interface inside the cell" << endl;
-                    continue;
-                }
-
-                if (pathToInterface >= 0)
-                {
-                    intersectionP += pathToInterface*incidentDir;
-                    useGradAlpha = false;
+                        << " +++ (9) particle penetrates into the metal at the face" << nl
+                        << " --- alphaM = " << td.alphaM(cellI) << endl;
                 }
             }
             else
             {
-                // Value of gradAlphaM is not enough to identify the intersection point.
-                // Therefore, we try to use it only when alphaM = 1 and alphaM = 0 or when
-                // the intersection point is behind the cellI (pathToInterface < 0).
-                const scalar alphaTol2 = min(1e-3, 1e2*alphaTol);
+                nHat = getGradAlphaNormal(cellI);
 
-                // Skip scattering if this cell contains only small amount of metal
-                if (td.alphaM(cellI) < alphaTol2)
+                // Scatter rays that enter the absorbing medium at the face
+                if (td.alphaM(cellI) > 1 - alphaTol)
+                {
+                    DebugInfo << " +++ (10) particle is inside the fully metal cell" << endl;
+                }
+                // Partially scatter rays that enter a cell that contains metal and no interface
+                else
                 {
                     DebugInfo
-                        << " +++ scattering is skipped since alphaM = "
-                        << td.alphaM(cellI) << endl;
-                    continue;
+                        << " +++ (11) particle is inside the cell that contains metal" << nl
+                        << " --- alphaM = " << td.alphaM(cellI) << endl;
+                    transmissivity = 1 - td.alphaM(cellI);
+                    // Assume that the scattering occurs at the middle of the cell path
+                    intersectionP += dsv/2;
                 }
 
+                // Warn if the required subcell information is absent
+                const scalar alphaTol2 = min(1e-2, 1e3*alphaTol);
                 if (alphaTol2 < td.alphaM(cellI) && td.alphaM(cellI) < 1 - alphaTol2)
                 {
-                    // Sometimes this case corresponds to a droplet that is smaller than the cell
                     Warning
                         << "There is no reconstructed interface in cell #" << cellI
                         << ", where alphaM = " << td.alphaM(cellI) << endl;
                 }
-
-                // We use this crude approximation to ensure that the heat source is redistributed
-                // according to the metal fraction
-                intersectionP += (1 - td.alphaM(cellI))*dsv;
             }
 
-            if (useGradAlpha)
-            {
-                DebugInfo << " +++ gradAlphaM is used to reconstruct nHat" << endl;
-
-                nHat = -td.gradAlphaM(cellI);
-                nHat.normalise();
-                cosTheta = -incidentDir & nHat;
-            }
-
+            // Crash if the interface normal failed to be determined
             if (mag(nHat) < SMALL)
             {
-                Warning
-                    << "Particle #" << origId() << " in cell #" << cellI
-                    << ": mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI) << endl;
+                FatalError
+                    << "Particle #" << origId() << " in cell #" << cellI << nl
+                    << "mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI)
+                    << exit(FatalError);
+            }
+
+            // Update the nHat-dependent quantities
+            cosTheta = -incidentDir & nHat;
+
+            // Do not scatter outcoming rays
+            if (cosTheta < SMALL)
+            {
+                DebugInfo
+                    << " --- cosTheta = " << cosTheta << nl
+                    << " +++ particle is outcoming" << endl;
                 continue;
             }
 
@@ -234,43 +342,26 @@ bool Foam::rayTracingParticle::move
                 << "Particle #" << origId() << " is ready for scattering:" << nl
                 << " --- stepFraction = " << stepFraction() << nl
                 << " --- alphaM = " << td.alphaM(cellI) << nl
-                << " --- dQ = " << dQ_ << nl
                 << " --- cosTheta = " << cosTheta << nl
-                << " --- normal = " << nHat << nl
                 << " --- incidentDir = " << incidentDir << nl
                 << " --- p0 = " << p0 << nl
                 << " --- intersectionP = " << intersectionP << nl
-                << " --- p1 = " << position() << endl;
+                << " --- p1 = " << position() << nl
+                << " --- transmissivity = " << transmissivity << endl;
 
-            if (cosTheta < SMALL)
+            // 2. Compute the reflectivity and absorptivity coefficients
+            const scalar R = (1 - transmissivity)*td.scattering().R(cosTheta);
+            const scalar A = (1 - transmissivity)*(1 - R);
+            DebugInfo << " --- reflectivity = " << R << ", absorptivity = " << A << endl;
+
+            // 3. Add the reflected particle to the cloud
+            if (R*dQ_ > td.scattering().threshold())
             {
-                DebugInfo << " +++ particle is outcoming (gradAlphaM is used)" << endl;
-                continue;
-            }
-
-            // Replace scattering by direct absorption for low-energy particles
-            if (dQ_ < td.scattering().threshold() && dQ_ < td.alphaM(cellI))
-            {
-                td.Q(cellI) += dQ_;
-
-                DebugInfo
-                    << " --- absorbed energy " << dQ_ << ", alphaM = " << td.alphaM(cellI) << endl;
-
-                stepFraction() = 1;
-                break;
-            }
-
-            const scalar rho = td.scattering().rho(cosTheta);
-            DebugInfo << " --- reflectivity = " << rho << endl;
-
-            if (rho > SMALL)
-            {
-                // 1. Add the reflected particle to the cloud
                 const vector reflectionDir = td.scattering().reflection(incidentDir, nHat);
                 const point reflectedP = intersectionP + reflectionDir*maxTrackLength;
                 auto reflectedParticlePtr = autoPtr<rayTracingParticle>::New
                 (
-                    mesh(), intersectionP, reflectedP, dQ_*rho, cellI, false
+                    mesh(), intersectionP, reflectedP, R*dQ_, cellI, false
                 );
                 DebugInfo
                     << " --- particle #" << reflectedParticlePtr->origId() << " is reflected"
@@ -278,22 +369,37 @@ bool Foam::rayTracingParticle::move
                 cloud.addParticle(reflectedParticlePtr.release());
             }
 
-            // 2. Add the refracted particle to the cloud
-            const vector refractionDir = td.scattering().refraction(incidentDir, nHat);
-            const point refractedP = intersectionP + refractionDir*maxTrackLength;
-            auto refractedParticlePtr = autoPtr<rayTracingParticle>::New
-            (
-                mesh(), intersectionP, refractedP, dQ_*(1 - rho), cellI, true
-            );
-            DebugInfo
-                << " --- particle #" << refractedParticlePtr->origId() << " is refracted"
-                << " in direction " << refractionDir << endl;
-            cloud.addParticle(refractedParticlePtr.release());
+            // 4. Add the refracted particle to the cloud
+            if (A*dQ_ > td.scattering().threshold())
+            {
+                const vector refractionDir = td.scattering().refraction(incidentDir, nHat);
+                const point refractedP = intersectionP + refractionDir*maxTrackLength;
+                auto refractedParticlePtr = autoPtr<rayTracingParticle>::New
+                (
+                    mesh(), intersectionP, refractedP, A*dQ_, cellI, true
+                );
+                DebugInfo
+                    << " --- particle #" << refractedParticlePtr->origId() << " is refracted"
+                    << " in direction " << refractionDir << endl;
+                cloud.addParticle(refractedParticlePtr.release());
+            }
 
-            // 3. Return particle to the intersection point and terminate its propagation
-            trackToFace(intersectionP - position(), 1);
-            stepFraction() = 1;
-            break;
+            // 5. Update the power contribution and determine the further life of the particle
+            dQ_ *= transmissivity;
+            // Do nothing if energy is not exhausted
+            if (dQ_ > td.scattering().threshold())
+            {
+                DebugInfo
+                    << " +++ particle transmits " << dQ_ << " of laser power further" << endl;
+            }
+            // Return particle to the intersection point and terminate its propagation
+            else
+            {
+                absorb(cellI, 1);
+                trackToFace(intersectionP - position(), 1);
+                stepFraction() = 1;
+                break;
+            }
         }
 
     } while (td.keepParticle && !td.switchProcessor && stepFraction() < 1);
@@ -314,7 +420,9 @@ void Foam::rayTracingParticle::hitWallPatch(Cloud<rayTracingParticle>&, tracking
 {
     stepFraction() = 1;
 
-    DebugInfo << " +++ particle hit a wall patch" << endl;
+    DebugInfo
+        << " +++ particle hit a wall patch with " << dQ_
+        << " of the laser power" << endl;
 }
 
 

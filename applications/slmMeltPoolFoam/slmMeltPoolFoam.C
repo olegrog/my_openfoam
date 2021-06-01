@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        // -- Update passive fields
+        // --- Update passive fields
 
         wasMelted = Foam::max(wasMelted, liquidFraction);
 

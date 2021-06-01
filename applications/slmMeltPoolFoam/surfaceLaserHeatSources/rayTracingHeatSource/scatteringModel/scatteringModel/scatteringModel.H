@@ -95,7 +95,7 @@ public:
         virtual vector refraction(const vector& i, const vector& n) const = 0;
 
         //- Return reflectivity
-        virtual scalar rho(scalar cosTheta) const = 0;
+        virtual scalar R(scalar cosTheta) const = 0;
 };
 
 

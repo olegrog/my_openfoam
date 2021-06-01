@@ -79,8 +79,8 @@ class rayTracingParticle
         //- Remaining fraction of energy source [-]
         scalar dQ_;
 
-        //- Is particle transmissive?
-        bool isTransmissive_;
+        //- Is the particle being absorbed?
+        bool isBeingAbsorbed_;
 
 
 public:
@@ -151,7 +151,7 @@ public:
           + " p1"
           + " dQ0"
           + " dQ"
-          + " isTransmissive";
+          + " isBeingAbsorbed";
         );
 
 
@@ -166,7 +166,7 @@ public:
             const vector& targetPosition,
             const scalar dQ,
             const label cellI,
-            const bool isTransmissive
+            const bool isBeingAbsorbed
         );
 
         //- Construct from Istream (for parallel transfer)

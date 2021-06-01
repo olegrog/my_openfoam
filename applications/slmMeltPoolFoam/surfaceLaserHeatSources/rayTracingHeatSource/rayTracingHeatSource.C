@@ -62,7 +62,18 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
     maxr_(modelDict_.get<label>("maxr")),
     writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
     scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
-{}
+{
+    const scalar threshold = scatteringModelPtr_->threshold();
+    const scalar densityRatio = (mixture.rho2()/mixture.rho1()).value();
+
+    if (threshold > densityRatio)
+    {
+        FatalError
+            << "Scattering threshold = " << threshold << " is not low enough." << nl
+            << "It should be less than the density ratio = " << densityRatio
+            << exit(FatalError);
+    }
+}
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
@@ -71,7 +82,7 @@ void Foam::rayTracingHeatSource::writeOBJ(const Cloud<rayTracingParticle>& cloud
 {
     const fileName outputFile
     (
-        type() / word::printf("ParticlePath_%06d.obj", mesh_.time().timeIndex())
+        type() / word::printf("ParticlePath_%08d.obj", mesh_.time().timeIndex())
     );
 
     // Collect rays (straight lines) from all the processors
