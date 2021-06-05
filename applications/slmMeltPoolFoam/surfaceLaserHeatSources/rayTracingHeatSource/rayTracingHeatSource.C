@@ -100,6 +100,10 @@ void Foam::rayTracingHeatSource::writeOBJ(const Cloud<rayTracingParticle>& cloud
 
         forAll(allRays, proci)
         {
+            DebugInfo
+                << " -- processor " << proci << " contains "
+                << allRays[proci].size() << " particles" << endl;
+
             for (const Pair<point>& p : allRays[proci])
             {
                 os.write(linePointRef(p.first(), p.second()));
