@@ -58,10 +58,10 @@ class sigmoidFunction
 
     // Private Member Functions
 
-        //- Apply the normalized sigmoid function to a field (range between -1 and 1)
+        //- Apply the normalised sigmoid function to a field (range between -1 and 1)
         virtual tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const = 0;
 
-        //- Apply the derivative of the normalized sigmoid function to a field
+        //- Apply the derivative of the normalised sigmoid function to a field
         virtual tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const = 0;
 
 public:

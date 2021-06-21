@@ -28,7 +28,7 @@ License
 #include "error.H"
 #include "sigFpe.H"
 
-#include "updateGeometricField.H"
+#include "generateGeometricField.H"
 
 #include "Sigmoid.H"
 
@@ -77,53 +77,17 @@ Foam::tmp<Foam::volScalarField> Foam::Sigmoid<Function>::value
 {
     const volScalarField& field = tfield();
 
-    // This constructor allocates storage for the field but does not set values.
-    auto tres =
-        tmp<volScalarField>::New
-        (
-            IOobject
-            (
-                "sigmoid" + string(nPrimes, '\'') + '(' + field.name() + ')',
-                field.instance(),
-                field.db(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            field.mesh(),
-            field.dimensions()
-        );
-
-    volScalarField& res = tres.ref();
-
-    updateGeometricField
+    return generateGeometricField<volScalarField>
     (
-        res, [=](scalar& res, scalar field)
+        "sigmoid" + string(nPrimes, '\'') + '(' + field.name() + ')',
+        field.mesh(),
+        dimless,
+        [](scalar field)
         {
-            res = Function::template value<nPrimes>(field);
+            return Function::template value<nPrimes>(field);
         },
         field
     );
-
-    return tres;
-}
-
-
-template<class Function>
-Foam::tmp<Foam::volScalarField> Foam::Sigmoid<Function>::value0
-(
-    const tmp<volScalarField>& tfield
-) const
-{
-    return value<0>(tfield);
-}
-
-template<class Function>
-Foam::tmp<Foam::volScalarField> Foam::Sigmoid<Function>::value1
-(
-    const tmp<volScalarField>& tfield
-) const
-{
-    return value<1>(tfield);
 }
 
 

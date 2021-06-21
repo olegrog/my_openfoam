@@ -27,7 +27,7 @@ Class
     Foam::sigmoid
 
 Description
-    Class template for arbitrary sigmoid function with internal checks.
+    Class template for an arbitrary sigmoid function with internal checks.
 
 \*---------------------------------------------------------------------------*/
 
@@ -53,11 +53,17 @@ class Sigmoid
 
     // Private Member Functions
 
-        //- Apply the normalized sigmoid function to a field (range between -1 and 1)
-        tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const override;
+        //- Apply the normalised sigmoid function to a field (range between -1 and 1)
+        tmp<volScalarField> value0(const tmp<volScalarField>& tfield) const final
+        {
+            return value<0>(tfield);
+        }
 
-        //- Apply the derivative of the normalized sigmoid function to a field
-        tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const override;
+        //- Apply the derivative of the normalised sigmoid function to a field
+        tmp<volScalarField> value1(const tmp<volScalarField>& tfield) const final
+        {
+            return value<1>(tfield);
+        }
 
         //- Auxiliary function for an arbitrary derivative
         template<label nPrimes>
@@ -80,7 +86,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "Sigmoid.C"
+    #include "SigmoidTemplates.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

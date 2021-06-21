@@ -28,7 +28,7 @@ License
 #include "generateGeometricField.H"
 #include "geometricUniformField.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Local Functions * * * * * * * * * * * * * * //
 
 namespace
 {
