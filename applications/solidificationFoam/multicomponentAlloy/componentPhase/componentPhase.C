@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2021 Oleg Rogozin
+                            | Copyright (C) 2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of solidificationFoam.
@@ -31,39 +31,61 @@ License
 
 namespace Foam
 {
-    defineTypeName(alloyComponent);
+    defineTypeName(componentPhase);
+    defineRunTimeSelectionTable(componentPhase, dictionary);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::alloyComponent::alloyComponent
+Foam::autoPtr<Foam::componentPhase> Foam::componentPhase::New
+(
+    const dictionaryEntry& entry,
+    const word& modelType,
+    const fvMesh& mesh,
+    const alloyComponent& component
+)
+{
+    Info<< "Selecting componentPhase " << modelType << " for " << entry.keyword()
+        << " " << component.keyword() << endl;
+
+    const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
+
+    if (!cstrIter.found())
+    {
+        FatalIOErrorInLookup
+        (
+            entry,
+            "componentPhase",
+            modelType,
+            *dictionaryConstructorTablePtr_
+        ) << exit(FatalIOError);
+    }
+
+    return autoPtr<componentPhase>(cstrIter()(entry, mesh, component));
+}
+
+
+Foam::componentPhase::componentPhase
 (
     const dictionaryEntry& entry,
     const fvMesh& mesh,
-    const multicomponentAlloy& alloy
+    const alloyComponent& component
 )
 :
-    volScalarField
-    (
-        IOobject
-        (
-            "concentration" + entry.keyword(),
-            mesh.time().timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh.lookupObject<volScalarField>("phase")
-    ),
     name_(entry.keyword()),
-    molarMass_("molarMass", dimMass/dimMoles, entry),
-    alloy_(alloy),
-    phases_
-    (
-        entry.lookup("phases"),
-        componentPhase::iNew(entry.dictionary::get<word>("type"), mesh, *this)
-    )
+    diffusion_("diffusion", dimArea/dimTime, entry),
+    dict_(entry),
+    mesh_(mesh),
+    component_(component)
 {}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+Foam::word Foam::componentPhase::name() const
+{
+    return keyword() + component_.keyword();
+}
 
 
 // ************************************************************************* //

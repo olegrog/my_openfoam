@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2020 Oleg Rogozin
+                            | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of solidificationFoam.
@@ -75,6 +75,9 @@ class multicomponentAlloy
         //- Entropy change [J/m^3/K]
         const dimensionedScalar entropyChange_;
 
+        //- List of phases
+        const wordList phaseNames_;
+
         //- Pointer to the dictionary of alloy components
         PtrDictionary<alloyComponent> components_;
 
@@ -86,17 +89,19 @@ class multicomponentAlloy
         //- Calculate a thermodynamic factor [J/m^3]
         //
         //  \tparam Phase  Index of phase: 0 - liquid, 1 - solid
-        template<label Phase>
-        dimensionedScalar factor() const;
+        template<class T1>
+        auto factor(const word& phaseName, const T1& T) const -> decltype(T+T);
 
         //- Calculate \sum A^2
-        dimensionedScalar sumSqrA() const;
+        template<class T1>
+        auto sumSqrA(const T1& T) const -> decltype(T+T);
 
         //- Calculate \sum D_L
-        dimensionedScalar sumD() const;
+        dimensionedScalar sumDL() const;
 
         //- Calculate \sum A^2/D_L
-        dimensionedScalar sumSqrAperD() const;
+        template<class T1>
+        auto sumSqrAperDL(const T1& T) const -> decltype(T+T);
 
 public:
 
@@ -116,31 +121,39 @@ public:
 
         // Access
 
-            //- Return the molar mass of alloy [kg/mol]
-            dimensionedScalar molarMass() const;
-
             //- Return the solidus temperature [K]
-            dimensionedScalar solidus() const
+            const dimensionedScalar& solidus() const
             {
                 return solidus_;
             }
 
             //- Return the liquidus temperature [K]
-            dimensionedScalar liquidus() const
+            const dimensionedScalar& liquidus() const
             {
                 return liquidus_;
             }
 
+            //- Return the interface energy [J/m^2]
+            const dimensionedScalar& interfaceEnergy() const
+            {
+                return interfaceEnergy_;
+            }
+
+            //- Return the Gibbs--Thomson coefficient [Km]
+            dimensionedScalar GibbsThomson() const
+            {
+                return interfaceEnergy_/entropyChange_;
+            }
+
+        // Evaluation
+
+            //- Return the molar mass of alloy [kg/mol]
+            dimensionedScalar molarMass() const;
+
             //- Return the solidification interval [K]
             dimensionedScalar deltaTemp() const
             {
-                return sumSqrA()*factor<1>()/entropyChange_;
-            }
-
-            //- Return the interface energy [J/m^2]
-            dimensionedScalar interfaceEnergy() const
-            {
-                return interfaceEnergy_;
+                return sumSqrA(liquidus_)*factor("solid", liquidus_)/entropyChange_;
             }
 
             //- Return the dimensionless undercooling []
@@ -151,37 +164,25 @@ public:
             }
 
             //- Return the mean capillary length [m]
-            dimensionedScalar capillaryLength() const
+            template<class T1>
+            auto capillaryLength(const T1& T) const -> decltype(T+T)
             {
-                return interfaceEnergy_/factor<0>()/sumD()/sumSqrAperD();
+                return interfaceEnergy_/factor("liquid", T)/sumDL()/sumSqrAperDL(T);
             }
 
-            //- Return the Gibbs--Thomson coefficient [Km]
-            dimensionedScalar GibbsThomson() const
+            //- Return the mean diffusion coefficient in liquid [m^2/s]
+            template<class T1>
+            auto diffusionL(const T1& T) const -> decltype(T+T)
             {
-                return interfaceEnergy_/entropyChange_;
-            }
-
-            //- Return the mean diffusion coefficient [m^2/s]
-            dimensionedScalar diffusionL() const
-            {
-                return sumSqrA()/sumSqrAperD();
+                return sumSqrA(T)/sumSqrAperDL(T);
             }
 
             //- Return the total sum of the growth restriction factors [Js/m^5]
-            dimensionedScalar sumRestrictionFactors() const
+            template<class T1>
+            auto sumRestrictionFactors(const T1& T) const -> decltype(T+T)
             {
-                return factor<0>()*sumSqrAperD();
+                return factor("liquid", T)*sumSqrAperDL(T);
             }
-
-            //- Return the first derivative of kStar []
-            dimensionedScalar partitionPrime() const
-            {
-                return 1 - factor<1>()/factor<0>();
-            }
-
-
-        // Evaluation
 
             //- Return the chemical driving force [J/m^3]
             tmp<volScalarField> chemicalDrivingForce
@@ -190,10 +191,20 @@ public:
                 const volScalarField& T
             ) const;
 
-            //- Return the kStar function []
-            tmp<volScalarField> partition(const volScalarField& phase) const
+            //- Return the partition function []
+            tmp<volScalarField> partition
+            (
+                const volScalarField& phase,
+                const volScalarField& T
+            ) const
             {
-                return phase + (1 - phase)*factor<1>()/factor<0>();
+                return phase + (1 - phase)*factor("solid", T)/factor("liquid", T);
+            }
+
+            //- Return the first derivative of the partition function []
+            tmp<volScalarField> partitionPrime(const volScalarField& T) const
+            {
+                return 1 - factor("solid", T)/factor("liquid", T);
             }
 };
 

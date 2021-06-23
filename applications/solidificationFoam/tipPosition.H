@@ -21,14 +21,15 @@ forAll(phase, cellI)
 if (tipCell != tipCellPrev)
 {
     dimensionedScalar tipSpeed = (tipPosition - tipPositionPrev)/tipTimeInterval;
+    dimensionedScalar tipTemp("tipTemp", T.dimensions(), T[tipCell]);
+
     Info<< "Tip position(m) = " << (tipPosition).value()
         << " relative = " << ((tipPosition - ymin)/height).value() << endl
         << "Tip speed(m/s) = " << tipSpeed.value()
         << " dimless = "
-        << (tipSpeed*alloy.capillaryLength()/alloy.diffusionL()).value() << endl
-        << "Tip undercooling(K) = " << alloy.liquidus().value() - T[tipCell]
-        << " relative = "
-        << alloy.undercooling(dimensionedScalar("T", dimTemperature, T[tipCell])).value()
+        << (tipSpeed*alloy.capillaryLength(tipTemp)/alloy.diffusionL(tipTemp)).value() << endl
+        << "Tip undercooling(K) = " << (alloy.liquidus() - tipTemp).value()
+        << " relative = " << alloy.undercooling(tipTemp).value()
         << nl << endl;
 
     tipPositionPrev = tipPosition;

@@ -1,5 +1,7 @@
 multicomponentAlloy.C
 
 alloyComponent/alloyComponent.C
+componentPhase/componentPhase.C
+ComponentPhase/makeComponentPhases.C
 
 LIB = $(FOAM_USER_LIBBIN)/libmulticomponentAlloy

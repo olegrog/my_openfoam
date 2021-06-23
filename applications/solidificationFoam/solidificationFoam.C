@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2020 Oleg Rogozin
+                            | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     OpenFOAM is free software: you can redistribute it and/or modify it
@@ -25,7 +25,7 @@ Application
     solidificationFoam
 
 Description
-    Solver for the multicomponent phase-field model with linearized phase
+    Solver for the multicomponent phase-field model with linearised phase
     diagrams, convection, and tracking of the grain boundaries.
     The directional solidification problem is assumed to be solved.
 
@@ -41,66 +41,9 @@ Description
 #include "multicomponentAlloy/multicomponentAlloy.H"
 
 using constant::mathematical::pi;
+using constant::mathematical::twoPi;
 
-tmp<volScalarField> fPrime(const volScalarField& phase)
-{
-    return 2*phase*(1 - phase)*(1 - 2*phase);
-}
-
-
-tmp<volScalarField> fPrime2(const volScalarField& phase)
-{
-    return 3*sqr(1 - 2*phase) - 1;
-}
-
-
-tmp<volScalarField> gPrime(const volScalarField& phase)
-{
-    return 30*sqr(phase)*sqr(1 - phase);
-}
-
-
-tmp<volScalarField> gPrime2(const volScalarField& phase)
-{
-    return 30*fPrime(phase);
-}
-
-
-tmp<volScalarField> generateSeed
-(
-    const volVectorField& coord,
-    const dimensionedVector& center,
-    const dimensionedScalar& radius
-)
-{
-    return min
-    (
-        2*Foam::exp(-magSqr((coord - center)/radius)),
-        scalar(1)
-    );
-}
-
-
-void addGrain(volVectorField& grain, const volScalarField& phase, label nGrain, label nGrains)
-{
-    forAll(grain, cellI)
-    {
-        scalar argument = 2*pi*sign(phase[cellI])*nGrain/nGrains;
-        scalar magnitude = fabs(phase[cellI]);
-        grain[cellI].x() += magnitude*Foam::cos(argument);
-        grain[cellI].y() += magnitude*Foam::sin(argument);
-    }
-}
-
-
-void calcNGrain(volScalarField& nGrain, const volVectorField& grain, label nGrains)
-{
-    forAll(grain, cellI)
-    {
-        nGrain[cellI] = Foam::atan2(grain[cellI].y(), grain[cellI].x())/2/pi*nGrains;
-    }
-}
-
+#include "grainGenerationFunctions.H"
 
 tmp<volVectorField> calcNormal(const volVectorField& vField)
 {
@@ -132,8 +75,6 @@ int main(int argc, char *argv[])
     const tensor rot(0, -1, 0, 1, 0, 0, 0, 0, 1);
 
     // Derived quantities
-    const dimensionedScalar tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()
-        *alloy.sumRestrictionFactors();
     dimensionedScalar pullingSpeed = coolingRate/tempGradient;
     const label nGrains = crystallographicAngles.size();
 
@@ -156,8 +97,8 @@ int main(int argc, char *argv[])
     dimensionedScalar tipTimeInterval("tipTimeInterval", dimTime, 0);
 
     #include "initialConditions.H"
-
     #include "printProblemParameters.H"
+    #include "doubleWellPotentialFunctions.H"
 
     Info<< "\nStarting time loop\n" << endl;
 
@@ -187,6 +128,8 @@ int main(int argc, char *argv[])
         T = alloy.liquidus() - undercooling
             + tempGradient*(coord.component(vector::Y) - frontPosition)
             - coolingRate*runTime;
+
+        tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()*alloy.sumRestrictionFactors(T);
 
         while (pimple.loop())
         {

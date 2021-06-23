@@ -17,50 +17,100 @@ FoamFile
 
 // Solid diffusion is taken from Miettinen1997
 
+phases (liquid solid);
+
 components
 (
     Cr
     {
+        type linearised;
         molarMass       5.20e-2;
-        equilibriumS    0.1747;
-        equilibriumL    0.17;
-        slopeS          5765;
-        slopeL          6272;
-        diffusionS      1.0e-11; // 1.0e-14;
-        diffusionL      2.0e-9;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.17;
+                slope       6272;
+                diffusion   2.0e-9;
+            }
+
+            solid
+            {
+                equilibrium 0.1747;
+                slope       5765;
+                diffusion   1.0e-11; // 1.0e-14;
+            }
+        );
     }
 
     Ni
     {
+        type linearised;
         molarMass       5.87e-2;
-        equilibriumS    0.0914;
-        equilibriumL    0.12;
-        slopeS          -1226;
-        slopeL          -862.2;
-        diffusionS      6.8e-12; // 1.0e-14;
-        diffusionL      2.0e-9;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.12;
+                slope       -862.2;
+                diffusion   2.0e-9;
+            }
+
+            solid
+            {
+                equilibrium 0.0914;
+                slope       -1226;
+                diffusion   6.8e-12; // 1.0e-14;
+            }
+        );
     }
 
     Mo
     {
+        type linearised;
         molarMass       9.60e-2;
-        equilibriumS    0.0288;
-        equilibriumL    0.025;
-        slopeS          6990;
-        slopeL          7877;
-        diffusionS      1.3e-11; // 1.0e-14;
-        diffusionL      2.0e-9;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.025;
+                slope       7877;
+                diffusion   2.0e-9;
+            }
+
+            solid
+            {
+                equilibrium 0.0288;
+                slope       6990;
+                diffusion   1.3e-11; // 1.0e-14;
+            }
+        );
     }
 
     C
     {
+        type linearised;
         molarMass       1.20e-2;
-        equilibriumS    3.27e-5;
-        equilibriumL    0.0003;
-        slopeS          -674700;
-        slopeL          -63800;
-        diffusionS      1.0e-11; // 4.1e-9; // 1.0e-14;
-        diffusionL      2.0e-9; // 2.0e-9;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.0003;
+                slope       -63800;
+                diffusion   2.0e-9; // 2.0e-9;
+            }
+
+            solid
+            {
+                equilibrium 3.27e-5;
+                slope       -674700;
+                diffusion   1.0e-11; // 4.1e-9; // 1.0e-14;
+            }
+        );
     }
 );
 

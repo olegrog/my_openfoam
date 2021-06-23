@@ -32,6 +32,8 @@
     T = alloy.liquidus() - undercooling
         + tempGradient*(coord.component(vector::Y) - frontPosition);
 
+    tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()*alloy.sumRestrictionFactors(T);
+
     // concentrations
     forAllIters(alloy.components(), iter)
     {

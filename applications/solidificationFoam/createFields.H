@@ -88,7 +88,6 @@ volScalarField T
     boundaryConditions.primitiveField(),
     boundaryConditions.boundaryField()
 );
-T.dimensions().reset(dimTemperature);
 
 volScalarField phase
 (
@@ -118,6 +117,22 @@ volScalarField nGrain
     ),
     mesh,
     dimless,
+    boundaryConditions.primitiveField(),
+    boundaryConditions.boundaryField()
+);
+
+volScalarField tau
+(
+    IOobject
+    (
+        "tau",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimTime,
     boundaryConditions.primitiveField(),
     boundaryConditions.boundaryField()
 );

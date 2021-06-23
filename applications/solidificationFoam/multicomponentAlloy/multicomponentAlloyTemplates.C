@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2020 Oleg Rogozin
+                            | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of solidificationFoam.
@@ -26,18 +26,49 @@ License
 \*---------------------------------------------------------------------------*/
 
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
-template<Foam::label Phase>
-Foam::dimensionedScalar Foam::multicomponentAlloy::factor() const
+template<class T1>
+auto Foam::multicomponentAlloy::sumSqrA(const T1& T) const -> decltype(T+T)
 {
     auto iter = components_.begin();
 
-    dimensionedScalar result = iter().deltaA()/iter().slope<Phase>();
+    auto result = sqr(iter().deltaA(T));
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result += iter().deltaA()/iter().slope<Phase>();
+        result = result + sqr(iter().deltaA(T));
+    }
+
+    return result;
+}
+
+template<class T1>
+auto Foam::multicomponentAlloy::sumSqrAperDL(const T1& T) const -> decltype(T+T)
+{
+    auto iter = components_.begin();
+
+    auto result = sqr(iter().deltaA(T))/iter().phase("liquid").diffusion();
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result = result + sqr(iter().deltaA(T))/iter().phase("liquid").diffusion();
+    }
+
+    return result;
+}
+
+
+template<class T1>
+auto Foam::multicomponentAlloy::factor(const word& phaseName, const T1& T) const -> decltype(T+T)
+{
+    auto iter = components_.begin();
+
+    auto result = iter().deltaA(T)/iter().phase(phaseName).slope(T);
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result = result + iter().deltaA(T)/iter().phase(phaseName).slope(T);
     }
 
     return entropyChange_/result;

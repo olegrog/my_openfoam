@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2020 Oleg Rogozin
+                            | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of solidificationFoam.
@@ -27,7 +27,7 @@ Class
     Foam::alloyComponent
 
 Description
-    Concentration of a single alloy component.
+    Abstract base class for concentration of a single alloy component.
     Used as part of the multicomponentAlloy for phase-field simulations.
 
 SourceFiles
@@ -40,11 +40,16 @@ SourceFiles
 
 #include "volFields.H"
 #include "dictionaryEntry.H"
+#include "PtrDictionary.H"
+
+#include "componentPhase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+
+class multicomponentAlloy;
 
 /*---------------------------------------------------------------------------*\
                         Class alloyComponent Declaration
@@ -56,54 +61,57 @@ class alloyComponent
 {
     // Private data
 
-        word name_;
-        dictionary alloyComponentDict_;
-        dimensionedScalar molarMass_;
-        dimensionedScalar equilibriumS_;
-        dimensionedScalar equilibriumL_;
-        dimensionedScalar slopeS_;
-        dimensionedScalar slopeL_;
-        dimensionedScalar diffusionS_;
-        dimensionedScalar diffusionL_;
-        dimensionedScalar Tmelting_;
+        //- Name of the component
+        const word name_;
+
+        //- Molar mass [kg/mol]
+        const dimensionedScalar molarMass_;
+
+        //- Reference to the alloy
+        const multicomponentAlloy& alloy_;
+
+        //- Pointer to the dictionary of alloy components
+        PtrDictionary<componentPhase> phases_;
 
 public:
+
+    //- Runtime type information
+    TypeName("alloyComponent");
 
     // Constructors
 
         //- Construct from components
         alloyComponent
         (
-            const word& name,
-            const dictionary& alloyComponentDict,
+            const dictionaryEntry& entry,
             const fvMesh& mesh,
-            const dimensionedScalar& Tmelting
+            const multicomponentAlloy& alloy
         );
 
-        //- Return a pointer to a new alloy component created on freestore from Istream
+        //- Helper for construction of alloyComponent PtrList/PtrDictionary
         class iNew
         {
             const fvMesh& mesh_;
-            const dimensionedScalar& Tmelting_;
+            const multicomponentAlloy& alloy_;
 
         public:
 
             iNew
             (
                 const fvMesh& mesh,
-                const dimensionedScalar& Tmelting
+                const multicomponentAlloy& alloy
             )
             :
                 mesh_(mesh),
-                Tmelting_(Tmelting)
+                alloy_(alloy)
             {}
 
             autoPtr<alloyComponent> operator()(Istream& is) const
             {
-                dictionaryEntry ent(dictionary::null, is);
+                dictionaryEntry entry(dictionary::null, is);
                 return autoPtr<alloyComponent>
                 (
-                    new alloyComponent(ent.keyword(), ent, mesh_, Tmelting_)
+                    new alloyComponent(entry, mesh_, alloy_)
                 );
             }
         };
@@ -115,61 +123,66 @@ public:
             return autoPtr<alloyComponent>();
         }
 
+
+    //- Selector
+    static autoPtr<alloyComponent> New
+    (
+        const dictionaryEntry& entry,
+        const fvMesh& mesh,
+        const multicomponentAlloy& alloy
+    );
+
+
     // Member Functions
 
         // Access
 
-            const word& name() const
-            {
-                return name_;
-            }
-
+            //- Return name of the alloy component (need for PtrDictionary)
             const word& keyword() const
             {
                 return name_;
             }
 
-            //- Return the slopes along the solidification path (solid and liquid) [K]
-            template<label Phase>
-            dimensionedScalar slope() const
-            {
-                return Phase ? slopeS_ : slopeL_;
-            }
-
-            //- Return the diffusion coefficients (solid and liquid) [m^2/s]
-            template<label Phase>
-            dimensionedScalar diffusion() const
-            {
-                return Phase ? diffusionS_ : diffusionL_;
-            }
-
-            //- Return the difference of the equilibrium concentrations []
-            dimensionedScalar deltaA() const
-            {
-                return equilibriumS_ - equilibriumL_;
-            }
-
             //- Return the molar mass [kg/mol]
-            dimensionedScalar molarMass() const
+            const dimensionedScalar& molarMass() const
             {
                 return molarMass_;
             }
 
+            //- Return the phase diagram
+            const componentPhase& phase(const word& phaseName) const
+            {
+                return phases_[phaseName];
+            }
+
+            //- Return reference to the alloy
+            const multicomponentAlloy& alloy() const
+            {
+                return alloy_;
+            }
 
         // Evaluation
 
             //- Return the equilibrium concentration []
             template<class T1, class T2>
-            auto equilibrium(const T1& phase, const T2& T) const -> decltype(T+T)
+            auto equilibrium(const T1& solidFraction, const T2& T) const -> decltype(T+T)
             {
-                return (equilibriumS_ + (T - Tmelting_)/slopeS_)*phase
-                     + (equilibriumL_ + (T - Tmelting_)/slopeL_)*(1 - phase);
+                return phases_["solid"].equilibrium(T)*solidFraction
+                    + phases_["liquid"].equilibrium(T)*(1 - solidFraction);
             }
 
-            //- Return the diffusion coefficient [m^2/s]
-            tmp<volScalarField> diffusion(const volScalarField& phase) const
+            //- Return the difference of the equilibrium concentrations []
+            template<class T1>
+            auto deltaA(const T1& T) const -> decltype(T+T)
             {
-                return diffusionS_*phase + diffusionL_*(1 - phase);
+                return phases_["solid"].equilibrium(T) - phases_["liquid"].equilibrium(T);
+            }
+
+            //- Return the diffusion coefficient [m2/s]
+            tmp<volScalarField> diffusion(const volScalarField& solidFraction) const
+            {
+                return phases_["solid"].diffusion()*solidFraction
+                    + phases_["liquid"].diffusion()*(1 - solidFraction);
             }
 };
 

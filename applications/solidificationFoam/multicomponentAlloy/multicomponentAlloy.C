@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2019-2020 Oleg Rogozin
+                            | Copyright (C) 2019-2021 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of solidificationFoam.
@@ -50,7 +50,8 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     liquidus_("liquidus", dimTemperature, *this),
     rhoSolid_("rhoSolid", dimDensity, *this),
     entropyChange_("entropyChange", latentHeat_*rhoSolid_/liquidus_),
-    components_(lookup("components"), alloyComponent::iNew(mesh, liquidus_)),
+    phaseNames_(get<wordList>("phases")),
+    components_(lookup("components"), alloyComponent::iNew(mesh, *this)),
     solidus_(liquidus_ - deltaTemp())
 {
     Info<< "Alloy properties:" << endl
@@ -63,19 +64,31 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
         << (entropyChange_*molarMass()/rhoSolid_).value() << endl
         << " -- entropy change (J/m^3/K) = " << entropyChange_.value() << endl
         << " -- Gibbs--Thomson coefficient (Km) = "
-        << (interfaceEnergy_/entropyChange_).value() << endl
-        << " -- liquid thermodynamic factor (J/m^3) = " << factor<0>().value() << endl
-        << " -- solid thermodynamic factor (J/m^3) = " << factor<1>().value() << endl
-        << " -- mean diffusion in liquid (m^2/s) = " << diffusionL().value() << endl
-        << nl
-        << "Component properties:" << endl;
+        << (interfaceEnergy_/entropyChange_).value() << endl;
 
-    for (auto iter = components_.begin(); iter != components_.end(); ++iter)
+    for (const word& phaseName : phaseNames_)
     {
-        Info<< " -- " << setw(2) << iter().name()
-            << ": D_L = " << iter().diffusion<0>().value()
-            << ", deltaA = " << (iter().deltaA()).value()
-            << ", sqr(deltaA)/D_L = " << (sqr(iter().deltaA())/iter().diffusion<0>()).value()
+        Info<< " -- thermodynamic factor in " << phaseName << " at liquidus (J/m^3) = "
+            << factor(phaseName, liquidus_).value() << endl
+            << " -- thermodynamic factor in " << phaseName << " at solidus (J/m^3) = "
+            << factor(phaseName, solidus_).value() << endl;
+    }
+
+    Info<< " -- mean diffusion in liquid at liquidus (m^2/s) = "
+        << diffusionL(liquidus_).value() << endl
+        << " -- mean diffusion in liquid at solidus (m^2/s) = "
+        << diffusionL(liquidus_).value() << endl
+        << "\nComponent properties:" << endl;
+
+    for (const alloyComponent& component : components_)
+    {
+        const dimensionedScalar deltaA = component.deltaA(liquidus_);
+        const scalar D_L = component.phase("liquid").diffusion().value();
+
+        Info<< " -- " << setw(2) << component.name()
+            << ": D_L = " << D_L
+            << ", deltaA(T_L) = " << deltaA.value()
+            << ", sqr(deltaA)/D_L = " << sqr(deltaA).value()/D_L
             << endl;
     }
 
@@ -85,45 +98,15 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
 
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
-Foam::dimensionedScalar Foam::multicomponentAlloy::sumSqrA() const
+Foam::dimensionedScalar Foam::multicomponentAlloy::sumDL() const
 {
     auto iter = components_.begin();
 
-    dimensionedScalar result = sqr(iter().deltaA());
+    dimensionedScalar result = iter().phase("liquid").diffusion();
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result += sqr(iter().deltaA());
-    }
-
-    return result;
-}
-
-
-Foam::dimensionedScalar Foam::multicomponentAlloy::sumD() const
-{
-    auto iter = components_.begin();
-
-    dimensionedScalar result = iter().diffusion<0>();
-
-    for (++iter; iter != components_.end(); ++iter)
-    {
-        result += iter().diffusion<0>();
-    }
-
-    return result;
-}
-
-
-Foam::dimensionedScalar Foam::multicomponentAlloy::sumSqrAperD() const
-{
-    auto iter = components_.begin();
-
-    dimensionedScalar result = sqr(iter().deltaA())/iter().diffusion<0>();
-
-    for (++iter; iter != components_.end(); ++iter)
-    {
-        result += sqr(iter().deltaA())/iter().diffusion<0>();
+        result += iter().phase("liquid").diffusion();
     }
 
     return result;
@@ -157,14 +140,14 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentAlloy::chemicalDrivingForce
 {
     auto iter = components_.begin();
 
-    tmp<volScalarField> result = iter().deltaA()*(iter() - iter().equilibrium(phase, T));
+    auto result = iter().deltaA(T)*(iter() - iter().equilibrium(phase, T));
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result = result() + iter().deltaA()*(iter() - iter().equilibrium(phase, T));
+        result = result() + iter().deltaA(T)*(iter() - iter().equilibrium(phase, T));
     }
 
-    return result()*factor<0>()/partition(phase);
+    return result()*factor("liquid", T)/partition(phase, T);
 }
 
 
