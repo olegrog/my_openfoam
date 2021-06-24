@@ -24,15 +24,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::phaseBoundary::linearised
+    Foam::phaseBoundary::piecewiseLinear
 
 Description
-    Linearised phase boundary.
+    Piecewise linear phase boundary.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef linearised_H
-#define linearised_H
+#ifndef piecewiseLinear_H
+#define piecewiseLinear_H
 
 #include "multicomponentAlloy.H"
 
@@ -44,18 +44,58 @@ namespace phaseBoundary
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class linearised Declaration
+                       Class piecewiseLinear Declaration
 \*---------------------------------------------------------------------------*/
 
-class linearised
+class piecewiseLinear
 {
-    // Private data
+    //- Struct containing coeffs for a single temperature interval
+    struct phaseBoundaryInterval
+    {
+        //- Minimum temperature
+        const scalar Tmin;
+
+        //- Maximum temperature
+        const scalar Tmax;
 
         //- Equilibrium concentration
-        const scalar equilibrium_;
+        const scalar equilibrium;
 
         //- Slope along the solidification path
-        const scalar slope_;
+        const scalar slope;
+
+        //- Constructor from dictionary
+        phaseBoundaryInterval(const dictionary& dict)
+        :
+            Tmin(dict.get<scalar>("Tmin")),
+            Tmax(dict.get<scalar>("Tmax")),
+            equilibrium(dict.get<scalar>("equilibrium")),
+            slope(dict.get<scalar>("slope"))
+        {}
+
+        //- No empty construct
+        phaseBoundaryInterval() = delete;
+
+        //- Return clone (need for PtrList)
+        autoPtr<phaseBoundaryInterval> clone() const
+        {
+            notImplemented("phaseBoundaryInterval::clone() const");
+            return autoPtr<phaseBoundaryInterval>();
+        }
+
+
+        //- Selector
+        static autoPtr<phaseBoundaryInterval> New(Istream& is)
+        {
+            dictionaryEntry entry(dictionary::null, is);
+            return autoPtr<phaseBoundaryInterval>(new phaseBoundaryInterval(entry));
+        }
+    };
+
+    // Private data
+
+        //- List of temperature intervals with coeffs
+        PtrList<phaseBoundaryInterval> intervals_;
 
         //- The liquidus temperature
         const scalar liquidus_;
@@ -63,31 +103,20 @@ class linearised
 public:
 
     //- Constructor
-    linearised
+    piecewiseLinear
     (
         const dictionary& dict,
         const alloyComponent& component
-    )
-    :
-        equilibrium_(dict.get<scalar>("equilibrium")),
-        slope_(dict.get<scalar>("slope")),
-        liquidus_(component.alloy().liquidus().value())
-    {}
+    );
 
 
     // Member Functions
 
         //- Return the equilibrium concentration
-        scalar equilibrium(scalar T) const
-        {
-            return equilibrium_ + (T - liquidus_)/slope_;
-        }
+        scalar equilibrium(scalar T) const;
 
         //- Return the slope along the solidification path
-        scalar slope(scalar) const
-        {
-            return slope_;
-        }
+        scalar slope(scalar T) const;
 };
 
 } // End namespace phaseBoundary

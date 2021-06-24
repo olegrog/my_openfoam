@@ -1,1 +1,1 @@
-../singleTrackPrinting/plot_deltaT.sh
+../plot_deltaT.sh

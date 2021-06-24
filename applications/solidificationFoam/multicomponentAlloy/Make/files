@@ -2,6 +2,9 @@ multicomponentAlloy.C
 
 alloyComponent/alloyComponent.C
 componentPhase/componentPhase.C
+
 ComponentPhase/makeComponentPhases.C
+ComponentPhase/phaseBoundaries/piecewiseLinear.C
+ComponentPhase/phaseBoundaries/tabulated.C
 
 LIB = $(FOAM_USER_LIBBIN)/libmulticomponentAlloy

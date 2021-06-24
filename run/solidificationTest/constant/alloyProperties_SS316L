@@ -23,7 +23,7 @@ components
 (
     Cr
     {
-        type linearised;
+        type piecewiseLinear;
         molarMass       5.20e-2;
 
         phases
@@ -33,6 +33,24 @@ components
                 equilibrium 0.17;
                 slope       6272;
                 diffusion   2.0e-9;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.1582;
+                        slope       -1279;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.17;
+                        slope       6272;
+                    }
+                );
             }
 
             solid
@@ -40,13 +58,31 @@ components
                 equilibrium 0.1747;
                 slope       5765;
                 diffusion   1.0e-11; // 1.0e-14;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.1640;
+                        slope       -1478;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.1747;
+                        slope       5765;
+                    }
+                );
             }
         );
     }
 
     Ni
     {
-        type linearised;
+        type piecewiseLinear;
         molarMass       5.87e-2;
 
         phases
@@ -56,6 +92,24 @@ components
                 equilibrium 0.12;
                 slope       -862.2;
                 diffusion   2.0e-9;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.1343;
+                        slope       -55290;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.12;
+                        slope       -862.2;
+                    }
+                );
             }
 
             solid
@@ -63,13 +117,31 @@ components
                 equilibrium 0.0914;
                 slope       -1226;
                 diffusion   6.8e-12; // 1.0e-14;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.1012;
+                        slope       -30790;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.0914;
+                        slope       -1226;
+                    }
+                );
             }
         );
     }
 
     Mo
     {
-        type linearised;
+        type piecewiseLinear;
         molarMass       9.60e-2;
 
         phases
@@ -79,6 +151,24 @@ components
                 equilibrium 0.025;
                 slope       7877;
                 diffusion   2.0e-9;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.0193;
+                        slope       -3067;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.025;
+                        slope       7877;
+                    }
+                );
             }
 
             solid
@@ -86,13 +176,31 @@ components
                 equilibrium 0.0288;
                 slope       6990;
                 diffusion   1.3e-11; // 1.0e-14;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium 0.0234;
+                        slope       -3440;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.0288;
+                        slope       6990;
+                    }
+                );
             }
         );
     }
 
     C
     {
-        type linearised;
+        type piecewiseLinear;
         molarMass       1.20e-2;
 
         phases
@@ -102,6 +210,24 @@ components
                 equilibrium 0.0003;
                 slope       -63800;
                 diffusion   2.0e-9; // 2.0e-9;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium -0.00054;
+                        slope       -12100;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.0003;
+                        slope       -63800;
+                    }
+                );
             }
 
             solid
@@ -109,6 +235,24 @@ components
                 equilibrium 3.27e-5;
                 slope       -674700;
                 diffusion   1.0e-11; // 4.1e-9; // 1.0e-14;
+
+                intervals
+                (
+                    first
+                    {
+                        Tmin        1000;
+                        Tmax        1714.23;
+                        equilibrium -4.74e-5;
+                        slope       -127000;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 3.27e-5;
+                        slope       -674700;
+                    }
+                );
             }
         );
     }

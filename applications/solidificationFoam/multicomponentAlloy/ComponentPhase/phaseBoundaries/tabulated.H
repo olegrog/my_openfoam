@@ -24,17 +24,19 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::phaseBoundary::linearised
+    Foam::phaseBoundary::tabulated
 
 Description
-    Linearised phase boundary.
+    Tabulated phase boundary.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef linearised_H
-#define linearised_H
+#ifndef tabulated_H
+#define tabulated_H
 
-#include "multicomponentAlloy.H"
+#include "TableBase.H"
+
+#include "alloyComponent.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,35 +46,22 @@ namespace phaseBoundary
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class linearised Declaration
+                         Class tabulated Declaration
 \*---------------------------------------------------------------------------*/
 
-class linearised
+class tabulated
+:
+    public Function1Types::TableBase<scalar>
 {
-    // Private data
-
-        //- Equilibrium concentration
-        const scalar equilibrium_;
-
-        //- Slope along the solidification path
-        const scalar slope_;
-
-        //- The liquidus temperature
-        const scalar liquidus_;
 
 public:
 
     //- Constructor
-    linearised
+    tabulated
     (
         const dictionary& dict,
         const alloyComponent& component
-    )
-    :
-        equilibrium_(dict.get<scalar>("equilibrium")),
-        slope_(dict.get<scalar>("slope")),
-        liquidus_(component.alloy().liquidus().value())
-    {}
+    );
 
 
     // Member Functions
@@ -80,13 +69,21 @@ public:
         //- Return the equilibrium concentration
         scalar equilibrium(scalar T) const
         {
-            return equilibrium_ + (T - liquidus_)/slope_;
+            return value(T);
         }
 
         //- Return the slope along the solidification path
-        scalar slope(scalar) const
+        scalar slope(scalar T) const
         {
-            return slope_;
+            NotImplemented;
+            return value(T);
+        }
+
+        //- Construct and return a clone
+        virtual tmp<Function1<scalar>> clone() const
+        {
+            NotImplemented;
+            return tmp<Function1<scalar>>(new tabulated(*this));
         }
 };
 

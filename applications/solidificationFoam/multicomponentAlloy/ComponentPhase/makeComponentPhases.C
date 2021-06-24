@@ -30,6 +30,8 @@ License
 #include "ComponentPhase.H"
 
 #include "linearised.H"
+#include "piecewiseLinear.H"
+#include "tabulated.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,5 +58,7 @@ namespace Foam                                                                 \
 }
 
 makeComponentPhase(ComponentPhase, linearised)
+makeComponentPhase(ComponentPhase, piecewiseLinear)
+makeComponentPhase(ComponentPhase, tabulated)
 
 // ************************************************************************* //
