@@ -75,9 +75,6 @@ class alloyComponent
 
 public:
 
-    //- Runtime type information
-    TypeName("alloyComponent");
-
     // Constructors
 
         //- Construct from components

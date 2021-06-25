@@ -27,13 +27,6 @@ License
 
 #include "alloyComponent.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    defineTypeName(alloyComponent);
-}
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::alloyComponent::alloyComponent

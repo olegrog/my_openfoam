@@ -84,3 +84,5 @@ alias diff='colordiff'
 alias solv='cd $FOAM_SOLVERS'
 alias src='cd $FOAM_SRC'
 alias tut='cd $FOAM_TUTORIALS'
+
+ml mpi
