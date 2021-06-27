@@ -92,16 +92,16 @@ class multicomponentAlloy
         template<class T1>
         auto factor(const word& phaseName, const T1& T) const -> decltype(T+T);
 
-        //- Calculate \sum A^2
+        //- Calculate \sum DeltaC^2
         template<class T1>
-        auto sumSqrA(const T1& T) const -> decltype(T+T);
+        auto sumSqrDelta(const T1& T) const -> decltype(T+T);
 
         //- Calculate \sum D_L
         dimensionedScalar sumDL() const;
 
-        //- Calculate \sum A^2/D_L
+        //- Calculate \sum DeltaC^2/D_L
         template<class T1>
-        auto sumSqrAperDL(const T1& T) const -> decltype(T+T);
+        auto sumSqrDeltaPerDL(const T1& T) const -> decltype(T+T);
 
 public:
 
@@ -153,7 +153,7 @@ public:
             //- Return the solidification interval [K]
             dimensionedScalar deltaTemp() const
             {
-                return sumSqrA(liquidus_)*factor("solid", liquidus_)/entropyChange_;
+                return sumSqrDelta(liquidus_)*factor("solid", liquidus_)/entropyChange_;
             }
 
             //- Return the dimensionless undercooling []
@@ -167,21 +167,21 @@ public:
             template<class T1>
             auto capillaryLength(const T1& T) const -> decltype(T+T)
             {
-                return interfaceEnergy_/factor("liquid", T)/sumDL()/sumSqrAperDL(T);
+                return interfaceEnergy_/factor("liquid", T)/sumDL()/sumSqrDeltaPerDL(T);
             }
 
             //- Return the mean diffusion coefficient in liquid [m^2/s]
             template<class T1>
             auto diffusionL(const T1& T) const -> decltype(T+T)
             {
-                return sumSqrA(T)/sumSqrAperDL(T);
+                return sumSqrDelta(T)/sumSqrDeltaPerDL(T);
             }
 
             //- Return the total sum of the growth restriction factors [Js/m^5]
             template<class T1>
             auto sumRestrictionFactors(const T1& T) const -> decltype(T+T)
             {
-                return factor("liquid", T)*sumSqrAperDL(T);
+                return factor("liquid", T)*sumSqrDeltaPerDL(T);
             }
 
             //- Return the chemical driving force [J/m^3]

@@ -16,7 +16,7 @@ forAllIters(alloy.components(), iter)
         fvm::laplacian(C.diffusion(phase)/partition, C)
       - fvm::div(phi2, C)
       - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T)/partition)
-      + fvc::div(aAT*interfaceWidth*C.deltaA(T)*normal*fvc::ddt(phase))
+      + fvc::div(aAT*interfaceWidth*C.delta(T)*normal*fvc::ddt(phase))
     );
     CEqn.solve(mesh.solverDict("concentration"));
 }

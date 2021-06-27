@@ -29,30 +29,30 @@ License
 // * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
 
 template<class T1>
-auto Foam::multicomponentAlloy::sumSqrA(const T1& T) const -> decltype(T+T)
+auto Foam::multicomponentAlloy::sumSqrDelta(const T1& T) const -> decltype(T+T)
 {
     auto iter = components_.begin();
 
-    auto result = sqr(iter().deltaA(T));
+    auto result = sqr(iter().delta(T));
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result = result + sqr(iter().deltaA(T));
+        result = result + sqr(iter().delta(T));
     }
 
     return result;
 }
 
 template<class T1>
-auto Foam::multicomponentAlloy::sumSqrAperDL(const T1& T) const -> decltype(T+T)
+auto Foam::multicomponentAlloy::sumSqrDeltaPerDL(const T1& T) const -> decltype(T+T)
 {
     auto iter = components_.begin();
 
-    auto result = sqr(iter().deltaA(T))/iter().phase("liquid").diffusion();
+    auto result = sqr(iter().delta(T))/iter().phase("liquid").diffusion();
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result = result + sqr(iter().deltaA(T))/iter().phase("liquid").diffusion();
+        result = result + sqr(iter().delta(T))/iter().phase("liquid").diffusion();
     }
 
     return result;
@@ -64,11 +64,11 @@ auto Foam::multicomponentAlloy::factor(const word& phaseName, const T1& T) const
 {
     auto iter = components_.begin();
 
-    auto result = iter().deltaA(T)/iter().phase(phaseName).slope(T);
+    auto result = iter().delta(T)/iter().phase(phaseName).slope(T);
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result = result + iter().deltaA(T)/iter().phase(phaseName).slope(T);
+        result = result + iter().delta(T)/iter().phase(phaseName).slope(T);
     }
 
     return entropyChange_/result;

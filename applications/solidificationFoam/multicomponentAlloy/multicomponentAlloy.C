@@ -54,7 +54,7 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     components_(lookup("components"), alloyComponent::iNew(mesh, *this)),
     solidus_(liquidus_ - deltaTemp())
 {
-    Info<< "Alloy properties:" << endl
+    Info<< "\nAlloy properties:" << endl
         << " -- liquidus (K) = " << liquidus_.value() << endl
         << " -- specified solidus (K) = " << get<dimensionedScalar>("solidus").value() << endl
         << " -- calculated solidus (K) = " << solidus_.value() << endl
@@ -74,22 +74,35 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
             << factor(phaseName, solidus_).value() << endl;
     }
 
-    Info<< " -- mean diffusion in liquid at liquidus (m^2/s) = "
-        << diffusionL(liquidus_).value() << endl
-        << " -- mean diffusion in liquid at solidus (m^2/s) = "
-        << diffusionL(liquidus_).value() << endl
-        << "\nComponent properties:" << endl;
+    PtrList<Tuple2<word, const dimensionedScalar&>> pairs;
+    pairs.emplace_append("solidus", solidus_);
+    pairs.emplace_append("liquidus", liquidus_);
 
-    for (const alloyComponent& component : components_)
+    for (auto pair : pairs)
     {
-        const dimensionedScalar deltaA = component.deltaA(liquidus_);
-        const scalar D_L = component.phase("liquid").diffusion().value();
+        Info<< " -- mean diffusion in liquid at " << pair.first() << " (m^2/s) = "
+            << diffusionL(pair.second()).value() << endl;
+    }
 
-        Info<< " -- " << setw(2) << component.name()
-            << ": D_L = " << D_L
-            << ", deltaA(T_L) = " << deltaA.value()
-            << ", sqr(deltaA)/D_L = " << sqr(deltaA).value()/D_L
-            << endl;
+    for (auto pair : pairs)
+    {
+        Info<< "\nComponent properties at " << pair.first() << ":" << endl;
+        for (const alloyComponent& component : components_)
+        {
+            const dimensionedScalar& T = pair.second();
+            const scalar delta = component.delta(T).value();
+            const scalar D_L = component.phase("liquid").diffusion().value();
+            const scalar slopeS = component.phase("solid").slope(T).value();
+            const scalar slopeL = component.phase("liquid").slope(T).value();
+
+            Info<< " -- " << setw(2) << component.name()
+                << ": D_L = " << D_L
+                << ", delta = " << delta
+                << ", sqr(delta)/D_L = " << sqr(delta)/D_L
+                << ", delta/mS = " << delta/slopeS
+                << ", delta/mL = " << delta/slopeL
+                << endl;
+        }
     }
 
     Info<< nl;
@@ -140,11 +153,11 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentAlloy::chemicalDrivingForce
 {
     auto iter = components_.begin();
 
-    auto result = iter().deltaA(T)*(iter() - iter().equilibrium(phase, T));
+    auto result = iter().delta(T)*(iter() - iter().equilibrium(phase, T));
 
     for (++iter; iter != components_.end(); ++iter)
     {
-        result = result() + iter().deltaA(T)*(iter() - iter().equilibrium(phase, T));
+        result = result() + iter().delta(T)*(iter() - iter().equilibrium(phase, T));
     }
 
     return result()*factor("liquid", T)/partition(phase, T);

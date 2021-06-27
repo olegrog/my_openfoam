@@ -29,7 +29,7 @@ forAllIters(alloy.components(), iter)
     volScalarField rhsC = mag
     (
         fvc::laplacian(C.diffusion(phase), (C - C.equilibrium(phase, T))/h)
-      + fvc::div(interfaceWidth/Foam::sqrt(2.)*C.deltaA(T)*normal*rhsPhase)
+      + fvc::div(interfaceWidth/Foam::sqrt(2.)*C.delta(T)*normal*rhsPhase)
     )/C.equilibrium(phase, T);
     scalar CoNumC = gMax(rhsC)*runTime.deltaTValue();
     Info<< C.name() << " Courant number max = " << CoNumC << endl;

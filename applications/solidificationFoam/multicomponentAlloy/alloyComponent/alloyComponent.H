@@ -170,7 +170,7 @@ public:
 
             //- Return the difference of the equilibrium concentrations []
             template<class T1>
-            auto deltaA(const T1& T) const -> decltype(T+T)
+            auto delta(const T1& T) const -> decltype(T+T)
             {
                 return phases_["solid"].equilibrium(T) - phases_["liquid"].equilibrium(T);
             }
