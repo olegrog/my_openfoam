@@ -99,8 +99,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1714.23;
-                        equilibrium 0.1343;
-                        slope       -55290;
+                        equilibrium 0.133; //0.1343;
+                        slope       -8000; //-55290;
                     }
                     second
                     {
@@ -124,8 +124,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1714.23;
-                        equilibrium 0.1012;
-                        slope       -30790;
+                        equilibrium 0.1; //0.1012;
+                        slope       -8000; //-30790;
                     }
                     second
                     {

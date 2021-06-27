@@ -45,26 +45,31 @@ print "rhoL = ", rhoL(TL)
 fcc(T, y) = T > TA ? 1/0 : y
 
 array solute[4] = ['C', 'Cr', 'Mo', 'Ni']
+array keys[4] = [ 'r t', 'r b', 'r b', 'r t']
+
 array equilL[4] = [0.0003, 0.17, 0.025, 0.12]
 array slopeL[4] = [-63803, 6271.86, 7877.23, -862.19]
 array equilS[4] = [3.27e-5, 0.17471, 0.02881, 0.09136]
 array slopeS[4] = [-674731, 5764.81, 6990.48, -1225.86]
 
-array equilL_[4] = [-0.00054, 0.15819, 0.01932, 0.13433]
-array slopeL_[4] = [-12106.98, -1279.01, -3067.18, -55294.12]
-array equilS_[4] = [-4.74e-05, 0.16404, 0.02337, 0.10119]
-array slopeS_[4] = [-127128, -1478.3, -3440, -30790]
+array equilL_[4] = [-0.00054, 0.15819, 0.01932, 0.133] # 0.13433
+array slopeL_[4] = [-12106.98, -1279.01, -3067.18, -8000] # -55294.12
+array equilS_[4] = [-4.74e-05, 0.16404, 0.02337, 0.1] # 0.10119
+array slopeS_[4] = [-127128, -1478.3, -3440, -8000] # -30790
 
 do for [i=1:4] {
     j = i+2
     titleL = sprintf('Liquidus slope %.3g K/wt%', slopeL[i]/100)
     titleS = sprintf('Solidus slope %.3g K/wt%', slopeS[i]/100)
+    titleL_ = sprintf('Liquidus slope %.3g K/wt%', slopeL_[i]/100)
+    titleS_ = sprintf('Solidus slope %.3g K/wt%', slopeS_[i]/100)
+    eval('set key '.keys[i])
     plot 'liquid.txt' u ($1+DT):j w l, \
         'ferrite.txt' u ($1+DT):j w l, \
         equilL[i] + (x-TL)/slopeL[i] w l dt 2 lc 1 title titleL, \
         equilS[i] + (x-TL)/slopeS[i] w l dt 2 lc 2 title titleS, \
-        fcc(x, equilL_[i] + (x-TL)/slopeL_[i]) w l dt 3 lc 1 notitle, \
-        fcc(x, equilS_[i] + (x-TL)/slopeS_[i]) w l dt 3 lc 2 notitle, \
+        fcc(x, equilL_[i] + (x-TL)/slopeL_[i]) w l dt 3 lc 1 title titleL_, \
+        fcc(x, equilS_[i] + (x-TL)/slopeS_[i]) w l dt 3 lc 2 title titleS_, \
         'austenite.txt' u ($1+DT):(fcc($1+DT,column(j))) w l, \
         '< paste ferrite.txt austenite.txt phases.txt' \
             u ($1+DT):(column(j)*$15/($15+$16) + column(j+6)*$16/($15+$16)) w l dt 4 lc 4 \
