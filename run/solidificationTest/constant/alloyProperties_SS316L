@@ -38,12 +38,19 @@ components
                 (
                     first
                     {
-                        Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.1582;
-                        slope       -1279;
+                        Tmin        1000; //1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.1610;
+                        slope       -1461;
                     }
                     second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1567;
+                        slope       -1106;
+                    }
+                    third
                     {
                         Tmin        1714.23;
                         Tmax        2000;
@@ -61,14 +68,28 @@ components
 
                 intervals
                 (
-                    first
+                    zero
                     {
                         Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.1640;
-                        slope       -1478;
+                        Tmax        1698.25;
+                        equilibrium 0.179;
+                        slope       -6527;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.1685;
+                        slope       -1918;
                     }
                     second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1616;
+                        slope       -1148;
+                    }
+                    third
                     {
                         Tmin        1714.23;
                         Tmax        2000;
@@ -97,12 +118,19 @@ components
                 (
                     first
                     {
-                        Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.133; //0.1343;
-                        slope       -8000; //-55290;
+                        Tmin        1000; //1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.13405; //0.1402;
+                        slope       -8000; //5378;
                     }
                     second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1311;
+                        slope       -3642;
+                    }
+                    third
                     {
                         Tmin        1714.23;
                         Tmax        2000;
@@ -120,18 +148,32 @@ components
 
                 intervals
                 (
-                    first
+                    zero
                     {
                         Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.1; //0.1012;
-                        slope       -8000; //-30790;
+                        Tmax        1698.25;
+                        equilibrium 0.10269; //0.098546; //0.1067;
+                        slope       -20000; //6214;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.10055; //0.1050;
+                        slope       -8000; //10020;
                     }
                     second
                     {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.0991;
+                        slope       -5032;
+                    }
+                    third
+                    {
                         Tmin        1714.23;
                         Tmax        2000;
-                        equilibrium 0.0914;
+                        equilibrium 0.09136;
                         slope       -1226;
                     }
                 );
@@ -156,12 +198,19 @@ components
                 (
                     first
                     {
-                        Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.0193;
-                        slope       -3067;
+                        Tmin        1000; //1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.02023;
+                        slope       -3401;
                     }
                     second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.01881;
+                        slope       -2730;
+                    }
+                    third
                     {
                         Tmin        1714.23;
                         Tmax        2000;
@@ -179,18 +228,32 @@ components
 
                 intervals
                 (
-                    first
+                    zero
                     {
                         Tmin        1000;
-                        Tmax        1714.23;
-                        equilibrium 0.0234;
-                        slope       -3440;
+                        Tmax        1698.25;
+                        equilibrium 0.0297;
+                        slope       -14790;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.02506;
+                        slope       -4320;
                     }
                     second
                     {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.02243;
+                        slope       -2739;
+                    }
+                    third
+                    {
                         Tmin        1714.23;
                         Tmax        2000;
-                        equilibrium 0.0288;
+                        equilibrium 0.02881;
                         slope       6990;
                     }
                 );
@@ -238,9 +301,16 @@ components
 
                 intervals
                 (
-                    first
+                    zero
                     {
                         Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 1.96e-4;
+                        slope       1494000;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
                         Tmax        1714.23;
                         equilibrium -4.74e-5;
                         slope       -127000;
