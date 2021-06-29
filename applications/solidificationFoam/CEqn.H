@@ -1,23 +1,26 @@
-const volVectorField normal = calcNormal(fvc::grad(phase));
-const volScalarField partition = alloy.partition(phase, T);
+const volVectorField nHat = calcNormal(fvc::grad(phase));
+const volScalarField k = alloy.partition(phase, T);
 
-forAllIters(alloy.components(), iter)
+for(alloyComponent& C : alloy.components())
 {
-    alloyComponent& C = iter();
-
-    const surfaceScalarField phi2 = fvc::snGrad(phase)*mesh.magSf()
-        *fvc::interpolate(C.diffusion(phase)/sqr(partition)*alloy.partitionPrime(T));
+    const volScalarField D = C.diffusion(phase, k);
+    const surfaceScalarField phi2 = fvc::snGrad(k)*fvc::interpolate(D/sqr(k))*mesh.magSf();
 
     fvScalarMatrix CEqn
     (
         fvm::ddt(C)
-      + fvm::div(phi/fvc::interpolate(partition), C)
+      + fvm::div(phi/fvc::interpolate(k), C)
      ==
-        fvm::laplacian(C.diffusion(phase)/partition, C)
+        fvm::laplacian(D/k, C)
       - fvm::div(phi2, C)
-      - fvc::laplacian(C.diffusion(phase), C.equilibrium(phase, T)/partition)
-      + fvc::div(aAT*interfaceWidth*C.delta(T)*normal*fvc::ddt(phase))
+      - fvc::laplacian(D, C.equilibrium(phase, T)/k)
+      + fvc::div(aAT*interfaceWidth*C.delta(T)*nHat*fvc::ddt(phase))
     );
     CEqn.solve(mesh.solverDict("concentration"));
+
+    if (gMin(C) < SMALL)
+    {
+        Warning << "min(" << C.name() << ") = " << gMin(C) << endl;
+    }
 }
 

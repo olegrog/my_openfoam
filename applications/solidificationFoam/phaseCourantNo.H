@@ -24,12 +24,12 @@ Co = max(Co, rhsPhase*runTime.deltaT());
 forAllIters(alloy.components(), iter)
 {
     alloyComponent& C = iter();
-    volScalarField h = alloy.partition(phase, T);
-    volVectorField normal = calcNormal(fvc::grad(phase));
+    volScalarField k = alloy.partition(phase, T);
+    volVectorField nHat = calcNormal(fvc::grad(phase));
     volScalarField rhsC = mag
     (
-        fvc::laplacian(C.diffusion(phase), (C - C.equilibrium(phase, T))/h)
-      + fvc::div(interfaceWidth/Foam::sqrt(2.)*C.delta(T)*normal*rhsPhase)
+        fvc::laplacian(C.diffusion(phase, k), (C - C.equilibrium(phase, T))/k)
+      + fvc::div(aAT*interfaceWidth*C.delta(T)*nHat*rhsPhase)
     )/C.equilibrium(phase, T);
     scalar CoNumC = gMax(rhsC)*runTime.deltaTValue();
     Info<< C.name() << " Courant number max = " << CoNumC << endl;

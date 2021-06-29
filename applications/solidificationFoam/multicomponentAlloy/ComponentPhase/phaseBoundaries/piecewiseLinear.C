@@ -29,6 +29,17 @@ License
 
 #include "error.H"
 
+// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * * //
+
+void Foam::phaseBoundary::piecewiseLinear::outOfBounds(scalar T) const
+{
+    FatalErrorInFunction
+        << "Temperature " << T << " is out of prescribed intervals for "
+        << component_.keyword() << endl
+        << abort(FatalError);
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::phaseBoundary::piecewiseLinear::piecewiseLinear
@@ -38,8 +49,37 @@ Foam::phaseBoundary::piecewiseLinear::piecewiseLinear
 )
 :
     intervals_(dict.lookup("intervals")),
+    component_(component),
     liquidus_(component.alloy().liquidus().value())
-{}
+{
+    // --- Checks
+
+    const scalar Cthreshold = 1e-3;
+    scalar Tprev = 0;
+    scalar Cprev = 0;
+
+    for (const auto& interval : intervals_)
+    {
+        if (Tprev > 0)
+        {
+            if (mag(Tprev - interval.Tmin) > SMALL)
+            {
+                Warning<< "Intervals are unsorted: " << Tprev << " != " << interval.Tmin << endl;
+                continue;
+            }
+
+            if (mag(Cprev - C(interval, interval.Tmin)) > Cthreshold)
+            {
+                FatalErrorInFunction
+                    << "Piecewise approximation has jump "
+                    << C(interval, interval.Tmin) - Cprev << " at T = " << Tprev << endl;
+            }
+        }
+
+        Tprev = interval.Tmax;
+        Cprev = C(interval, Tprev);
+    }
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -48,16 +88,13 @@ Foam::scalar Foam::phaseBoundary::piecewiseLinear::equilibrium(scalar T) const
 {
     for (const auto& interval : intervals_)
     {
-        if (interval.Tmin < T && T <= interval.Tmax)
+        if (interval.includes(T))
         {
-            return interval.equilibrium + (T - liquidus_)/interval.slope;
+            return C(interval, T);
         }
     }
 
-    FatalErrorInFunction
-        << "Temperature " << T << " is out of prescribed intervals." << endl
-        << abort(FatalError);
-
+    outOfBounds(T);
     return 0;
 }
 
@@ -66,16 +103,13 @@ Foam::scalar Foam::phaseBoundary::piecewiseLinear::slope(scalar T) const
 {
     for (const auto& interval : intervals_)
     {
-        if (interval.Tmin < T && T <= interval.Tmax)
+        if (interval.includes(T))
         {
             return interval.slope;
         }
     }
 
-    FatalErrorInFunction
-        << "Temperature " << T << " is out of prescribed intervals." << endl
-        << abort(FatalError);
-
+    outOfBounds(T);
     return 0;
 }
 

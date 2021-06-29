@@ -51,7 +51,7 @@ class ComponentPhase
 :
     public componentPhase
 {
-    // Private data
+    // Private Data
 
         //- Phase boundary
         const PhaseBoundary phaseBoundary_;

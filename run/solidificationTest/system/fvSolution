@@ -89,7 +89,7 @@ PIMPLE
             tolerance   1e-4;
             relTol      0;
         }
-        concentrationMn
+        "concentration.*"
         {
             tolerance   1e-3;
             relTol      0;

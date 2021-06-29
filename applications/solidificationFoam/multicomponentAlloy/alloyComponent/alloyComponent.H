@@ -59,7 +59,7 @@ class alloyComponent
 :
     public volScalarField
 {
-    // Private data
+    // Private Data
 
         //- Name of the component
         const word name_;
@@ -176,10 +176,14 @@ public:
             }
 
             //- Return the diffusion coefficient [m2/s]
-            tmp<volScalarField> diffusion(const volScalarField& solidFraction) const
+            tmp<volScalarField> diffusion
+            (
+                const volScalarField& solidFraction,
+                const volScalarField& partition
+            ) const
             {
                 return phases_["solid"].diffusion()*solidFraction
-                    + phases_["liquid"].diffusion()*(1 - solidFraction);
+                    + phases_["liquid"].diffusion()*(1 - solidFraction)*partition;
             }
 };
 

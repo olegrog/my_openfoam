@@ -4,10 +4,10 @@
 if (capillaryAnisotropy > 0 || kineticAnisotropy > 0)
 {
     const volVectorField gradPhase = fvc::grad(phase);
-    const volVectorField normal = calcNormal(gradPhase);
+    const volVectorField nHat = calcNormal(gradPhase);
     forAll(theta, cellI)
     {
-        theta[cellI] = Foam::atan2(normal[cellI].x(), normal[cellI].y()) - theta0[cellI];
+        theta[cellI] = Foam::atan2(nHat[cellI].x(), nHat[cellI].y()) - theta0[cellI];
     }
     const volScalarField aS = 1 + capillaryAnisotropy*Foam::cos(nAnisotropyModes*theta);
     const volScalarField aTau = 1 + kineticAnisotropy*Foam::cos(nAnisotropyModes*theta);

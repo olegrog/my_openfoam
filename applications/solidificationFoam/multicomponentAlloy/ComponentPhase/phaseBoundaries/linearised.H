@@ -49,7 +49,7 @@ namespace phaseBoundary
 
 class linearised
 {
-    // Private data
+    // Private Data
 
         //- Equilibrium concentration
         const scalar equilibrium_;

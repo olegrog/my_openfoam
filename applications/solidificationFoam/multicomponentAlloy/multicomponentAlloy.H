@@ -55,7 +55,7 @@ class multicomponentAlloy
 :
     public IOdictionary
 {
-    // Private data
+    // Private Data
 
         //- Molar mass of the base component [kg/mol]
         const dimensionedScalar baseMolarMass_;
@@ -104,6 +104,9 @@ class multicomponentAlloy
         auto sumSqrDeltaPerDL(const T1& T) const -> decltype(T+T);
 
 public:
+
+    //- Runtime type information
+    TypeName("multicomponentAlloy");
 
     //- Constructor
     multicomponentAlloy(const fvMesh& mesh);
@@ -199,12 +202,6 @@ public:
             ) const
             {
                 return phase + (1 - phase)*factor("solid", T)/factor("liquid", T);
-            }
-
-            //- Return the first derivative of the partition function []
-            tmp<volScalarField> partitionPrime(const volScalarField& T) const
-            {
-                return 1 - factor("solid", T)/factor("liquid", T);
             }
 };
 

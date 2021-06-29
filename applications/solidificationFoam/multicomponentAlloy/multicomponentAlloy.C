@@ -29,6 +29,13 @@ License
 
 #include "IOmanip.H"
 
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+
+namespace Foam
+{
+    defineTypeNameAndDebug(multicomponentAlloy, 0);
+}
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
@@ -54,6 +61,8 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     components_(lookup("components"), alloyComponent::iNew(mesh, *this)),
     solidus_(liquidus_ - deltaTemp())
 {
+    // --- Diagnostic info
+
     Info<< "\nAlloy properties:" << endl
         << " -- liquidus (K) = " << liquidus_.value() << endl
         << " -- specified solidus (K) = " << get<dimensionedScalar>("solidus").value() << endl
@@ -106,6 +115,33 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     }
 
     Info<< nl;
+
+    // --- Checks
+
+    for (const word& phaseName : phaseNames_)
+    {
+        const word Xsymbol = word::printf<char>("X_%c", std::toupper(phaseName[0]));
+        const label nPoints = 1000;
+
+        for (label i = -nPoints; i <= nPoints; i++)
+        {
+            const dimensionedScalar T = solidus_ + (liquidus_-solidus_)*i/nPoints;
+            const scalar X = factor(phaseName, T).value();
+
+            if (i % (nPoints/10) == 0)
+            {
+                DebugInfo << " -- " << Xsymbol << "( " << T.value() << " ) = " << X << endl;
+            }
+
+            if (X <= 0 && Pstream::master())
+            {
+                FatalError
+                    << "The thermodynamic factor in " << phaseName << " is non-positive:\n"
+                    << " -- " << Xsymbol << "(" << T.value() << ") = " << X
+                    << exit(FatalError);
+            }
+        }
+    }
 }
 
 

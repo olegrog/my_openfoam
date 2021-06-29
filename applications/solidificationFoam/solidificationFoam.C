@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
             runTime.controlDict().lookupOrDefault<scalar>("minDeltaT", 0);
         if (runTime.deltaTValue() < minDeltaT)
         {
-            Info<< "Time step becomes too small!" << endl;
+            Warning<< "Time step becomes too small!" << endl;
             runTime.writeAndEnd();
         }
 
@@ -161,12 +161,14 @@ int main(int argc, char *argv[])
             scalar phaseTolerance = mesh.solverDict(phase.name()).get<scalar>("tolerance");
             if (gMin(phase) < -phaseTolerance || gMax(phase) > 1 + phaseTolerance)
             {
-                FatalError
-                    << "Phase is out of bounds."
-                    << abort(FatalError);
+                runTime.writeNow();
+                if (Pstream::master())
+                {
+                    FatalError << "Phase is out of bounds." << abort(FatalError);
+                }
             }
 
-            phase.clip(0, 1);
+            //phase.clip(0, 1);
 
             if (!pimple.frozenFlow())
             {

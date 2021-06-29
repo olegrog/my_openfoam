@@ -83,22 +83,45 @@ class piecewiseLinear
             return autoPtr<phaseBoundaryInterval>();
         }
 
-
         //- Selector
         static autoPtr<phaseBoundaryInterval> New(Istream& is)
         {
             dictionaryEntry entry(dictionary::null, is);
             return autoPtr<phaseBoundaryInterval>(new phaseBoundaryInterval(entry));
         }
+
+        // Member Functions
+
+            //- Check if temperature lies within the interval
+            bool includes(scalar T) const
+            {
+                return Tmin < T && T < Tmax*(1 + SMALL);
+            }
     };
 
-    // Private data
+
+    // Private Data
 
         //- List of temperature intervals with coeffs
         PtrList<phaseBoundaryInterval> intervals_;
 
+        //- Reference to the alloy component
+        const alloyComponent& component_;
+
         //- The liquidus temperature
         const scalar liquidus_;
+
+
+    // Private Member Functions
+
+        //- Return the equilibrium concentration within the interval
+        scalar C(const phaseBoundaryInterval& interval, scalar T) const
+        {
+            return interval.equilibrium + (T - liquidus_)/interval.slope;
+        }
+
+        //- Abort if the temperature is out of specified intervals
+        void outOfBounds(scalar T) const;
 
 public:
 
