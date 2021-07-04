@@ -48,6 +48,7 @@ Foam::alloyComponent::alloyComponent
         ),
         mesh.lookupObject<volScalarField>("phase")
     ),
+    fieldByKPtr_(nullptr),
     name_(entry.keyword()),
     molarMass_("molarMass", dimMass/dimMoles, entry),
     alloy_(alloy),
@@ -57,6 +58,33 @@ Foam::alloyComponent::alloyComponent
         componentPhase::iNew(entry.dictionary::get<word>("type"), mesh, *this)
     )
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::volScalarField& Foam::alloyComponent::byK()
+{
+    if (!fieldByKPtr_)
+    {
+        fieldByKPtr_.reset
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    name() + "byK",
+                    mesh().time().timeName(),
+                    mesh(),
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                *this
+            )
+        );
+    }
+
+    return *fieldByKPtr_;
+}
 
 
 // ************************************************************************* //

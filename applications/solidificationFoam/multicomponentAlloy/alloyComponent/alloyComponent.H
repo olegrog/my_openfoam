@@ -61,6 +61,9 @@ class alloyComponent
 {
     // Private Data
 
+        //- Field divided by partition coefficient
+        autoPtr<volScalarField> fieldByKPtr_;
+
         //- Name of the component
         const word name_;
 
@@ -158,14 +161,17 @@ public:
                 return alloy_;
             }
 
+            //- Return the field divided by the partition coefficient
+            volScalarField& byK();
+
         // Evaluation
 
             //- Return the equilibrium concentration []
             template<class T1, class T2>
             auto equilibrium(const T1& solidFraction, const T2& T) const -> decltype(T+T)
             {
-                return phases_["solid"].equilibrium(T)*solidFraction
-                    + phases_["liquid"].equilibrium(T)*(1 - solidFraction);
+                return solidFraction*phases_["solid"].equilibrium(T)
+                    + (1 - solidFraction)*phases_["liquid"].equilibrium(T);
             }
 
             //- Return the difference of the equilibrium concentrations []
@@ -173,6 +179,14 @@ public:
             auto delta(const T1& T) const -> decltype(T+T)
             {
                 return phases_["solid"].equilibrium(T) - phases_["liquid"].equilibrium(T);
+            }
+
+            //- Return the derivative of the equilibrium concentrations w.r.t temperature [1/K]
+            template<class T1, class T2>
+            auto equilibriumPrimeT(const T1& solidFraction, const T2& T) const -> decltype(T+T)
+            {
+                return solidFraction/phases_["solid"].slope(T)
+                    + (1 - solidFraction)/phases_["liquid"].slope(T);
             }
 
             //- Return the diffusion coefficient [m2/s]

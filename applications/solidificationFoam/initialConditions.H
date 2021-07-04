@@ -34,12 +34,15 @@
 
     tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()*alloy.sumRestrictionFactors(T);
 
+    const volScalarField k = alloy.partition(phase, T);
+
     // concentrations
     forAllIters(alloy.components(), iter)
     {
         alloyComponent& C = iter();
         const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
         C == C.equilibrium(phase, temp);
+        C.byK() == C/k;
     }
 
 }

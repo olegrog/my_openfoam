@@ -60,7 +60,7 @@ if (p.needReference())
 }
 
 Info<< "Reading boundary conditions\n" << endl;
-volScalarField boundaryConditions
+const volScalarField boundaryConditions
 (
     IOobject
     (
@@ -68,7 +68,8 @@ volScalarField boundaryConditions
         runTime.timeName(),
         mesh,
         IOobject::MUST_READ,
-        IOobject::NO_WRITE
+        IOobject::NO_WRITE,
+        false
     ),
     mesh
 );

@@ -52,14 +52,14 @@ solvers
         tolerance       1e-6;
         relTol          0.1;
     }
-    
+
     grain
     {
         solver          PCG;
         preconditioner  DIC;
         tolerance       1e-6;
     }
-    
+
     concentration
     {
         solver          PBiCG;
@@ -72,7 +72,7 @@ solvers
 PIMPLE
 {
     momentumPredictor   no;
-    nOuterCorrectors    10;
+    nOuterCorrectors    5;
     nCorrectors         3;
     nNonOrthogonalCorrectors 0;
     correctPhi          no;
@@ -91,7 +91,7 @@ PIMPLE
         }
         "concentration.*"
         {
-            tolerance   1e-3;
+            tolerance   5e-4;
             relTol      0;
         }
         p
