@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
         }
 
         ++runTime;
+        bool reduceTimeStep = false;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -181,6 +182,8 @@ int main(int argc, char *argv[])
             }
 
             #include "CEqn.H"
+
+            if (pimple.corr() + 1 == pimple.nCorrPIMPLE()) reduceTimeStep = true;
         }
 
         #include "grainEqn.H"
@@ -188,6 +191,12 @@ int main(int argc, char *argv[])
         runTime.write();
 
         runTime.printExecutionTime(Info);
+
+        if (reduceTimeStep)
+        {
+            Info<< "Halve the time step since all PIMPLE iterations were used" << endl;
+            runTime.setDeltaT(runTime.deltaTValue()/2, false);
+        }
     }
 
     Info<< "End\n" << endl;
