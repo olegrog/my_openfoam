@@ -35,6 +35,7 @@ Description
 #define ComponentPhase_H
 
 #include "componentPhase.H"
+#include "multicomponentAlloy.H"
 #include "generateGeometricField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -43,7 +44,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class ComponentPhase Declaration
+                         Class ComponentPhase Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class PhaseBoundary>
@@ -67,11 +68,7 @@ public:
         const dictionaryEntry& entry,
         const fvMesh& mesh,
         const alloyComponent& component
-    )
-    :
-        componentPhase(entry, mesh, component),
-        phaseBoundary_(entry, component)
-    {}
+    );
 
     //- Destructor
     ~ComponentPhase() final = default;
@@ -138,6 +135,12 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "ComponentPhaseTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

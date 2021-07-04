@@ -34,7 +34,7 @@ Description
 #ifndef linearised_H
 #define linearised_H
 
-#include "multicomponentAlloy.H"
+#include "phaseBoundaryBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -48,6 +48,8 @@ namespace phaseBoundary
 \*---------------------------------------------------------------------------*/
 
 class linearised
+:
+    public phaseBoundaryBase
 {
     // Private Data
 
@@ -57,21 +59,18 @@ class linearised
         //- Slope along the solidification path
         const scalar slope_;
 
-        //- The liquidus temperature
-        const scalar liquidus_;
-
 public:
 
     //- Constructor
     linearised
     (
         const dictionary& dict,
-        const alloyComponent& component
+        const componentPhase& phase
     )
     :
+        phaseBoundaryBase(dict, phase),
         equilibrium_(dict.get<scalar>("equilibrium")),
-        slope_(dict.get<scalar>("slope")),
-        liquidus_(component.alloy().liquidus().value())
+        slope_(dict.get<scalar>("slope"))
     {}
 
 

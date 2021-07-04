@@ -39,6 +39,7 @@ runTimeModifiable   yes;
 DebugSwitches
 {
     multicomponentAlloy 0;
+    componentPhase      0;
 }
 
 // ************************************************************************* //

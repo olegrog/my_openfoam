@@ -118,6 +118,12 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
 
     // --- Checks
 
+    auto printValue = [](Ostream& os, const word& symbol, scalar T, scalar value) -> Ostream&
+    {
+        return os << " -- " << symbol << "( " << T << " ) = " << value << endl;
+    };
+    DynamicList<Pair<scalar>> partition;
+
     for (const word& phaseName : phaseNames_)
     {
         const word Xsymbol = word::printf<char>("X_%c", std::toupper(phaseName[0]));
@@ -125,22 +131,35 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
 
         for (label i = -nPoints; i <= nPoints; i++)
         {
-            const dimensionedScalar T = solidus_ + (liquidus_-solidus_)*i/nPoints;
+            const dimensionedScalar T = solidus_ + (liquidus_ - solidus_)*i/nPoints;
             const scalar X = factor(phaseName, T).value();
 
-            if (i % (nPoints/10) == 0)
+            if (i % (nPoints/10) == 0 && debug)
             {
-                DebugInfo << " -- " << Xsymbol << "( " << T.value() << " ) = " << X << endl;
+                printValue(Info, Xsymbol, T.value(), X);
+                if (phaseNames_[0] == phaseName)
+                {
+                    const scalar k = (factor("solid", T)/factor("liquid", T)).value();
+                    partition.append(Pair<scalar>(T.value(), k));
+                }
             }
 
             if (X <= 0 && Pstream::master())
             {
-                FatalError
-                    << "The thermodynamic factor in " << phaseName << " is non-positive:\n"
-                    << " -- " << Xsymbol << "(" << T.value() << ") = " << X
-                    << exit(FatalError);
+                printValue(FatalError, Xsymbol, T.value(), X) << exit(FatalError);
             }
         }
+
+        DebugInfo<< endl;
+    }
+
+    if (debug)
+    {
+        for (const auto& p : partition)
+        {
+            printValue(Info, "k", p.first(), p.second());
+        }
+        Info<< endl;
     }
 }
 

@@ -24,70 +24,61 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::phaseBoundary::tabulated
+    Foam::phaseBoundaryBase
 
 Description
-    Tabulated phase boundary.
+    Phase boundary base class.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tabulated_H
-#define tabulated_H
+#ifndef phaseBoundaryBase_H
+#define phaseBoundaryBase_H
 
-#include "TableBase.H"
-
-#include "alloyComponent.H"
+#include "multicomponentAlloy.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-namespace phaseBoundary
-{
 
 /*---------------------------------------------------------------------------*\
-                         Class tabulated Declaration
+                      Class phaseBoundaryBase Declaration
 \*---------------------------------------------------------------------------*/
 
-class tabulated
-:
-    public Function1Types::TableBase<scalar>
+class phaseBoundaryBase
 {
+protected:
+
+    // Protected Data
+
+        //- Reference to the component phase
+        const componentPhase& phase_;
+
+        //- Reference to the alloy component
+        const alloyComponent& component_;
+
+        //- Reference to the multicomponent alloy
+        const multicomponentAlloy& alloy_;
+
+        //- The liquidus temperature
+        const scalar liquidus_;
 
 public:
 
     //- Constructor
-    tabulated
+    phaseBoundaryBase
     (
         const dictionary& dict,
-        const alloyComponent& component
-    );
-
-
-    // Member Functions
-
-        //- Return the equilibrium concentration
-        scalar equilibrium(scalar T) const
-        {
-            return value(T);
-        }
-
-        //- Return the slope along the solidification path
-        scalar slope(scalar T) const
-        {
-            NotImplemented;
-            return value(T);
-        }
-
-        //- Construct and return a clone
-        virtual tmp<Function1<scalar>> clone() const
-        {
-            NotImplemented;
-            return tmp<Function1<scalar>>(new tabulated(*this));
-        }
+        const componentPhase& phase
+    )
+    :
+        phase_(phase),
+        component_(phase.component()),
+        alloy_(component_.alloy()),
+        liquidus_(alloy_.liquidus().value())
+    {}
 };
 
-} // End namespace phaseBoundary
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

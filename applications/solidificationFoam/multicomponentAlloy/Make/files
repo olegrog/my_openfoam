@@ -4,7 +4,7 @@ alloyComponent/alloyComponent.C
 componentPhase/componentPhase.C
 
 ComponentPhase/makeComponentPhases.C
-ComponentPhase/phaseBoundaries/piecewiseLinear.C
-ComponentPhase/phaseBoundaries/tabulated.C
+ComponentPhase/phaseBoundary/piecewiseLinear/piecewiseLinear.C
+ComponentPhase/phaseBoundary/tabulated/tabulated.C
 
 LIB = $(FOAM_USER_LIBBIN)/libmulticomponentAlloy

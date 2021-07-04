@@ -34,7 +34,7 @@ Description
 #ifndef piecewiseLinear_H
 #define piecewiseLinear_H
 
-#include "multicomponentAlloy.H"
+#include "phaseBoundaryBase.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -48,6 +48,8 @@ namespace phaseBoundary
 \*---------------------------------------------------------------------------*/
 
 class piecewiseLinear
+:
+    public phaseBoundaryBase
 {
     //- Struct containing coeffs for a single temperature interval
     struct phaseBoundaryInterval
@@ -95,7 +97,7 @@ class piecewiseLinear
             //- Check if temperature lies within the interval
             bool includes(scalar T) const
             {
-                return Tmin < T && T < Tmax*(1 + SMALL);
+                return Tmin < T && T <= Tmax;
             }
     };
 
@@ -104,12 +106,6 @@ class piecewiseLinear
 
         //- List of temperature intervals with coeffs
         PtrList<phaseBoundaryInterval> intervals_;
-
-        //- Reference to the alloy component
-        const alloyComponent& component_;
-
-        //- The liquidus temperature
-        const scalar liquidus_;
 
 
     // Private Member Functions
@@ -125,11 +121,14 @@ class piecewiseLinear
 
 public:
 
+    //- Runtime type information
+    ClassName("piecewiseLinear");
+
     //- Constructor
     piecewiseLinear
     (
         const dictionary& dict,
-        const alloyComponent& component
+        const componentPhase& phase
     );
 
 

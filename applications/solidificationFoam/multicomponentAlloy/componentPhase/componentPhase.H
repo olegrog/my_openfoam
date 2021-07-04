@@ -58,18 +58,15 @@ class componentPhase
         //- Diffusion coefficient [m2/s]
         const dimensionedScalar diffusion_;
 
+        //- Reference to the alloy component
+        const alloyComponent& component_;
+
 protected:
 
     // Protected data
 
-        //- Dictionary containing the alloy component phase properties
-        const dictionary dict_;
-
         //- Reference to the mesh
         const fvMesh& mesh_;
-
-        //- Reference to the alloy component
-        const alloyComponent& component_;
 
 public:
 
@@ -163,16 +160,22 @@ public:
                 return name_;
             }
 
-            //- Return alloy component phase name
-            word name() const;
-
             //- Return the diffusion coefficients (solid and liquid) [m2/s]
-            dimensionedScalar diffusion() const
+            const dimensionedScalar& diffusion() const
             {
                 return diffusion_;
             }
 
+            //- Return the reference to the component
+            const alloyComponent& component() const
+            {
+                return component_;
+            }
+
         // Evaluation
+
+            //- Return alloy component phase name
+            word name() const;
 
             //- Return the equilibrium concentration field []
             virtual tmp<volScalarField> equilibrium(const volScalarField& T) const = 0;

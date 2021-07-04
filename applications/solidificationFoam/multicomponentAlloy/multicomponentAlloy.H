@@ -106,13 +106,10 @@ class multicomponentAlloy
 public:
 
     //- Runtime type information
-    TypeName("multicomponentAlloy");
+    ClassName("multicomponentAlloy");
 
     //- Constructor
     multicomponentAlloy(const fvMesh& mesh);
-
-    //- Destructor
-    ~multicomponentAlloy() = default;
 
     // Member Functions
 

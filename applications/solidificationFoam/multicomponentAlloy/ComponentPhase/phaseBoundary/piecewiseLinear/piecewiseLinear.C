@@ -35,8 +35,8 @@ void Foam::phaseBoundary::piecewiseLinear::outOfBounds(scalar T) const
 {
     FatalErrorInFunction
         << "Temperature " << T << " is out of prescribed intervals for "
-        << component_.keyword() << endl
-        << abort(FatalError);
+        << phase_.keyword() << " " << component_.keyword() << endl
+        << exit(FatalError);
 }
 
 
@@ -45,12 +45,11 @@ void Foam::phaseBoundary::piecewiseLinear::outOfBounds(scalar T) const
 Foam::phaseBoundary::piecewiseLinear::piecewiseLinear
 (
     const dictionary& dict,
-    const alloyComponent& component
+    const componentPhase& phase
 )
 :
-    intervals_(dict.lookup("intervals")),
-    component_(component),
-    liquidus_(component.alloy().liquidus().value())
+    phaseBoundaryBase(dict, phase),
+    intervals_(dict.lookup("intervals"))
 {
     // --- Checks
 
@@ -64,15 +63,17 @@ Foam::phaseBoundary::piecewiseLinear::piecewiseLinear
         {
             if (mag(Tprev - interval.Tmin) > SMALL)
             {
-                Warning<< "Intervals are unsorted: " << Tprev << " != " << interval.Tmin << endl;
-                continue;
+                FatalErrorInFunction
+                    << "Intervals are unsorted: " << Tprev << " != " << interval.Tmin
+                    << exit(FatalError);
             }
 
             if (mag(Cprev - C(interval, interval.Tmin)) > Cthreshold)
             {
                 FatalErrorInFunction
                     << "Piecewise approximation has jump "
-                    << C(interval, interval.Tmin) - Cprev << " at T = " << Tprev << endl;
+                    << C(interval, interval.Tmin) - Cprev << " at T = " << Tprev
+                    << exit(FatalError);
             }
         }
 

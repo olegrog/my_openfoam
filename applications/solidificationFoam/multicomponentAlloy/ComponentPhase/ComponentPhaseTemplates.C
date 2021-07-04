@@ -25,65 +25,36 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "alloyComponent.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    defineTypeNameAndDebug(componentPhase, 0);
-    defineRunTimeSelectionTable(componentPhase, dictionary);
-}
+#include "ComponentPhase.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::componentPhase> Foam::componentPhase::New
-(
-    const dictionaryEntry& entry,
-    const word& modelType,
-    const fvMesh& mesh,
-    const alloyComponent& component
-)
-{
-    Info<< "Selecting componentPhase " << modelType << " for " << entry.keyword()
-        << " " << component.keyword() << endl;
-
-    const auto cstrIter = dictionaryConstructorTablePtr_->cfind(modelType);
-
-    if (!cstrIter.found())
-    {
-        FatalIOErrorInLookup
-        (
-            entry,
-            "componentPhase",
-            modelType,
-            *dictionaryConstructorTablePtr_
-        ) << exit(FatalIOError);
-    }
-
-    return autoPtr<componentPhase>(cstrIter()(entry, mesh, component));
-}
-
-
-Foam::componentPhase::componentPhase
+template<class PhaseBoundary>
+Foam::ComponentPhase<PhaseBoundary>::ComponentPhase
 (
     const dictionaryEntry& entry,
     const fvMesh& mesh,
     const alloyComponent& component
 )
 :
-    name_(entry.keyword()),
-    diffusion_("diffusion", dimArea/dimTime, entry),
-    component_(component),
-    mesh_(mesh)
-{}
-
-
-// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
-
-Foam::word Foam::componentPhase::name() const
+    componentPhase(entry, mesh, component),
+    phaseBoundary_(entry, *this)
 {
-    return keyword() + component_.keyword();
+    const label nPoints = 100;
+    const scalar S = component.alloy().get<dimensionedScalar>("solidus").value();
+    const scalar L = component.alloy().liquidus().value();
+
+    // Scan the typical temperature range
+    for (label i = -nPoints; i <= nPoints; i++)
+    {
+        const scalar T = S + (L - S)*i/nPoints;
+        const scalar Ceq = phaseBoundary_.equilibrium(T);
+
+        if (componentPhase::debug || debug)
+        {
+            Info<< " -- Ceq( " << T << " ) = " << Ceq << endl;
+        }
+    }
 }
 
 

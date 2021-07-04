@@ -50,10 +50,11 @@ namespace Foam                                                                 \
         phaseBoundaryType                                                      \
     );                                                                         \
                                                                                \
-    defineTemplateTypeNameWithName                                             \
+    defineTemplateTypeNameAndDebugWithName                                     \
     (                                                                          \
         componentPhaseType##phaseBoundaryType,                                 \
-        #componentPhaseType"<"#phaseBoundaryType">"                            \
+        #componentPhaseType"<"#phaseBoundaryType">",                           \
+        0                                                                      \
     );                                                                         \
 }
 

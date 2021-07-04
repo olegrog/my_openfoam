@@ -32,9 +32,10 @@ License
 Foam::phaseBoundary::tabulated::tabulated
 (
     const dictionary& dict,
-    const alloyComponent& component
+    const componentPhase& phase
 )
 :
+    phaseBoundaryBase(dict, phase),
     TableBase<scalar>("phaseBoundary", dict)
 {
     auto expandedFile(dict.get<fileName>("file"));
