@@ -18,6 +18,8 @@ else
     runApplication $application
 fi
 
+runApplication ./plot_A.sh -eps -min=0.3 -max=0.9
+
 dir=rayTracing
 if [[ -d "$dir" ]]; then
     ../../tools/obj2vtkseries.py "$dir" > "$dir"/"$dir".vtk.series
