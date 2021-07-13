@@ -22,7 +22,7 @@ if (capillaryAnisotropy > 0 || kineticAnisotropy > 0)
 
     fvScalarMatrix phaseEqn
     (
-        tau*sqr(aTau)*fvm::ddt(phase)
+        tau*aTau*sqr(aS)*fvm::ddt(phase)
      ==
         sqr(interfaceWidth)*fvm::laplacian(sqr(aS), phase)
       + sqr(interfaceWidth)*fvc::div(A)

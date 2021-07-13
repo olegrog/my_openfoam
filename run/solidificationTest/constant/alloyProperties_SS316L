@@ -371,7 +371,7 @@ latentHeat          2.9e5;   // Pichler2020
 // entropyChange = 1.25e9*0.056/6980/1710 = 5.86; // Pinomaa2020
 
 nAnisotropyModes    4;
-capillaryAnisotropy 0.018;
-kineticAnisotropy   0.13;
+capillaryAnisotropy 0.06;   // Pinomaa2020: 0.018
+kineticAnisotropy   0;      // Pinomaa2020: 0.13
 
 // ************************************************************************* //

@@ -16,7 +16,7 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // Parameters for directional solidification
-undercooling        15;  // 10
+undercooling        25;  // 10
 tempGradient        5e5; // 5e5
 coolingRate         5e3; // 3e3
 
