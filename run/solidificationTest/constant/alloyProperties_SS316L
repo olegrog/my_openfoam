@@ -40,8 +40,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1698.25;
-                        equilibrium 0.1805;
-                        slope       1e+10;
+                        equilibrium 0.1610;
+                        slope       -1461;
                     }
                     first
                     {
@@ -127,8 +127,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1698.25;
-                        equilibrium 0.1376;
-                        slope       -1e+10;
+                        equilibrium 0.13405; //0.1402;
+                        slope       -8000; //5378;
                     }
                     first
                     {
@@ -214,8 +214,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1698.25;
-                        equilibrium 0.0286;
-                        slope       1e+10;
+                        equilibrium 0.02023;
+                        slope       -3401;
                     }
                     first
                     {
@@ -301,8 +301,8 @@ components
                     {
                         Tmin        1000;
                         Tmax        1698.25;
-                        equilibrium 0.00182;
-                        slope       1e+10;
+                        equilibrium -0.00054;
+                        slope       -12100;
                     }
                     first
                     {

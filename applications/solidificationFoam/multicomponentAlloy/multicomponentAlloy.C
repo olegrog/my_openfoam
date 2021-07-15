@@ -219,4 +219,19 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentAlloy::chemicalDrivingForce
 }
 
 
+Foam::tmp<Foam::volScalarField> Foam::multicomponentAlloy::partitionPrimeT
+(
+    const volScalarField& phase,
+    const volScalarField& T
+) const
+{
+    const volScalarField XS = factor("solid", T);
+    const volScalarField XL = factor("liquid", T);
+    const volScalarField dXS = factorPrime("solid", T);
+    const volScalarField dXL = factorPrime("liquid", T);
+
+    return (1 - phase)*(XL*dXS - XS*dXL)/sqr(XL);
+}
+
+
 // ************************************************************************* //

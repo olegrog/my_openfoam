@@ -188,6 +188,13 @@ public:
 
             //- Return the slope along the solidification path [K]
             virtual dimensionedScalar slope(const dimensionedScalar& T) const = 0;
+
+            //- Return the derivative of the equilibrium concentration [1/K]
+            template<class T1>
+            auto equilibriumPrime(const T1& T) const -> decltype(T+T)
+            {
+                return 1/slope(T);
+            }
 };
 
 

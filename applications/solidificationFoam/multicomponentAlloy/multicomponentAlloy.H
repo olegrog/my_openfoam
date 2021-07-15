@@ -92,6 +92,12 @@ class multicomponentAlloy
         template<class T1>
         auto factor(const word& phaseName, const T1& T) const -> decltype(T+T);
 
+        //- Calculate the first derivative of a thermodynamic factor [J/m^3/K]
+        //
+        //  \tparam Phase  Index of phase: 0 - liquid, 1 - solid
+        template<class T1>
+        auto factorPrime(const word& phaseName, const T1& T) const -> decltype(T+T);
+
         //- Calculate \sum DeltaC^2
         template<class T1>
         auto sumSqrDelta(const T1& T) const -> decltype(T+T);
@@ -200,6 +206,19 @@ public:
             {
                 return phase + (1 - phase)*factor("solid", T)/factor("liquid", T);
             }
+
+            //- Return the derivative of the partition function w.r.t. solid fraction []
+            tmp<volScalarField> partitionPrimePhase(const volScalarField& T) const
+            {
+                return 1 - factor("solid", T)/factor("liquid", T);
+            }
+
+            //- Return the derivative of the partition function w.r.t. temperature [1/K]
+            tmp<volScalarField> partitionPrimeT
+            (
+                const volScalarField& phase,
+                const volScalarField& T
+            ) const;
 };
 
 

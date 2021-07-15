@@ -24,15 +24,15 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::phaseBoundary::linearised
+    Foam::phaseBoundary::linear
 
 Description
-    Linearised phase boundary.
+    Linear phase boundary.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef linearised_H
-#define linearised_H
+#ifndef phaseBoundary_linear_H
+#define phaseBoundary_linear_H
 
 #include "phaseBoundaryBase.H"
 
@@ -44,10 +44,10 @@ namespace phaseBoundary
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class linearised Declaration
+                            Class linear Declaration
 \*---------------------------------------------------------------------------*/
 
-class linearised
+class linear
 :
     public phaseBoundaryBase
 {
@@ -62,7 +62,7 @@ class linearised
 public:
 
     //- Constructor
-    linearised
+    linear
     (
         const dictionary& dict,
         const componentPhase& phase

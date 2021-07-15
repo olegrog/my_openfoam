@@ -3,21 +3,21 @@ const volScalarField k = alloy.partition(phase, T);
 
 for (alloyComponent& C : alloy.components())
 {
-    const volScalarField D = C.diffusion(phase, k);
+    const volScalarField DbyK = C.diffusion(phase, k)/k;
     const volScalarField Ceq = C.equilibrium(phase, T);
 
     fvScalarMatrix CEqn
     (
-        fvm::ddt(k, C.byK())
-      + fvm::div(phi, C.byK())
+        fvm::ddt(C)
+      + fvm::div(phi/fvc::interpolate(k), C)
      ==
-        fvm::laplacian(D, C.byK())
-      - fvc::laplacian(D, Ceq/k)
+        fvm::laplacian(DbyK, C)
+      - fvc::laplacian(DbyK, Ceq)
+      - fvc::laplacian(DbyK*(C - Ceq)/k*alloy.partitionPrimePhase(T), phase)
+      - fvc::laplacian(DbyK*(C - Ceq)/k*alloy.partitionPrimeT(phase, T), T)
       + fvc::div(aAT*interfaceWidth*C.delta(T)*nHat*fvc::ddt(phase))
     );
     CEqn.solve(mesh.solverDict("concentration"));
-
-    C.volScalarField::operator=(k*C.byK());
 
     if (gMin(C) < SMALL)
     {

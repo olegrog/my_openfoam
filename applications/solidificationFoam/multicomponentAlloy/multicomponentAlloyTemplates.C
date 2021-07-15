@@ -75,4 +75,24 @@ auto Foam::multicomponentAlloy::factor(const word& phaseName, const T1& T) const
 }
 
 
+template<class T1>
+auto Foam::multicomponentAlloy::factorPrime
+(
+    const word& phaseName,
+    const T1& T
+) const -> decltype(T+T)
+{
+    auto iter = components_.begin();
+
+    auto result = iter().deltaPrime(T)/iter().phase(phaseName).slope(T);
+
+    for (++iter; iter != components_.end(); ++iter)
+    {
+        result = result + iter().deltaPrime(T)/iter().phase(phaseName).slope(T);
+    }
+
+    return sqr(factor(phaseName, T))/entropyChange_*result;
+}
+
+
 // ************************************************************************* //

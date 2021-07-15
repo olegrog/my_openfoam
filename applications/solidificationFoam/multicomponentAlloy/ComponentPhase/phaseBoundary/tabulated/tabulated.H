@@ -31,8 +31,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tabulated_H
-#define tabulated_H
+#ifndef phaseBoundary_tabulated_H
+#define phaseBoundary_tabulated_H
 
 #include "TableBase.H"
 

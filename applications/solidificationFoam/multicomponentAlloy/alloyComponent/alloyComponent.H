@@ -181,6 +181,14 @@ public:
                 return phases_["solid"].equilibrium(T) - phases_["liquid"].equilibrium(T);
             }
 
+            //- Return the derivative of difference of the equilibrium concentrations [1/K]
+            template<class T1>
+            auto deltaPrime(const T1& T) const -> decltype(T+T)
+            {
+                return phases_["solid"].equilibriumPrime(T)
+                    - phases_["liquid"].equilibriumPrime(T);
+            }
+
             //- Return the derivative of the equilibrium concentrations w.r.t temperature [1/K]
             template<class T1, class T2>
             auto equilibriumPrimeT(const T1& solidFraction, const T2& T) const -> decltype(T+T)

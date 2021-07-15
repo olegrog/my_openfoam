@@ -31,8 +31,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef piecewiseLinear_H
-#define piecewiseLinear_H
+#ifndef phaseBoundary_piecewiseLinear_H
+#define phaseBoundary_piecewiseLinear_H
 
 #include "phaseBoundaryBase.H"
 

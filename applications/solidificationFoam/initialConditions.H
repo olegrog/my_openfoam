@@ -1,5 +1,5 @@
 {
-    // phase + grain
+    // Phase & Grain
     phase = Foam::atan(pow3((frontPosition - coord.component(vector::Y))/initialWidth))/pi + .5;
     const dimensionedScalar radius = width/nSeeds/seedNarrowing;
     for (int i = 0; i < nSeeds; i++)
@@ -25,24 +25,22 @@
         addGrain(grain, seed, 0, nGrains);
     }
 
-    // number of grain
+    // Number of grain
     calcNGrain(nGrain, grain, nGrains);
 
-    // temperature
+    // Temperature
     T = alloy.liquidus() - undercooling
         + tempGradient*(coord.component(vector::Y) - frontPosition);
 
     tau = a1*a2*pow3(interfaceWidth)/alloy.interfaceEnergy()*alloy.sumRestrictionFactors(T);
 
     const volScalarField k = alloy.partition(phase, T);
+    const volScalarField T0 = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
 
-    // concentrations
-    forAllIters(alloy.components(), iter)
+    // Concentrations
+    for (auto& C : alloy.components())
     {
-        alloyComponent& C = iter();
-        const volScalarField temp = alloy.solidus()*phase + alloy.liquidus()*(1 - phase);
-        C == C.equilibrium(phase, temp);
-        C.byK() == C/k;
+        C == C.equilibrium(phase, T0);
     }
 
 }
