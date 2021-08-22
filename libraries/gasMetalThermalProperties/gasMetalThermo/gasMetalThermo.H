@@ -58,7 +58,7 @@ class gasMetalThermo
 :
     public IOdictionary
 {
-
+    //- Struct containing coeffs for k and Cp
     struct kCp
     {
         //- Thermal conductivity polynomial coeffs

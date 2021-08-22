@@ -4,6 +4,6 @@
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions
 
 cleanCase
-rm -f 0/alpha.metal
+rm -f 0/alpha.metal A.*
 rm -rf rayTracing
 

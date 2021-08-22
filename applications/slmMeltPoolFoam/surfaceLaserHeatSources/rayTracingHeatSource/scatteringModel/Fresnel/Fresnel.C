@@ -82,7 +82,7 @@ Foam::vector Foam::scattering::Fresnel::refraction
     scalar r = sqr(n_) - sqr(k_) - sqr(sinTheta);
     scalar p = sqrt((sqrt(sqr(r) + sqr(2*n_*k_)) + r)/2);
 
-    return (i - n*(p + (i & n))).normalise();
+    return (i + n*(p - (i & n))).normalise();
 }
 
 
