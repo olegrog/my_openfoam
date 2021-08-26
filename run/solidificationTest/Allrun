@@ -10,9 +10,20 @@ if [[ "$1" == "-parallel" ]]; then
     runParallel -np 6 `getApplication`
     runApplication reconstructPar -newTimes
     touch "$(basename `pwd`).foam"
-    time DISPLAY=:1 ./make_video.py -x 1500 -y 600 -z 2.65 -f 12 *.foam
-    ~/admin/converters/compress_videos.sh -a=4 video.avi
+    if [[ -z "$DISPLAY" ]]; then
+        echo "Variable DISPLAY is not set. Skip rendering."
+    else
+        ndisplay="${DISPLAY#*:}"
+        # If display is unavailable then run a VNC server at least, otherwise rendering failed
+        if [[ ! -S "/tmp/.X11-unix/X$ndisplay" ]]; then
+            vncserver "$DISPLAY"
+        fi
+        export DISPLAY
+        runApplication ./make_video.py -x 1500 -y 600 -z 2.65 -f 12 *.foam || true
+        runApplication ~/admin/converters/compress_videos.sh -a=4 video.avi
+    fi
     awk '/^Time =.*/{a=$0} /^Tip p/{print a} /^Tip/{print}' log.`getApplication` > tip.txt
+    runApplication gnuplot tip.plt
 else
     runApplication blockMesh
     runApplication `getApplication`
