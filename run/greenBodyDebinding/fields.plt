@@ -1,4 +1,4 @@
-#!/usr/bin/env gnuplot --persist -c
+#!/usr/bin/env -S gnuplot --persist -c
 
 file1 = "postProcessing/minMax/0/fieldMinMax.dat"
 file2 = "postProcessing/minMaxKinetics/0/fieldMinMax.dat"

@@ -1,4 +1,4 @@
-#!/usr/bin/env gnuplot --persist -c
+#!/usr/bin/env -S gnuplot --persist -c
 
 file = "log.solidificationFoam"
 EPS=1

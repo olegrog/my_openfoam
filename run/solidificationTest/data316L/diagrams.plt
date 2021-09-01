@@ -1,4 +1,4 @@
-#!/usr/bin/env gnuplot -persist
+#!/usr/bin/env -S gnuplot --persist
 EPS=0
 
 if (EPS) {

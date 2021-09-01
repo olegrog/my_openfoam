@@ -1,4 +1,4 @@
-#!/usr/bin/env gnuplot --persist -c
+#!/usr/bin/env -S gnuplot --persist -c
 
 if (ARGC > 0) {
     set terminal postscript eps color font 'Helvetica,14'
