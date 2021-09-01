@@ -2,7 +2,6 @@
 
 import os, sys, argparse
 import re, glob, shutil, subprocess, fileinput
-from distutils import file_util
 
 str2list = lambda s: [float(item) for item in s.split(',')]
 
@@ -13,6 +12,8 @@ parser.add_argument('-f', '--hostfile', type=str, default=os.environ['WCOLL'], h
 parser.add_argument('-s', '--scale', type=float, default=2, help='rescale all dimensions')
 parser.add_argument('-y', '--yscale', type=float, default=2, help='rescale along the temperature gradient')
 parser.add_argument('-W', '--Wscale', type=float, default=0.5, help='rescale the interface width')
+parser.add_argument('--prefix', type=str, default='_case', help='prefix for directory names')
+parser.add_argument('-p', '--progress', action='store_true', help='print progress instead of running')
 parser.add_argument('-n', '--dry-run', action='store_true', help='do not launch simulations')
 parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
 args = parser.parse_args()
@@ -20,13 +21,52 @@ args = parser.parse_args()
 if args.verbose:
     from termcolor import colored
 
-regex_float = re.compile('-?[0-9]+\.?[0-9]*[Ee]?[+-]?[0-9]*')
+class Regex:
+    float1 = re.compile(r'-?[0-9]+\.?[0-9]*[Ee]?[+-]?[0-9]*')
+    int3 = re.compile(r'\([-\d.]+ +[-\d.]+ +[-\d.]+\)')
+    time = re.compile(r'^Time = ([0-9]+\.?[0-9]*[Ee]?[+-]?[0-9]*)')
+
+def reverse_readline(filename, buf_size=8192):
+    """A generator that returns the lines of a file in reverse order
+
+    Taken from https://stackoverflow.com/a/23646049/2531400
+    """
+    with open(filename) as fh:
+        segment = None
+        offset = 0
+        fh.seek(0, os.SEEK_END)
+        file_size = remaining_size = fh.tell()
+        while remaining_size > 0:
+            offset = min(file_size, offset + buf_size)
+            fh.seek(file_size - offset)
+            buffer = fh.read(min(remaining_size, buf_size))
+            remaining_size -= buf_size
+            lines = buffer.split('\n')
+            if segment is not None:
+                if buffer[-1] != '\n':
+                    lines[-1] += segment
+                else:
+                    yield segment
+            segment = lines[0]
+            for index in range(len(lines) - 1, 0, -1):
+                if lines[index]:
+                    yield lines[index]
+        if segment is not None:
+            yield segment
 
 def read_property(filename, name):
+    regex_property = re.compile(f'^ *{name} +([a-zA-Z0-9+-.]+) *;')
     with open(filename, 'r') as f:
         for line in f.readlines():
-            if name in line:
-                return line.split()[1].replace(';', '')
+            if (res := regex_property.findall(line)):
+                return res[0]
+    raise ValueError(f'Property `{name}` is not found in `{filename}`')
+
+def read_last_regex(filename, regex):
+    for line in reverse_readline(filename):
+        if (res := regex.findall(line)):
+            return res[0]
+    raise ValueError(f'Regex `{regex}` is not found in `{filename}`')
 
 def overwrite_line(line, func):
     if args.verbose:
@@ -39,11 +79,11 @@ def overwrite_line(line, func):
 def change_property(filename, name, value):
     if args.verbose:
         print(f' -- Change file {filename}')
-    regex = re.compile(f'^ *{name} ')
+    regex_property = re.compile(f'^ *{name} ')
     with fileinput.input(filename, inplace=True) as f:
         for line in f:
-            if regex.findall(line):
-                line = overwrite_line(line, lambda line: re.sub(regex_float, value, line, count=1))
+            if regex_property.findall(line):
+                line = overwrite_line(line, lambda line: re.sub(Regex.float1, value, line, count=1))
             print(line, end='')
 
 def overwrite_property(filename, name, func):
@@ -52,18 +92,17 @@ def overwrite_property(filename, name, func):
 
 def change_blockMesh(filename):
     ivert = 0
-    regex_3num = re.compile(f'\([-\d.]+ +[-\d.]+ +[-\d.]+\)')
     with fileinput.input(filename, inplace=True) as f:
         for line in f:
             if 'vertices' in line:
                 ivert = 1
-            if regex_3num.findall(line) and 0 < ivert and ivert < 9:
-                ivert = ivert + 1
+            if Regex.int3.findall(line) and 0 < ivert and ivert < 9:
+                ivert += 1
                 func = lambda line: ' '.join(map(lambda x: str(float(x[1])*args.yscale) \
-                    if x[0]==1 else x[1], enumerate(line.split()))) + '\n'
+                    if x[0] == 1 else x[1], enumerate(line.split()))) + '\n'
                 line = overwrite_line(line, func)
             if 'simpleGrading' in line:
-                cells = regex_3num.findall(line)[0].split()
+                cells = Regex.int3.findall(line)[0].split()
                 cellsX = int(int(cells[0].replace('(', ''))*args.scale/args.Wscale)
                 cellsY = int(int(cells[1])*args.scale*args.yscale/args.Wscale)
                 line2 = line.split()
@@ -74,23 +113,40 @@ def change_blockMesh(filename):
 app = read_property('system/controlDict', 'application')
 cwd = os.getcwd()
 
+if args.progress:
+    print(f'{"Case":30s}Progress')
+    for case in glob.glob(f'{args.prefix}*'):
+        end_time = float(read_property(os.path.join(case, 'system/controlDict'), 'endTime'))
+        logfile = os.path.join(case, f'log.{app}')
+        if os.path.exists(logfile):
+            curr_time = float(read_last_regex(logfile, Regex.time))
+            progress = f'{int(curr_time*100/end_time)}%'
+        else:
+            progress = 'not running'
+        print(f'{case:30s}{progress}')
+    sys.exit()
+
 if not args.dry_run:
     with open(args.hostfile) as f:
         hosts = f.read().splitlines()
+        print(f'Hosts: {hosts}')
+        if input(f'Are you sure to launch simulations? (y/n)') != 'y':
+            sys.exit()
 
 for i, G in enumerate(args.G):
     for j, V in enumerate(args.V):
         k = j + len(args.V)*i
         dotT = G*V
-        print(f"Case {k}: G = {G:.2g}, V = {V}, dotT = {dotT:.2g}")
-        case = f"_case_G_{G:.2g}_dotT_{dotT:.2g}"
+        print(f'Case {k}: G = {G:.2g}, V = {V}, dotT = {dotT:.2g}')
+        case = f'{args.prefix}_G_{G:.2g}_dotT_{dotT:.2g}'
 
         if os.path.isdir(case):
-            print(f" -- Directory {case} already exists")
+            print(f' -- Directory {case} already exists')
         else:
+            print(f' -- Directory {case} is created')
             # 1. Copy all case files
             os.mkdir(case)
-            paths = subprocess.check_output('git ls-files', shell=True).split();
+            paths = subprocess.check_output('git ls-files', shell=True).split()
             for path in map(lambda s: s.decode(), paths):
                 path1 = os.path.dirname(path)
                 path2 = os.path.join(case, path1)
@@ -111,15 +167,13 @@ for i, G in enumerate(args.G):
             change_blockMesh(f)
 
         if os.path.exists(os.path.join(case, f'log.{app}')):
-            print(f" -- Case {case} is already simulated")
+            print(f' -- Case {case} is already simulated')
             continue
         if args.dry_run:
             continue
 
         # 3. Run simulations
         path = os.path.join(cwd, case)
-        cmd = f'ssh -f {hosts[k]} "bash -c \'. /etc/profile; ml openfoam paraview; \
-            cd {path}; DISPLAY=2 ./Allrun -parallel > log\'"'
-        print(cmd)
-        os.system(cmd)
-
+        print(f' -- Simulation is running on {hosts[k]}')
+        os.system(f'ssh -f {hosts[k]} "bash -c \'. /etc/profile; ml openfoam paraview; \
+            cd {path}; DISPLAY=:2 ./Allrun -parallel > log\'"')
