@@ -1,6 +1,5 @@
 #!/usr/bin/env -S gnuplot --persist -c
 
-file = "log.solidificationFoam"
 EPS=1
 
 if (EPS) {
@@ -14,26 +13,31 @@ set multiplot layout 2, 1
 set fit errorvariables results
 
 set xlabel "Time (ms)"
+time_factor = 1e3
 
-pulling_speed = 0.01
-undercooling = 20
+log_file = "log.solidificationFoam"
 window = 1.5
 array fit_range = [ 0.5, 0.95 ]
 
-if (ARGC > 0) file = ARG1
-if (ARGC > 1) pulling_speed = ARG2 + 0
-if (ARGC > 2) undercooling = ARG3 + 0
-if (ARGC > 3) window = ARG4 + 0
+if (ARGC > 0) window = ARG1 + 0
 
-print "File: ", file
-print "Pulling speed (m/s) = ", pulling_speed
-print "Undercooling (K) = ", undercooling
+# Read problem properties
+problem_file = "constant/problemProperties"
+undercooling = system(sprintf("awk '/^undercooling/{print $2}' %s | sed 's/;//'", problem_file)) + 0
+G = system(sprintf("awk '/^tempGradient/{print $2}' %s | sed 's/;//'", problem_file)) + 0
+dotT = system(sprintf("awk '/^coolingRate/{print $2}' %s | sed 's/;//'", problem_file)) + 0
+Vp = dotT/G
+
+print "Initial undercooling (K) = ", undercooling
+print "Temperature gradient (K/m) = ", G
+print "Cooling rate (K/s) = ", dotT
+print "Pulling speed (m/s) = ", Vp
 print "Window = ", window
 
 # Generate 4 columns: time, position, speed, undercooling
-data = sprintf("<(awk '/^Time.*/{a=1e3*$3} /^Tip p/{b=$4} /^Tip s/{c=$4} /^Tip u/{print a,b,c,$4}' %s)", file)
-xmax = system(sprintf("grep 'Tip s' %s | wc -l", file)) + 0
-print "xmax = ", xmax
+data = sprintf("<(awk '/^Time.*/{a=%f*$3} /^Tip p/{b=$4} /^Tip s/{c=$4} /^Tip u/{print a,b,c,$4}' %s)", time_factor, log_file)
+xmax = system(sprintf("grep 'Tip s' %s | wc -l", log_file)) + 0
+print "Number of points = ", xmax
 
 # Find maximum time when tips grow
 set xrange [fit_range[1]*xmax:fit_range[2]*xmax]
@@ -57,8 +61,8 @@ do for [i=1:2] {
 set xrange [0:tmax]
 
 set ylabel "Speed (m/s)"
-plot data u 1:(f($1, $3, pulling_speed)) w l title 'Tip speed', \
-    pulling_speed title "Pulling speed" lw 2, A t sprintf("Averaged value = %g +/- %.1g", A, A_err)
+plot data u 1:(f($1, $3, Vp)) w l title 'Tip speed', \
+    Vp title "Pulling speed" lw 2, A t sprintf("Averaged value = %g +/- %.1g", A, A_err)
 
 set ylabel "Undercooling (K)"
 plot data u 1:(f($1, $4, undercooling)) w l title 'Tip undercooling', \
