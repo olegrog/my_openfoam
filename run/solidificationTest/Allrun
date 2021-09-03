@@ -20,7 +20,7 @@ if [[ "$1" == "-parallel" ]]; then
         fi
         export DISPLAY
         runApplication ./make_video.py -x 1500 -y 600 -z 2.65 -f 12 *.foam || true
-        runApplication ~/admin/converters/compress_videos.sh -a=4 video.avi
+        runApplication ~/admin/converters/compress_videos.sh -a=4 video.avi < /dev/null
     fi
     awk '/^Time =.*/{a=$0} /^Tip p/{print a} /^Tip/{print}' log.`getApplication` > tip.txt
     runApplication gnuplot tip.plt
