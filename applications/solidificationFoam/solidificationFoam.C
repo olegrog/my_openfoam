@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
                 #include "phaseEqn.H"
             }
 
-            scalar phaseTolerance = mesh.solverDict(phase.name()).get<scalar>("tolerance");
+            scalar phaseTolerance = 10*mesh.solverDict(phase.name()).get<scalar>("tolerance");
             if (gMin(phase) < -phaseTolerance || gMax(phase) > 1 + phaseTolerance)
             {
                 runTime.writeNow();
