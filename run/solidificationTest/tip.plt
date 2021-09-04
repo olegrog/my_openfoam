@@ -16,9 +16,9 @@ set xlabel "Time (ms)"
 time_factor = 1e3
 
 log_file = "log.solidificationFoam"
-window = 1.5
-array fit_range = [ 0.5, 0.95 ]
+array fit_range = [ 0.7, 1 ]
 
+window = 2
 if (ARGC > 0) window = ARG1 + 0
 
 # Read problem properties
@@ -40,22 +40,32 @@ xmax = system(sprintf("grep 'Tip s' %s | wc -l", log_file)) + 0
 print "Number of points = ", xmax
 
 # Find maximum time when tips grow
-set xrange [fit_range[1]*xmax:fit_range[2]*xmax]
-pos(t) = C*t + D
-fit pos(x) data u 0:1 via C,D
-tmax = C*xmax + D
-#plot data u 0:1 w l, C*x + D
+pos(t) = t < tmax ? C*t + D : C*tmax + D
+stats data using 1 name "time" nooutput
+tmax = time_max/2
+fit pos(x) data u 1:2 via C, D, tmax
+#plot data u 1:2 w lp, pos(x)
 
 win(t) = 1 + (window - 1)*exp(-t/tmax)
 f(t, y, y0) = y < y0/win(t) ? 1/0 : (y > y0*win(t) ? 1/0 : y)
+set xrange [fit_range[1]*tmax:fit_range[2]*tmax]
 
 # Find steady-state speed and undercooling
-fit A data u 0:3 via A
-fit B data u 0:4 via B
+fit A data u 1:3 via A
+
+f_undercooling(x) = B
+fit B data u 1:4 via B
+
+if (B_err/B > 1e-4) {
+    set xrange [0.1*tmax:tmax]
+    Q = 1
+    f_undercooling(x) = B + P*exp(-x/Q**2)
+    fit f_undercooling(x) data u 1:4 via B, P, Q
+}
 
 do for [i=1:2] {
-    set arrow from C*fit_range[i]*xmax + D, graph(0,0) \
-                to C*fit_range[i]*xmax + D, graph(1,.75) nohead dt 5
+    set arrow from fit_range[i]*tmax, graph(0,0) \
+                to fit_range[i]*tmax, graph(1,.75) nohead dt 5
 }
 
 set xrange [0:tmax]
@@ -66,4 +76,4 @@ plot data u 1:(f($1, $3, Vp)) w l title 'Tip speed', \
 
 set ylabel "Undercooling (K)"
 plot data u 1:(f($1, $4, undercooling)) w l title 'Tip undercooling', \
-    B t sprintf("Averaged value = %g +/- %.1g", B, B_err)
+    f_undercooling(x) t sprintf("Averaged value = %g +/- %.1g", B, B_err)
