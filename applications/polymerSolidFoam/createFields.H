@@ -82,6 +82,11 @@ volScalarField mu(E/(2.0*(1.0 + nu)));
 volScalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK(E/(1.0 - 2.0*nu));
 
+volTensorField gradD("gradD", fvc::grad(D));
+volSymmTensorField epsilon("epsilon", symm(gradD));
+
+symmTensor Ixy = symmTensor::I; Ixy.zz() = 0;
+
 volSymmTensorField sigma
 (
     IOobject
@@ -92,8 +97,8 @@ volSymmTensorField sigma
         IOobject::READ_IF_PRESENT,
         IOobject::NO_WRITE
     ),
-    mesh,
-    E.dimensions()
+    mu*twoSymm(gradD) + lambda*I*tr(gradD)
+  - threeK*epsilonChemicalMax*(polymerization*I + interlayerCohesion*(nLayer - 1)*Ixy)
 );
 
 Info<< "Calculating explicit part of div(sigma) divSigmaExp\n" << endl;
@@ -116,8 +121,6 @@ volScalarField sigmaEq
     mesh,
     sigma.dimensions()
 );
-
-volSymmTensorField epsilon("epsilon", symm(fvc::grad(D)));
 
 mesh.setFluxRequired(D.name());
 
