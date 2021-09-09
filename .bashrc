@@ -23,6 +23,10 @@ export HISTIGNORE="ls:ll:cd:cd -"
 export HISTCONTROL="ignorespace:erasedups"
 shopt -s histappend
 
+# BUG: history is not loaded by default
+export HISTFILE=$HOME/.bash_history
+history -r
+
 # Colorize less output
 export LESSOPEN="| $(which source-highlight) -i %s -f esc256 --style-file esc256.style"
 export LESS=" -R"
@@ -79,10 +83,8 @@ d() {
 # Aliases
 alias grep='grep --color=auto'
 alias ls='ls --color=auto -G'
-alias ll='ls -l'
+alias ll='ls -lFh'
 alias diff='colordiff'
 alias solv='cd $FOAM_SOLVERS'
 alias src='cd $FOAM_SRC'
 alias tut='cd $FOAM_TUTORIALS'
-
-ml mpi
