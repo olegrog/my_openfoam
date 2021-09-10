@@ -306,7 +306,7 @@ bool Foam::rayTracingParticle::move
                 const vector nHat = getVoFNormal(cellI);
 
                 // Absorb proportionally to the traversed path in the absorbing medium
-                if (mag(nHat) > SMALL)
+                if (mag(nHat) > SMALL && td.useSubCellData())
                 {
                     const scalar cosTheta = incidentDir & nHat;
                     const scalar distanceToInterface = getDistanceToInterface(cellI, p0);
@@ -359,7 +359,7 @@ bool Foam::rayTracingParticle::move
             scalar cosTheta = incidentDir & nHat; // positive for incoming rays
 
             // 1. Determine the ray-interface intersection point and the related quantities
-            if (mag(nHat) > SMALL)
+            if (mag(nHat) > SMALL && td.useSubCellData())
             {
                 const scalar distanceToInterface = getDistanceToInterface(cellI, p0);
                 pathToInterface = getPathToInterface(cellI, p0, dsv);

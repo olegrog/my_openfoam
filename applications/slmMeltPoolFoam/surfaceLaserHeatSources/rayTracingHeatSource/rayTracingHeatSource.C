@@ -61,6 +61,7 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
     nr_(modelDict_.get<label>("nr")),
     maxr_(modelDict_.get<label>("maxr")),
     writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
+    useSubCellData_(modelDict_.getOrDefault("useSubCellData", true)),
     scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
 {
     const scalar threshold = scatteringModelPtr_->threshold();
@@ -223,6 +224,7 @@ void Foam::rayTracingHeatSource::calcSource()
     rayTracingParticle::trackingData td
     (
         cloud,
+        useSubCellData_,
         const_cast<isoAdvection&>(advector_).surf(),
         scatteringModelPtr_,
         mixture_.alpha1(),

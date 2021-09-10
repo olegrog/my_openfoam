@@ -31,6 +31,7 @@ License
 inline Foam::rayTracingParticle::trackingData::trackingData
 (
     Cloud<rayTracingParticle>& cloud,
+    bool useSubCellData,
     const reconstructionSchemes& surf,
     const scatteringModel& scattering,
     const volScalarField& alphaM,
@@ -39,6 +40,7 @@ inline Foam::rayTracingParticle::trackingData::trackingData
 )
 :
     particle::trackingData(cloud),
+    useSubCellData_(useSubCellData),
     surf_(surf),
     scatteringModel_(scattering),
     alphaM_(alphaM),
@@ -48,6 +50,13 @@ inline Foam::rayTracingParticle::trackingData::trackingData
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+inline bool
+Foam::rayTracingParticle::trackingData::useSubCellData() const
+{
+    return useSubCellData_;
+}
+
 
 inline const Foam::reconstructionSchemes&
 Foam::rayTracingParticle::trackingData::surf() const

@@ -94,6 +94,9 @@ public:
     {
         // Private data
 
+            //- Flag to use the reconstructed interface
+            const bool useSubCellData_;
+
             //- Reconstruction scheme of a geometric VoF
             const reconstructionSchemes& surf_;
 
@@ -117,6 +120,7 @@ public:
             inline trackingData
             (
                 Cloud<rayTracingParticle>& cloud,
+                bool useSubCellData,
                 const reconstructionSchemes& surf,
                 const scatteringModel& scattering,
                 const volScalarField& alphaM,
@@ -127,6 +131,7 @@ public:
 
         // Member functions
 
+            inline bool useSubCellData() const;
             inline const reconstructionSchemes& surf() const;
             inline const scatteringModel& scattering() const;
             inline scalar alphaM(label celli) const;
@@ -164,9 +169,9 @@ public:
             const polyMesh& mesh,
             const vector& position,
             const vector& targetPosition,
-            const scalar dQ,
-            const label cellI,
-            const bool isBeingAbsorbed
+            scalar dQ,
+            label cellI,
+            bool isBeingAbsorbed
         );
 
         //- Construct from Istream (for parallel transfer)
@@ -237,7 +242,7 @@ public:
             Ostream& os,
             const wordRes& filters,
             const word& delim,
-            const bool namesOnly = false
+            bool namesOnly = false
         ) const;
 
 

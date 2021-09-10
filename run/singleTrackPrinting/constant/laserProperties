@@ -47,6 +47,7 @@ source
         nTheta          20;
         maxr            2;
         writeOBJ        true;
+        useSubCellData  true;
 
         scattering
         {

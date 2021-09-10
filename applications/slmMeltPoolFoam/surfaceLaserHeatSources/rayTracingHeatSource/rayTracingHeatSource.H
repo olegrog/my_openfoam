@@ -74,6 +74,9 @@ class rayTracingHeatSource
         //- Flag to write OBJ file for inspection in ParaView
         const bool writeOBJ_;
 
+        //- Flag to use the subcell data obtained from isoAdvector
+        const bool useSubCellData_;
+
         //- The scattering model
         autoPtr<scatteringModel> scatteringModelPtr_;
 
