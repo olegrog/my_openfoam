@@ -27,6 +27,7 @@ processor*
 
 # Results files
 *.vtk
+*.vtk.series
 *.log
 *.dat
 
