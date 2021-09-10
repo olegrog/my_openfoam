@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
         wasMelted = Foam::max(wasMelted, liquidFraction);
 
-        if (writeProperties)
+        if (writeAllFields)
         {
             heatConvection = fvc::div(rhoPhi, h);
 

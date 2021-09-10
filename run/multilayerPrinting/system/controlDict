@@ -51,7 +51,7 @@ maxDeltaT       1;
 
 maxCo           0.5;
 
-writeProperties yes;
+writeAllFields yes;
 
 DebugSwitches
 {

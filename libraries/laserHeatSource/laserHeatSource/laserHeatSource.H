@@ -73,7 +73,7 @@ protected:
         const fvMesh& mesh_;
 
         //- Flag to write auxiliary fields
-        const bool writeProperties_;
+        const bool writeAllFields_;
 
         //- Heat source [W/m3]
         volScalarField source_;

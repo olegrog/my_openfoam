@@ -45,6 +45,6 @@ timePrecision   6;
 
 runTimeModifiable true;
 
-writeProperties true;
+writeAllFields true;
 
 // ************************************************************************* //

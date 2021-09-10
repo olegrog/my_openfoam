@@ -37,7 +37,7 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
 )
 :
     thermo_(mesh),
-    writeProperties_(mesh.time().controlDict().get<bool>("writeProperties")),
+    writeAllFields_(mesh.time().controlDict().get<bool>("writeAllFields")),
     mixture_(mixture),
     alphaM_(mixture.alpha1()),
     alphaG_(mixture.alpha2()),
@@ -95,7 +95,7 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
 {
     // --- Activate auto-writing of additional fields
 
-    if (writeProperties_)
+    if (writeAllFields_)
     {
         const std::vector<std::reference_wrapper<volScalarField>> scalarFieldsForWriting
         {

@@ -62,7 +62,7 @@ protected:
         const gasMetalThermo thermo_;
 
         //- Flag to write auxiliary fields
-        const bool writeProperties_;
+        const bool writeAllFields_;
 
         // References
 

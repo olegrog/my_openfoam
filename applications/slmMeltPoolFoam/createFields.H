@@ -1,4 +1,4 @@
-bool writeProperties(runTime.controlDict().get<bool>("writeProperties"));
+bool writeAllFields(runTime.controlDict().get<bool>("writeAllFields"));
 
 Info<< "Reading field p_rgh\n" << endl;
 volScalarField p_rgh
@@ -80,7 +80,7 @@ volScalarField radiativeCooling
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimArea
@@ -94,7 +94,7 @@ volScalarField evaporativeCooling
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimArea
@@ -108,7 +108,7 @@ volScalarField heatConvection
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -122,7 +122,7 @@ volScalarField heatConduction
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -136,7 +136,7 @@ volScalarField heatConduction2
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimVolume
@@ -150,7 +150,7 @@ volScalarField energySource
         runTime.timeName(),
         mesh,
         IOobject::NO_READ,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
     dimPower/dimMass
@@ -182,7 +182,7 @@ volScalarField rho
         runTime.timeName(),
         mesh,
         IOobject::READ_IF_PRESENT,
-        writeProperties ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+        writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     alpha1*rho1 + alpha2*rho2
 );

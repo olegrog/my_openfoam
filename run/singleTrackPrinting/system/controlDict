@@ -53,7 +53,7 @@ maxDeltaTemp    500;
 
 maxDeltaT       1;
 
-writeProperties yes;
+writeAllFields yes;
 
 DebugSwitches
 {

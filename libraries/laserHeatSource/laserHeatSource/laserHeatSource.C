@@ -40,7 +40,7 @@ Foam::laserHeatSource::laserHeatSource(const fvMesh& mesh)
 :
     laserProperties(mesh),
     mesh_(mesh),
-    writeProperties_(mesh.time().controlDict().get<bool>("writeProperties")),
+    writeAllFields_(mesh.time().controlDict().get<bool>("writeAllFields")),
     source_
     (
         IOobject
@@ -49,7 +49,7 @@ Foam::laserHeatSource::laserHeatSource(const fvMesh& mesh)
             mesh.time().timeName(),
             mesh,
             IOobject::NO_READ,
-            writeProperties_ ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
+            writeAllFields_ ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
         ),
         mesh,
         dimensionedScalar(dimPower/dimVolume)

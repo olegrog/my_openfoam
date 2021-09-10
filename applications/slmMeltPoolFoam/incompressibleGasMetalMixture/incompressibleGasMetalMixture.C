@@ -71,7 +71,7 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
         << dSigmaDT_.value() << ")*T\n" << endl;
 
     // --- Activate auto-writing of additional fields
-    if (writeProperties_)
+    if (writeAllFields_)
     {
         // nu_ is defined in incompressibleTwoPhaseMixture
         nu_.writeOpt() = IOobject::AUTO_WRITE;
