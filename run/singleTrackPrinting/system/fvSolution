@@ -25,6 +25,7 @@ solvers
         snapTol         1e-12;
         clip            true;
         reconstructionScheme plicRDF;
+        writeFields     false;
 
         writeSurfCells  false;
         writeIsoFaces   false;
