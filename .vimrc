@@ -8,9 +8,14 @@ set encoding=utf-8
 set fileencoding=utf-8
 
 "- Colorize OpenFOAM case files
-execute pathogen#infect()
 let g:foam256_use_custom_colors=1
 set t_Co=256
+
+"- Return to last edit position when opening files
+autocmd BufReadPost *
+    \ if line("'\"") > 0 && line ("'\"") <= line("$") |
+    \   exe "normal! g'\"" |
+    \ endif
 
 "- Highlight long lines
 autocmd FileType python,c,cpp,sh set colorcolumn=100
@@ -30,19 +35,3 @@ autocmd BufWinLeave * call clearmatches()
 set list
 set listchars=tab:▸\ ,
 
-"- Enables transparent pasting for vim < 8.0
-"- Imported from https://stackoverflow.com/a/7053522
-if &term =~ "xterm.*"
-    let &t_ti = &t_ti . "\e[?2004h"
-    let &t_te = "\e[?2004l" . &t_te
-    function! XTermPasteBegin(ret)
-        set pastetoggle=<Esc>[201~
-        set paste
-        return a:ret
-    endfunction
-    map <expr> <Esc>[200~ XTermPasteBegin("i")
-    imap <expr> <Esc>[200~ XTermPasteBegin("")
-    vmap <expr> <Esc>[200~ XTermPasteBegin("c")
-    cmap <Esc>[200~ <nop>
-    cmap <Esc>[201~ <nop>
-endif
