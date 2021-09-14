@@ -58,4 +58,10 @@ gas
 
 sigmoid         erf; // tanh or cut
 
+solidificationFields
+{
+    enabled     yes; // compute and write solidification(Gradient|Speed)
+    alphaTol    0.5;
+}
+
 // ************************************************************************* //

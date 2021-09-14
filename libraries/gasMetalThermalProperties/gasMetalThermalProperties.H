@@ -64,6 +64,12 @@ protected:
         //- Flag to write auxiliary fields
         const bool writeAllFields_;
 
+        //- Solidification fields dictionary
+        const dictionary solidificationFields_;
+
+        //- Flag to compute and write solidification fields
+        const bool enabledSolidification_;
+
         // References
 
             // Reference to the mixture
@@ -74,6 +80,10 @@ protected:
 
             // Reference to the gas fraction
             const volScalarField& alphaG_;
+
+private:
+
+    // Private data
 
         // Fields
 
@@ -104,15 +114,25 @@ protected:
             //- Derivative of the sensible enthalpy w.r.t. gas fraction [W/m/K]
             volScalarField HsPrimeAlphaG_;
 
-private:
+            // Temperature gradient at the solid--liquid interface during solidification [K/m]
+            tmp<volScalarField> tsolidificationGradient_;
 
-    // Private data
+            // Speed of the solid--liquid interface during solidification [m/s]
+            tmp<volScalarField> tsolidificationSpeed_;
 
-        //- Flag to indicate whether to update redistribution_
-        mutable bool updatedRedistr_;
+            //- Heat source redistribution [-]
+            mutable tmp<volScalarField> tredistribution_;
 
-        //- Heat source redistribution function
-        mutable tmp<volScalarField> tredistribution_;
+            //- Temperature gradient [K/m]
+            mutable tmp<volVectorField> tgradT_;
+
+        // Flags
+
+            //- Flag to indicate whether to update the heat source redistribution field
+            mutable bool updatedRedistribution_;
+
+            //- Flag to indicate whether to update the temperature gradient field
+            mutable bool updatedGradT_;
 
 
     // Private Member Functions
@@ -120,7 +140,7 @@ private:
         //- Calculate metal fractions
         void calcMetalFractions();
 
-        //- Calculate redistribution function for surface heat sources
+        //- Calculate redistribution field for surface heat sources
         void calcRedistribution() const;
 
         //- No copy construct
@@ -168,9 +188,21 @@ public:
             }
 
             //- Return enthalpy [J/kg]
+            const volScalarField& h() const
+            {
+                return h_;
+            }
+
+            //- Return enthalpy [J/kg]
             volScalarField& h()
             {
                 return h_;
+            }
+
+            //- Return enthalpy at the melting temperature [J/kg]
+            const volScalarField& hAtMelting() const
+            {
+                return hAtMelting_;
             }
 
             //- Return liquid fraction [-]
@@ -215,8 +247,11 @@ public:
                 return fvc::interpolate(HsPrimeAlphaG_, "interpolate(HsPrimeAlphaG)");
             }
 
-            //- Return redistribution function for surface heat sources
+            //- Return redistribution field for surface heat sources
             const volScalarField& surfaceHeatSourceRedistribution() const;
+
+            //- Return the temperature gradient
+            const volVectorField& gradT() const;
 
         // Evaluation
 
@@ -225,6 +260,9 @@ public:
 
             //- Correct enthalpy-dependent fields
             virtual void correctThermo();
+
+            //- Correct passive fields
+            virtual void correctPassiveFields();
 };
 
 

@@ -11,5 +11,5 @@ const dimensionedScalar& Hvap = thermo.Hvapour();
 
 // Nondimensional constants
 
-scalar emissivity(problemProperties.get<scalar>("emissivity"));
-scalar evaporationCoeff(problemProperties.get<scalar>("evaporationCoeff"));
+const scalar emissivity(problemProperties.get<scalar>("emissivity"));
+const scalar evaporationCoeff(problemProperties.get<scalar>("evaporationCoeff"));

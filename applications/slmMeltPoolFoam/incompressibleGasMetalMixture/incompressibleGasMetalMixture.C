@@ -85,9 +85,9 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
 {
     const volVectorField normal(fvc::reconstruct(nHatf()));
     const volTensorField I_nn(tensor::I - sqr(normal));
-    const volVectorField gradAlphaM = fvc::grad(alphaM_);
 
-    const volVectorField gradT = fvc::grad(T_);
+    const volVectorField& gradAlphaM = gasMetalThermalProperties::gradAlphaM();
+    const volVectorField& gradT = gasMetalThermalProperties::gradT();
 
     // This is an alternative formula:
     //  gradT = TPrimeEnthalpy()*fvc::grad(h_) + TPrimeMetalFraction()*gradAlphaM;
@@ -99,7 +99,7 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
 Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::solidPhaseDamping() const
 {
     volScalarField liquidFractionInMetal =
-        thermo_.sigmoid().value((h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL));
+        thermo_.sigmoid().value((h() - hAtMelting())/thermo_.Hfusion()/(alphaM_ + SMALL));
     return mushyCoeff_*alphaM_
         *sqr(1 - liquidFractionInMetal)/(sqr(liquidFractionInMetal) + SMALL);
 }
@@ -111,7 +111,7 @@ Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::vapourPress
 ) const
 {
     using constant::physicoChemical::R;
-    return p0*exp(thermo_.metalM()*thermo_.Hvapour()/R*(1/thermo_.Tboiling() - 1/T_));
+    return p0*exp(thermo_.metalM()*thermo_.Hvapour()/R*(1/thermo_.Tboiling() - 1/T()));
 }
 
 

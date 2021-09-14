@@ -181,25 +181,7 @@ int main(int argc, char *argv[])
             if (pimple.corr() + 1 == pimple.nCorrPIMPLE()) reduceTimeStep = true;
         }
 
-        // --- Update passive fields
-
-        wasMelted = Foam::max(wasMelted, liquidFraction);
-
-        if (writeAllFields)
-        {
-            heatConvection = fvc::div(rhoPhi, h);
-
-            // For debug: check that heatConduction is almost equal to heatConduction2
-            heatConduction = fvc::laplacian(mixture.kf(), T);
-
-            const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
-
-            heatConduction2 =
-                fvc::laplacian(kByCp, h)
-              - fvc::laplacian(Hfus*kByCp, liquidFraction)
-              - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2);
-        }
-
+        #include "updatePassiveFields.H"
         #include "effectiveAbsorptivity.H"
 
         runTime.write();

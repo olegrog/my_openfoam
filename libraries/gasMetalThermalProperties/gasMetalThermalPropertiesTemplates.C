@@ -37,7 +37,9 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
 )
 :
     thermo_(mesh),
-    writeAllFields_(mesh.time().controlDict().get<bool>("writeAllFields")),
+    writeAllFields_(mesh.time().controlDict().getOrDefault("writeAllFields", false)),
+    solidificationFields_(thermo_.subDict("solidificationFields")),
+    enabledSolidification_(solidificationFields_.getOrDefault("enabled", false)),
     mixture_(mixture),
     alphaM_(mixture.alpha1()),
     alphaG_(mixture.alpha2()),
@@ -90,9 +92,46 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
     Cp_(thermo_.Cp(T_, liquidFraction_, alphaG_)),
     k_(thermo_.k(T_, liquidFraction_, alphaG_)),
     HsPrimeAlphaG_(thermo_.HsPrimeAlphaG(T_)),
-    updatedRedistr_(false),
-    tredistribution_()
+    tsolidificationGradient_(),
+    tsolidificationSpeed_(),
+    tredistribution_(),
+    tgradT_(),
+    updatedRedistribution_(false),
+    updatedGradT_(false)
 {
+    // --- Field initialization
+
+    if (enabledSolidification_)
+    {
+        tsolidificationGradient_ = tmp<volScalarField>::New
+        (
+            IOobject
+            (
+                "solidificationGradient",
+                mesh.time().timeName(),
+                mesh,
+                IOobject::READ_IF_PRESENT,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimensionedScalar(dimTemperature/dimLength)
+        );
+
+        tsolidificationSpeed_ = tmp<volScalarField>::New
+        (
+            IOobject
+            (
+                "solidificationSpeed",
+                mesh.time().timeName(),
+                mesh,
+                IOobject::READ_IF_PRESENT,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimensionedScalar(dimVelocity)
+        );
+    }
+
     // --- Activate auto-writing of additional fields
 
     if (writeAllFields_)
@@ -216,20 +255,91 @@ void Foam::gasMetalThermalProperties<Mixture>::correctThermo()
     k_ = thermo_.k(T_, liquidFraction_, alphaG_);
     HsPrimeAlphaG_ = thermo_.HsPrimeAlphaG(T_);
 
-    updatedRedistr_ = false;
+    updatedRedistribution_ = false;
+    updatedGradT_ = false;
 }
+
 
 template<class Mixture>
 const Foam::volScalarField&
 Foam::gasMetalThermalProperties<Mixture>::surfaceHeatSourceRedistribution() const
 {
-    if (!updatedRedistr_)
+    if (!updatedRedistribution_)
     {
         calcRedistribution();
-        updatedRedistr_ = true;
+        updatedRedistribution_ = true;
     }
 
     return tredistribution_();
+}
+
+
+template<class Mixture>
+const Foam::volVectorField& Foam::gasMetalThermalProperties<Mixture>::gradT() const
+{
+    if (!updatedGradT_)
+    {
+        tgradT_ = fvc::grad(T_);
+        updatedGradT_ = true;
+    }
+
+    return tgradT_();
+}
+
+
+template<class Mixture>
+void Foam::gasMetalThermalProperties<Mixture>::correctPassiveFields()
+{
+    if (enabledSolidification_)
+    {
+        volScalarField& solidificationGradient = tsolidificationGradient_.ref();
+        volScalarField& solidificationSpeed = tsolidificationSpeed_.ref();
+
+        const scalar alphaTol = solidificationFields_.getOrDefault("alphaTol", 1.0);
+        const volScalarField magGradT = mag(fvc::grad(T_));
+        const volScalarField magGradTOld = mag(fvc::grad(T_.oldTime()));
+
+        forAll(T_, cellI)
+        {
+            if (alphaM_[cellI] < alphaTol) continue;
+            if (alphaM_.oldTime()[cellI] < alphaTol) continue;
+
+            const scalar phi = liquidFraction_[cellI]/alphaM_[cellI];
+            const scalar phiOld = liquidFraction_.oldTime()[cellI]/alphaM_.oldTime()[cellI];
+
+            if (phiOld > 0.5 && phi < 0.5)
+            {
+                const scalar deltaT = T_.mesh().time().deltaTValue();
+                const scalar coolingRate = (T_.oldTime()[cellI] - T_[cellI])/deltaT;
+
+                if (coolingRate < 0)
+                {
+                    FatalErrorInFunction
+                        << " coolingRate = " << coolingRate
+                        << ", phi = " << phiOld << " -> " << phiOld
+                        << ", alphaM = " << alphaM_.oldTime()[cellI] << " -> " << alphaM_[cellI]
+                        << ", T = " << T_.oldTime()[cellI] << " -> " << T_[cellI]
+                        << exit(FatalError);
+                }
+
+                const scalar A = (0.5 - phiOld)/(phi - phiOld);
+                const scalar B = (phi - 0.5)/(phi - phiOld);
+                const scalar oldSpeed = solidificationSpeed[cellI];
+
+                // Linear weighted interpolation
+                solidificationGradient[cellI] = A*magGradT[cellI] + B*magGradTOld[cellI];
+                solidificationSpeed[cellI] = coolingRate/solidificationGradient[cellI];
+
+                if (oldSpeed > 0)
+                {
+                    DebugInfo<< "Resolidification in cell #" << cellI
+                        << ", alphaM = " << alphaM_[cellI]
+                        << ", V = " << oldSpeed
+                        << " -> " << solidificationSpeed[cellI] << endl;
+                }
+            }
+        }
+    }
 }
 
 
