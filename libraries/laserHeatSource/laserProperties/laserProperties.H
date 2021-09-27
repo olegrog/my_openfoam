@@ -39,6 +39,7 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "dimensionedTypes.H"
+#include "Function1.H"
 
 #include "laserBeam.H"
 
@@ -63,8 +64,8 @@ private:
         //- Reference to the time
         const dimensionedScalar& time_;
 
-        //- Laser power
-        const dimensionedScalar power_;
+        //- Laser power as a function of time
+        autoPtr<Function1<scalar>> powerPtr_;
 
         //- Laser radius
         const dimensionedScalar radius_;
@@ -105,9 +106,9 @@ public:
     // Member Functions
 
         //- Return the laser power
-        const dimensionedScalar& power() const
+        dimensionedScalar power() const
         {
-            return power_;
+            return dimensionedScalar("power", dimPower, powerPtr_->value(time_.value()));
         }
 
         //- Return the laser radius

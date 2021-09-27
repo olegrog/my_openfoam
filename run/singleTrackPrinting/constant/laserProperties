@@ -15,7 +15,16 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-power       [ W ]   113; // 113 for Trumpf TruPrint 1000
+power           113; // 113 W for Trumpf TruPrint 1000
+power_
+{
+    type        sine;
+    level       113;
+    amplitude   50;
+    period      1e-4;
+    scale       1;
+}
+
 radius      [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
 velocity    [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
 coordStart  [ m ]   ( 0 0 1e-4 );

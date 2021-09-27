@@ -50,7 +50,7 @@ Foam::laserProperties::laserProperties(const fvMesh& mesh)
         )
     ),
     time_(mesh.time()),
-    power_("power", dimPower, *this),
+    powerPtr_(Function1<scalar>::New("power", *this)),
     radius_("radius", dimLength, *this),
     velocity_("velocity", dimVelocity, *this),
     coordStart_("coordStart", dimLength, *this),
