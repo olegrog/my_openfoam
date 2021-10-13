@@ -7,7 +7,7 @@ Installation
 -------
 The repository can be cloned by
 ```
-    git clone git@github.com:olegrog/openfoam.git
+    git clone https://github.com/olegrog/openfoam.git
 ```
 To build an augmented Docker image, run
 ```
@@ -16,5 +16,5 @@ To build an augmented Docker image, run
 ```
 The new image can be used within an intermediate container as
 ```
-    docker run -it --rm -v="$(pwd)":/home/ofuser my_openfoam-plus
+    docker run -it --rm -u="$(id -u):$(id -g)" -v="$(pwd):/home/openfoam" my_openfoam-plus
 ```
