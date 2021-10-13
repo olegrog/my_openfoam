@@ -1,0 +1,15 @@
+#!/bin/bash -e
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+proj=$(ls *.geo | sed 's/\..*//')
+
+runApplication gmsh -3 $proj.geo
+runApplication gmshToFoam $proj.msh
+runApplication ./updatePolyMesh.sh
+runApplication `getApplication`
+
+echo ok
+
