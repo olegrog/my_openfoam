@@ -19,10 +19,10 @@ solvers
 {
     T0
     {
-        solver          PCG;
-        preconditioner  DIC;
+        solver          GAMG;
+        smoother        DIC;
         tolerance       1e-15;
-        relTol          0.05;
+        relTol          0.5;
     }
 
     U1
@@ -35,8 +35,8 @@ solvers
 
     p2
     {
-        solver          PCG;
-        preconditioner  DIC;
+        solver          GAMG;
+        smoother        DIC;
         tolerance       1e-10;
         relTol          0.1;
     }
