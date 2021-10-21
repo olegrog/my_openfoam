@@ -57,6 +57,8 @@ interpolationSchemes
     flux(HbyA)                  linear;
     interpolate((sigma*interfaceProperties:K)) linear;
     interpolate(HsPrimeAlphaG)  linear;
+    // in case of dynamicFvMesh only
+    interpolate(U)              linear;
 }
 
 snGradSchemes

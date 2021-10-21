@@ -7,7 +7,7 @@ cd ${0%/*} || exit 1    # run from this directory
 if [[ "$1" == "-parallel" ]]; then
     runApplication blockMesh
     runApplication decomposePar
-    runParallel -np 6 `getApplication`
+    runParallel `getApplication`
     runApplication reconstructPar -newTimes
     if [[ -z "$DISPLAY" ]]; then
         echo "Variable DISPLAY is not set. Skip rendering."

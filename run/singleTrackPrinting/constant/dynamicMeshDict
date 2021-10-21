@@ -46,10 +46,13 @@ maxCells        200000;
 correctFluxes
 (
     (phi none)
+    (phiPrevIter none)
     (nHatf none)
     (rhoPhi none)
-    (alphaPhi none)
+    (alphaPhi_ none)
     (ghf none)
+    (phi0 none)
+    (dVf_ none)
 );
 
 // Write the refinement level as a volScalarField
