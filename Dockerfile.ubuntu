@@ -3,7 +3,7 @@ FROM opencfd/openfoam2106-default:latest
 USER root
 
 RUN wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | sudo bash \
- && apt-get install -y ack colordiff gdb git less mlocate source-highlight vim-pathogen ripgrep \
+ && apt-get install -y python-is-python3 ack colordiff gdb git less mlocate source-highlight vim-pathogen ripgrep \
  && apt-get clean autoclean \
  && rm -rf /var/lib/apt/lists/*
 
