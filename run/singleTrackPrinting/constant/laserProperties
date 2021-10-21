@@ -54,7 +54,7 @@ source
     {
         nr              10;
         nTheta          20;
-        maxr            2;
+        maxr            1.8;
         writeOBJ        true;
         useSubCellData  true;
 

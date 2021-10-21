@@ -69,7 +69,7 @@ class rayTracingHeatSource
         const label nr_;
 
         //- Maximum radius
-        const label maxr_;
+        const scalar maxr_;
 
         //- Flag to write OBJ file for inspection in ParaView
         const bool writeOBJ_;

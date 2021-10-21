@@ -59,7 +59,7 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
     surfaceLaserHeatSource(typeName, mixture, advector),
     nTheta_(modelDict_.get<label>("nTheta")),
     nr_(modelDict_.get<label>("nr")),
-    maxr_(modelDict_.get<label>("maxr")),
+    maxr_(modelDict_.get<scalar>("maxr")),
     writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
     useSubCellData_(modelDict_.getOrDefault("useSubCellData", true)),
     scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
