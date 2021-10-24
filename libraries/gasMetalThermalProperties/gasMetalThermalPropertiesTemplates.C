@@ -90,7 +90,7 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
         volScalarField::New("liquidFractionPrimeEnthalpy", mesh, dimMass/dimEnergy)
     ),
     Cp_(thermo_.Cp(T_, liquidFraction_, alphaG_)),
-    k_(thermo_.k(T_, liquidFraction_, alphaG_)),
+    kappa_(thermo_.kappa(T_, liquidFraction_, alphaG_)),
     HsPrimeAlphaG_(thermo_.HsPrimeAlphaG(T_)),
     tsolidificationGradient_(),
     tsolidificationSpeed_(),
@@ -138,7 +138,7 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
     {
         const std::vector<std::reference_wrapper<volScalarField>> scalarFieldsForWriting
         {
-            std::ref(Cp_), std::ref(k_)
+            std::ref(Cp_), std::ref(kappa_)
         };
 
         for (auto& field : scalarFieldsForWriting)
@@ -252,7 +252,7 @@ void Foam::gasMetalThermalProperties<Mixture>::correctThermo()
 
     T_ = thermo_.T(h_, hAtMelting_, liquidFraction_, alphaG_);
     Cp_ = thermo_.Cp(T_, liquidFraction_, alphaG_);
-    k_ = thermo_.k(T_, liquidFraction_, alphaG_);
+    kappa_ = thermo_.kappa(T_, liquidFraction_, alphaG_);
     HsPrimeAlphaG_ = thermo_.HsPrimeAlphaG(T_);
 
     updatedRedistribution_ = false;

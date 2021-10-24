@@ -6,7 +6,7 @@ radiativeCooling = emissivity*sigma*(pow4(T) - pow4(ambientTemperature));
 evaporativeCooling =
     evaporationCoeff*mixture.vapourPressure(ambientPressure)*Hvap*Foam::sqrt(molarMass/twoPi/R/T);
 
-const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
+const surfaceScalarField kappaByCp = mixture.kappaf()/mixture.Cpf();
 const volScalarField& redistribution = mixture.surfaceHeatSourceRedistribution();
 const volScalarField magGradAlphaM = mag(mixture.gradAlphaM());
 const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap/R/Cp/sqr(T);
@@ -15,8 +15,8 @@ const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap
 
 energySource =
 (
-  - fvc::laplacian(Hfus*kByCp, liquidFraction)
-  - fvc::laplacian(kByCp*mixture.HsPrimeAlphaGf(), alpha2)
+  - fvc::laplacian(Hfus*kappaByCp, liquidFraction)
+  - fvc::laplacian(kappaByCp*mixture.HsPrimeAlphaGf(), alpha2)
   + (*laserHeatSource)()
   - redistribution*magGradAlphaM*(radiativeCooling + evaporativeCooling)
 )/rho;
@@ -28,9 +28,9 @@ fvScalarMatrix hEqn
     fvm::ddt(rho, h)
   + fvm::div(rhoPhi, h)
  ==
-    fvm::laplacian(kByCp, h)
-//  - fvm::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
-//  + fvc::laplacian(Hfus*kByCp*liquidFractionPrimeEnthalpyf, h)
+    fvm::laplacian(kappaByCp, h)
+//  - fvm::laplacian(Hfus*kappaByCp*liquidFractionPrimeEnthalpyf, h)
+//  + fvc::laplacian(Hfus*kappaByCp*liquidFractionPrimeEnthalpyf, h)
   + rho*energySource
   + redistribution*magGradAlphaM
    *(evaporativeCoolingPrime*h - fvm::Sp(evaporativeCoolingPrime, h))

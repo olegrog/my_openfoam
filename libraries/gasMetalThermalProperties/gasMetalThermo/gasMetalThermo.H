@@ -59,18 +59,18 @@ class gasMetalThermo
     public IOdictionary
 {
     //- Struct containing coeffs for k and Cp
-    struct kCp
+    struct kappaCp
     {
         //- Thermal conductivity polynomial coeffs
-        const Polynomial<2> k;
+        const Polynomial<2> kappa;
 
         //- Specific heat at constant pressure polynomial coeffs
         const Polynomial<2> Cp;
 
         //- Constructor
-        kCp(const dictionary& dict)
+        kappaCp(const dictionary& dict)
         :
-            k(dict.lookup(coeffsName("k"))),
+            kappa(dict.lookup(coeffsName("kappa"))),
             Cp(dict.lookup(coeffsName("Cp")))
         {}
     };
@@ -84,7 +84,7 @@ class gasMetalThermo
         const dictionary metalDict_, solidDict_, liquidDict_, gasDict_;
 
         //- Properties of all phases
-        const kCp solid_, liquid_, gas_;
+        const kappaCp solid_, liquid_, gas_;
 
         //- Temperature of melting [K]
         const scalar Tmelting_;
@@ -187,7 +187,7 @@ public:
 
             //- Thermal conductivity [W/m/K]
             template<class T1, class T2, class T3>
-            tmp<T1> k
+            tmp<T1> kappa
             (
                 const T1& T,
                 const T2& liquidFraction,

@@ -48,7 +48,7 @@ interpolationSchemes
     interpolate(nHat)           linear;
     interpolate(rho)            linear;
     interpolate(rAU)            linear;
-    interpolate(k)              harmonic;
+    interpolate(kappa)          harmonic;
     interpolate(Cp)             linear;
     interpolate(vapourPressure) harmonic;
     interpolate(rho|A)          linear;

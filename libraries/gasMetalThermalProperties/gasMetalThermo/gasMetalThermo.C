@@ -70,9 +70,9 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
         << " -- Pre-boiling enthalpy = " << hPreBoiling << endl
         << " -- Solidus heat capacity = " << solid_.Cp.value(Tmelting_) << endl
         << " -- Liquidus heat capacity = " << liquid_.Cp.value(Tmelting_) << endl
-        << " -- Solidus thermal conductivity = " << solid_.k.value(Tmelting_) << endl
-        << " -- Liquidus thermal conductivity = " << liquid_.k.value(Tmelting_) << endl
-        << " -- Gas thermal conductivity at Tmelting = " << gas_.k.value(Tmelting_) << endl
+        << " -- Solidus thermal conductivity = " << solid_.kappa.value(Tmelting_) << endl
+        << " -- Liquidus thermal conductivity = " << liquid_.kappa.value(Tmelting_) << endl
+        << " -- Gas thermal conductivity at Tmelting = " << gas_.kappa.value(Tmelting_) << endl
         << endl;
 }
 

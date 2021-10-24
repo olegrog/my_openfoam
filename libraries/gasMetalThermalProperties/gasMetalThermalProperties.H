@@ -109,7 +109,7 @@ private:
             volScalarField Cp_;
 
             //- Thermal conductivity [W/m/K]
-            volScalarField k_;
+            volScalarField kappa_;
 
             //- Derivative of the sensible enthalpy w.r.t. gas fraction [W/m/K]
             volScalarField HsPrimeAlphaG_;
@@ -230,15 +230,15 @@ public:
             }
 
             //- Return thermal conductivity [W/m/K]
-            const volScalarField& k() const
+            const volScalarField& kappa() const
             {
-                return k_;
+                return kappa_;
             }
 
             //- Return face-interpolated thermal conductivity [W/m/K]
-            tmp<surfaceScalarField> kf() const
+            tmp<surfaceScalarField> kappaf() const
             {
-                return fvc::interpolate(k_, "interpolate(k)");
+                return fvc::interpolate(kappa_, "interpolate(kappa)");
             }
 
             //- Return face-interpolated derivative of sensible enthalpy w.r.t. gas fraction [W/m/K]

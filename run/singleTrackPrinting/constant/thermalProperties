@@ -36,13 +36,13 @@ metal
     // From Kim
     solid
     {
-        kCoeffs     (9.248 1.571e-2);
+        kappaCoeffs (9.248 1.571e-2);
         CpCoeffs    (459.0 0.1328);
     }
 
     liquid
     {
-        kCoeffs     (12.41 3.279e-3);
+        kappaCoeffs (12.41 3.279e-3);
         CpCoeffs    (769.9 0);
     }
 }
@@ -50,7 +50,7 @@ metal
 gas
 {
     molWeight       39.95; // for Argon
-    kCoeffs         (2.1527e-2 2.67e-5);
+    kappaCoeffs     (2.1527e-2 2.67e-5);
     // Air: 2.5e-2 for 293K, 1.1e-1 for 2000K
     CpCoeffs        (520 0); // = 2.5*R/M;
     // Air: 1200 for liquidus, 1007 for 293K, 1264 for 2000K

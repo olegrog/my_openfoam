@@ -84,7 +84,7 @@ Foam::tmp<T1> Foam::gasMetalThermo::Cp
 
 
 template<class T1, class T2, class T3>
-Foam::tmp<T1> Foam::gasMetalThermo::k
+Foam::tmp<T1> Foam::gasMetalThermo::kappa
 (
     const T1& T,
     const T2& liquidFraction,
@@ -93,12 +93,12 @@ Foam::tmp<T1> Foam::gasMetalThermo::k
 {
     return generateGeometricField<T1>
     (
-        "k",
+        "kappa",
         mesh_,
         dimPower/dimLength/dimTemperature,
         [this](scalar T, scalar phi, scalar alphaG)
         {
-            return gasMetalAverage(gas_.k, liquid_.k, solid_.k, T, phi, alphaG);
+            return gasMetalAverage(gas_.kappa, liquid_.kappa, solid_.kappa, T, phi, alphaG);
         },
         T, liquidFraction, gasFraction
     );
