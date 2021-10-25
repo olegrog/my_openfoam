@@ -38,7 +38,7 @@ divSchemes
 
 laplacianSchemes
 {
-    default         Gauss linear orthogonal; // orthogonal is used for Cartesian meshes
+    default         Gauss linear limited corrected 0.5;
 }
 
 interpolationSchemes
@@ -62,7 +62,7 @@ interpolationSchemes
 
 snGradSchemes
 {
-    default         orthogonal;
+    default         limited corrected 0.5;
 }
 
 // ************************************************************************* //

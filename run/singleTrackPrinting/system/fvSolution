@@ -85,7 +85,7 @@ PIMPLE
     nOuterCorrectors    5; // for all variables
     nCorrectors         3; // for pressure
     nEnthalpyCorrectors 3;
-    nNonOrthogonalCorrectors 0;
+    nNonOrthogonalCorrectors 1;
     correctPhi          yes;
 
 
