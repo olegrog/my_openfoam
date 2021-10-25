@@ -51,7 +51,6 @@ interpolationSchemes
     interpolate(kappa)          harmonic;
     interpolate(Cp)             linear;
     interpolate(vapourPressure) harmonic;
-    interpolate(rho|A)          linear;
     dotInterpolate(S,U_0)       linear;
     interpolate((rho*rAU))      linear;
     flux(HbyA)                  linear;
