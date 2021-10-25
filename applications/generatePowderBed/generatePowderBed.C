@@ -26,11 +26,12 @@ Application
 
 Description
     Set initial conditions for alpha field, which represent the powder bed on
-    a substrate.
+    a substrate. Works with dynamicRefineFvMesh.
 
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
+#include "dynamicRefineFvMesh.H"
 #include "cutCellIso.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -51,7 +52,7 @@ scalarField generateBall
 tmp<volScalarField> VolumeOfFluid(const fvMesh& mesh, scalarField& f)
 {
     cutCellIso cutCell(mesh, f);
-    auto tres = volScalarField::New("result", mesh, dimless);
+    auto tres = volScalarField::New("result", mesh, dimensionedScalar());
     auto& res = tres.ref();
 
     forAll(res, cellI)
@@ -86,7 +87,7 @@ int main(int argc, char *argv[])
     Foam::argList::addArgument("field");
     #include "setRootCase.H"
     #include "createTime.H"
-    #include "createNamedMesh.H"
+    #include "createDynamicFvMesh.H"
 
     word alphaName = args.get<word>(1);
 
@@ -98,7 +99,8 @@ int main(int argc, char *argv[])
             alphaName,
             runTime.timeName(),
             mesh,
-            IOobject::MUST_READ
+            IOobject::MUST_READ,
+            IOobject::AUTO_WRITE
         ),
         mesh
     );
@@ -132,54 +134,68 @@ int main(int argc, char *argv[])
     const scalar domainVolume = gSum(mesh.V());
     const boundBox& bounds = mesh.bounds();
 
-    scalar volumeFraction = 0;  // for theoretical prediction
+    label prevMeshSize;
+    // Mesh adaptation works only for time > 0
+    runTime++;
 
-    // --- Generate substrate
+    do
     {
-        scalarField f = substratePosition.value() - (mesh.points() & substrateNormal);
-        alpha = VolumeOfFluid(mesh, f);
-        volumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
-    }
+        scalar exactVolumeFraction = 0;  // for theoretical prediction
 
-    // --- Generate balls
-    Random random(seed);
-    for (int j = -2; j <= 2; j++)
-    {
-        for (int i = -2; i < 15-2; i++)
+        // --- Generate substrate
         {
-            const scalar R = ballRadius.value()*(1 + amplitudeRadius*random.position(-1, 1));
-            const scalar X = (amplitudePosition*random.position(-1, 1) + latticeStep*i)*R;
-            const scalar Y = (amplitudePosition*random.position(-1, 1) + latticeStep*j)*R;
-            const scalar Z = substratePosition.value() + R;
+            scalarField f = substratePosition.value() - (mesh.points() & substrateNormal);
+            alpha = VolumeOfFluid(mesh, f);
+            exactVolumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
+        }
 
-            scalarField f = -generateBall(mesh.points(), vector(X, Y, Z), R);
-            alpha += VolumeOfFluid(mesh, f);
-
-            // Evaluate the volume of ball (full or cut)
-            // TODO(olegrog): improve accuracy by adding spherical caps
-            if
-            (
-                bounds.min().x() < X && X < bounds.max().x()
-             && bounds.min().y() < Y && Y < bounds.max().y()
-            )
+        // --- Generate balls
+        Random random(seed);
+        for (int j = -2; j <= 2; j++)
+        {
+            for (int i = -2; i < 15-2; i++)
             {
-                volumeFraction += 4./3*pi*pow(R, 3)/domainVolume;
+                const scalar R = ballRadius.value()*(1 + amplitudeRadius*random.position(-1, 1));
+                const scalar X = (amplitudePosition*random.position(-1, 1) + latticeStep*i)*R;
+                const scalar Y = (amplitudePosition*random.position(-1, 1) + latticeStep*j)*R;
+                const scalar Z = substratePosition.value() + R;
+
+                scalarField f = -generateBall(mesh.points(), vector(X, Y, Z), R);
+                alpha += VolumeOfFluid(mesh, f);
+
+                // Evaluate the volume of ball (full or cut)
+                // TODO(olegrog): improve accuracy by adding spherical caps
+                if
+                (
+                    bounds.min().x() < X && X < bounds.max().x()
+                 && bounds.min().y() < Y && Y < bounds.max().y()
+                )
+                {
+                    exactVolumeFraction += 4./3*pi*pow(R, 3)/domainVolume;
+                }
             }
         }
+
+        alpha.clip(0, 1);
+        alpha.correctBoundaryConditions();
+
+        // --- Analyze the result
+        const scalar volumeFraction = alpha.weightedAverage(mesh.Vsc()).value();
+        Info<< nl << "Volume fraction = " << volumeFraction
+            << " theoretical = " << exactVolumeFraction
+            << " error = " << (volumeFraction - exactVolumeFraction)/exactVolumeFraction
+            << nl << endl;
+
+        prevMeshSize = mesh.cells().size();
+        mesh.update();
     }
+    while (mesh.changing() && mesh.cells().size() > prevMeshSize);
 
     // --- Save the result
-    alpha.clip(0, 1);
-    alpha.correctBoundaryConditions();
     Info<< "Writing field " << alphaName << endl;
     ISstream::defaultPrecision(18);
-    alpha.write();
-
-    // --- Analyze the result
-    Info<< nl << alphaName << ": volume fraction = "
-        << alpha.weightedAverage(mesh.Vsc()).value()
-        << " theoretical = " << volumeFraction
-        << nl << endl;
+    runTime.setTime(0, 0);
+    runTime.writeNow();
 
     Info<< "End" << endl;
 

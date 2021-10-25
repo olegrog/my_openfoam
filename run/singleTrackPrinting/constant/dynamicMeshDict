@@ -25,8 +25,8 @@ refineInterval  1;
 field           alpha.metal;
 
 // Refine field in between lower..upper
-lowerRefineLevel 0.1;
-upperRefineLevel 0.9;
+lowerRefineLevel 0.01;
+upperRefineLevel 0.99;
 
 // If value < unrefineLevel unrefine
 unrefineLevel   10;
@@ -35,7 +35,7 @@ unrefineLevel   10;
 nBufferLayers   1;
 
 // Refine cells only up to maxRefinement levels
-maxRefinement   1;
+maxRefinement   2;
 
 // Stop refinement if maxCells reached
 maxCells        200000;
