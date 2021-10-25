@@ -34,6 +34,8 @@ divSchemes
     // linearUpwind grad(...) -- upwind with correction
     div(rhoPhi,U)   Gauss vanLeerV;
     div(rhoPhi,h)   Gauss vanLeer;
+    div(phi,epsilon) Gauss upwind;
+    div(phi,k) Gauss upwind;
 }
 
 laplacianSchemes
