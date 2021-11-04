@@ -48,8 +48,13 @@ with open(args.txtfile, 'r') as f:
 ### 1. Read and sort the data
 data = np.genfromtxt(args.txtfile, delimiter='\t', skip_header=1, filling_values=np.nan)
 T = data[:,0]
-uniqT = np.unique(T, return_index=True)[1]
-data = data[uniqT]
+# ThermoCalc generates several lines with the same temperature when some phase vanished.
+# We choose those with zeros nad remove those without value, i.e. NaN
+_, ind, inv, cnt = np.unique(T, return_index=True, return_inverse=True, return_counts=True)
+for i in np.where(cnt > 1)[0]:
+    j = np.argmax(np.count_nonzero(~np.isnan(data[ind[i]:ind[i]+cnt[i],:]), axis=1))
+    ind[i] += j
+data = data[ind]
 T = data[:,0]
 
 ### 2. Analyze phase fractions
@@ -133,11 +138,10 @@ for i, c in enumerate(columns):
                 C[elem] = spl(args.T0)
 
             n = elements.index(elem) + (1 if plot_phases else 0)
-            axis(n).plot(X, spl(X))
+            axis(n).plot(X, Y, label=f'{phase} ({slope:.4g} K)')
             if not np.isnan(slope):
                 f = lambda T: spl(args.T0) + (T-args.T0)/slope
                 axis(n).plot(X, f(X), **dashed)
-            axis(n).plot(X, Y, label=f'{phase} ({slope:.4g} K)')
 
 for n, elem in enumerate(elements):
     n += 1 if plot_phases else 0
@@ -146,6 +150,7 @@ for n, elem in enumerate(elements):
     axis(n).legend()
 
 if plot_phases:
+    [ axis(0).axhline(y=y, **dashed) for y in range(2) ]
     axis(0).set_title('Phase fractions')
     axis(0).legend()
 
