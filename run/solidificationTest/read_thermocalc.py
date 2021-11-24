@@ -157,6 +157,22 @@ if plot_phases:
 composition = f'{args.base}-' + '-'.join([ f'{elem}{100*C:.3g}' for elem, C in C.items() ])
 fig.suptitle(composition, fontweight="bold")
 
+# Schaeffer--DeLong estimations
+if args.base == 'Fe':
+    Ni_coeffs = { 'Ni': 1, 'Mn': 0.5, 'C': 30, 'N': 30 }
+    Cr_coeffs = { 'Cr': 1, 'Mo': 1.5, 'Si': 1.5, 'Nb': 0.5 }
+    Ni_eq = Cr_eq = 0
+    for elem, C in C.items():
+        if elem in Ni_coeffs:
+            Ni_eq += C*Ni_coeffs[elem]
+        if elem in Cr_coeffs:
+            Cr_eq += C*Cr_coeffs[elem]
+    a, b = 7, 10
+    Fe_dist = lambda x, y: (14 + b/a*(x - 19) - y)*a/np.sqrt(a**2 + b**2)
+    ten_pct_dist = Fe_dist(21, 12)
+    Fe_wt = 10/ten_pct_dist*Fe_dist(Cr_eq*100, Ni_eq*100)
+    print(f'Ni_eq = {Ni_eq:.3f}, Cr_eq = {Cr_eq:.3f}, %Fe = {Fe_wt:.2f}')
+
 fig.tight_layout()
 if args.pdf:
     plt.savefig(f'{composition}.pdf')
