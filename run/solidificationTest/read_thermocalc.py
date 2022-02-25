@@ -19,6 +19,7 @@ parser.add_argument('-s', '--size', type=float, default=4, help='figure size')
 parser.add_argument('-t', '--tail', type=float, default=0.5, help='part of temperature range outside the solidification interval')
 parser.add_argument('-p', '--phases', action='store_true', help='plot phase fractions')
 parser.add_argument('-m', '--manual', action='store_true', help='use manual temperature interval')
+parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
 parser.add_argument('--pdf', action='store_true', help='save PDF file instead')
 parser.add_argument('--skip-phases', type=str2words, default='', help='skip the comma-separated list of phases')
 args = parser.parse_args()
@@ -116,7 +117,8 @@ if Nfigs%2:
 
 ### 7. Plot phase diagrams and find slopes
 dashed = { 'linestyle': '--', 'linewidth': 0.5, 'color': 'k' }
-C = {}
+C = { p: {} for p in phases }
+slopes = { p: {} for p in phases }
 for i, c in enumerate(columns):
     if plot_phases and (phase := parse_phase_fraction(c)):
         if phase in phases:
@@ -133,9 +135,9 @@ for i, c in enumerate(columns):
             X, Y = T[mask], Y[mask]/sums[phase][mask]
             spl = interpolate.UnivariateSpline(X, Y, k=1, s=0)
             slope = 1/spl.derivative()(args.T0)
+            slopes[phase][elem] = slope
+            C[phase][elem] = spl(args.T0)
             print(f'{elem:2s} {phase}: C(T0) = {spl(args.T0):.4g}, slope = {slope:.4g}')
-            if phase == 'LIQUID':
-                C[elem] = spl(args.T0)
 
             n = elements.index(elem) + (1 if plot_phases else 0)
             axis(n).plot(X, Y, label=f'{phase} ({slope:.4g} K)')
@@ -154,15 +156,30 @@ if plot_phases:
     axis(0).set_title('Phase fractions')
     axis(0).legend()
 
-composition = f'{args.base}-' + '-'.join([ f'{elem}{100*C:.3g}' for elem, C in C.items() ])
+composition = f'{args.base}-' + '-'.join([ f'{elem}{100*C:.3g}' for elem, C in C['LIQUID'].items() ])
 fig.suptitle(composition, fontweight="bold")
 
-# Schaeffer--DeLong estimations
+### 8. Calculate a single-phase freezing range
+for phase in phases:
+    if phase == 'LIQUID':
+        continue
+    DeltaT1, DeltaT2 = 0, 0
+    for elem in elements:
+        mL, mS = slopes['LIQUID'][elem], slopes[phase][elem]
+        CL, CS = C['LIQUID'][elem], C[phase][elem]
+        DeltaT1 += (CS-CL)*mS
+        DeltaT2 += CL*(mL-mS)
+        if args.verbose:
+            print(f' -- {elem:2s}: K={mL/mS:.2f}, dT1={(CS-CL)*mS:.3g}, dT2={CL*(mL-mS):.3g}')
+    print(f'{phase}: DeltaT = {DeltaT1:.3g}, kdeltaT = {DeltaT2:.3g}')
+
+
+### 9. Estimate the fcc-bcc ratio according to the Schaeffer--DeLong diagram
 if args.base == 'Fe':
     Ni_coeffs = { 'Ni': 1, 'Mn': 0.5, 'C': 30, 'N': 30 }
     Cr_coeffs = { 'Cr': 1, 'Mo': 1.5, 'Si': 1.5, 'Nb': 0.5 }
     Ni_eq = Cr_eq = 0
-    for elem, C in C.items():
+    for elem, C in C['LIQUID'].items():
         if elem in Ni_coeffs:
             Ni_eq += C*Ni_coeffs[elem]
         if elem in Cr_coeffs:
