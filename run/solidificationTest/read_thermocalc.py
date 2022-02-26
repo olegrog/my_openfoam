@@ -163,15 +163,21 @@ fig.suptitle(composition, fontweight="bold")
 for phase in phases:
     if phase == 'LIQUID':
         continue
+    sumL, sumS = 0, 0
+    for elem in elements:
+        mL, mS = slopes['LIQUID'][elem], slopes[phase][elem]
+        CL, CS = C['LIQUID'][elem], C[phase][elem]
+        sumL += (CS - CL)/mL
+        sumS += (CS - CL)/mS
     DeltaT1, DeltaT2 = 0, 0
     for elem in elements:
         mL, mS = slopes['LIQUID'][elem], slopes[phase][elem]
         CL, CS = C['LIQUID'][elem], C[phase][elem]
-        DeltaT1 += (CS-CL)*mS
-        DeltaT2 += CL*(mL-mS)
+        dT1, dT2 = (CS - CL)**2/sumS, CL*(CS - CL)*(1/sumL - 1/sumS)
+        DeltaT1 += dT1; DeltaT2 += dT2
         if args.verbose:
-            print(f' -- {elem:2s}: K={mL/mS:.2f}, dT1={(CS-CL)*mS:.3g}, dT2={CL*(mL-mS):.3g}')
-    print(f'{phase}: DeltaT = {DeltaT1:.3g}, kdeltaT = {DeltaT2:.3g}')
+            print(f' -- {elem:2s}: dT1={dT1:.3g}, dT2={dT2:.3g}')
+    print(f'{phase}: K={sumL/sumS:.2f}, DeltaT1 = {DeltaT1:.3g}, DeltaT2 = {DeltaT2:.3g}')
 
 
 ### 9. Estimate the fcc-bcc ratio according to the Schaeffer--DeLong diagram
@@ -185,10 +191,10 @@ if args.base == 'Fe':
         if elem in Cr_coeffs:
             Cr_eq += C*Cr_coeffs[elem]
     a, b = 7, 10
-    Fe_dist = lambda x, y: (14 + b/a*(x - 19) - y)*a/np.sqrt(a**2 + b**2)
-    ten_pct_dist = Fe_dist(21, 12)
-    Fe_wt = 10/ten_pct_dist*Fe_dist(Cr_eq*100, Ni_eq*100)
-    print(f'Ni_eq = {Ni_eq:.3f}, Cr_eq = {Cr_eq:.3f}, %Fe = {Fe_wt:.2f}')
+    bcc_dist = lambda x, y: (14 + b/a*(x - 19) - y)*a/np.sqrt(a**2 + b**2)
+    ten_pct_dist = bcc_dist(21, 12)
+    bcc_wt = 10/ten_pct_dist*bcc_dist(Cr_eq*100, Ni_eq*100)
+    print(f'Ni_eq = {Ni_eq:.3f}, Cr_eq = {Cr_eq:.3f}, %bcc = {bcc_wt:.2f}')
 
 fig.tight_layout()
 if args.pdf:
