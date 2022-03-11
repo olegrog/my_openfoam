@@ -2,8 +2,11 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+    \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
+-------------------------------------------------------------------------------
+                  Arrhenius | Copyright (C) 2017 OpenFOAM Foundation
+              trueArrhenius | Copyright (C) 2019, 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of trueArrhenius.
@@ -23,10 +26,21 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-
 #include "trueArrhenius.H"
 
+#include "updateGeometricField.H"
+
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+
+template<class ViscosityModel>
+Foam::scalar Foam::viscosityModels::trueArrhenius<ViscosityModel>::temperatureFactor
+(
+    scalar T
+) const
+{
+    return min(exp(alpha_*(inv(T) - inv(Talpha_))), 1);
+}
+
 
 template<class ViscosityModel>
 void Foam::viscosityModels::trueArrhenius<ViscosityModel>::calcTemperatureFactor
@@ -34,7 +48,15 @@ void Foam::viscosityModels::trueArrhenius<ViscosityModel>::calcTemperatureFactor
     const volScalarField& T
 )
 {
-    temperatureFactor_ = min(exp(alpha_*(1/T - 1/Talpha_)), scalar(1));
+    updateGeometricField
+    (
+        temperatureFactor_,
+        [this](scalar& factor, scalar T)
+        {
+            factor = temperatureFactor(T);
+        },
+        T
+    );
 }
 
 
@@ -54,6 +76,10 @@ Foam::viscosityModels::trueArrhenius<ViscosityModel>::trueArrhenius
     (
         viscosityProperties.subDict(typeName + "Coeffs")
     ),
+    alpha_(trueArrheniusCoeffs_.get<scalar>("alpha")),
+    Talpha_(trueArrheniusCoeffs_.get<scalar>("Talpha")),
+    TName_(trueArrheniusCoeffs_.lookupOrDefault<word>("field", "T")),
+    mesh_(U.mesh()),
     temperatureFactor_
     (
         IOobject
@@ -62,15 +88,17 @@ Foam::viscosityModels::trueArrhenius<ViscosityModel>::trueArrhenius
             U.time().timeName(),
             U.db()
         ),
-        U.mesh(),
+        mesh_,
         dimless
     ),
-    alpha_("alpha", dimTemperature, trueArrheniusCoeffs_),
-    Talpha_("Talpha", dimTemperature, trueArrheniusCoeffs_),
-    TName_(trueArrheniusCoeffs_.lookupOrDefault<word>("field", "T")),
-    mesh_(U.mesh()),
     isCorrected_(false)
-{}
+{
+    const scalar nu0 = gMax(ViscosityModel::nu()());
+
+    Info<< " -- kinematic viscosity at Talpha = " << nu0 << endl
+        << " -- kinematic viscosity at Tinfty = " << nu0*temperatureFactor(GREAT*Talpha_) << endl
+        << endl;
+}
 
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
@@ -80,11 +108,12 @@ void Foam::viscosityModels::trueArrhenius<ViscosityModel>::correct()
 {
     const auto* TPtr = mesh_.findObject<volScalarField>(TName_);
 
+    // The temperature field is not available in the first call
     if (TPtr)
     {
         if (isCorrected_)
         {
-            // the temperature factor should be removed for viscous models without correction
+            // The temperature factor should be removed for viscous models without correction
             this->nu_ /= temperatureFactor_;
         }
 

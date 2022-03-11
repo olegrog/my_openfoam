@@ -2,8 +2,11 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+    \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
+-------------------------------------------------------------------------------
+                  Arrhenius | Copyright (C) 2017 OpenFOAM Foundation
+              trueArrhenius | Copyright (C) 2019, 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of trueArrhenius.
@@ -26,9 +29,9 @@ Class
 
 Description
     trueArrhenius type of dependency on a given scalar field name. Most likely
-    temperature. The expression is as follow:
+    temperature. The expression is as follows:
     \verbatim
-        mu = exp(alpha_*(inv(T) - inv(Talpha_)))
+        nu = nu_0*exp(alpha_*(inv(T) - inv(Talpha_)))
     \endverbatim
 
 SourceFiles
@@ -60,12 +63,14 @@ class trueArrhenius
 {
     // Private data
 
+        // Dictionary containing model parameters
         dictionary trueArrheniusCoeffs_;
-        volScalarField temperatureFactor_;
 
-        // Model coefficients
-        dimensionedScalar alpha_;
-        dimensionedScalar Talpha_;
+        // Arrhenius coefficient [K]
+        scalar alpha_;
+
+        // Reference temperature [K]
+        scalar Talpha_;
 
         //- Name of the field used as temperature
         const word TName_;
@@ -73,13 +78,19 @@ class trueArrhenius
         //- Reference to mesh
         const fvMesh& mesh_;
 
+        //- Temperature factor []
+        volScalarField temperatureFactor_;
+
         //- Flag to indicate whether the viscosity field is multiplied by a temperature factor
         bool isCorrected_;
 
 
     // Private Member Functions
 
-        //- Calculate the temperature factor for laminar viscosity
+        //- Return the temperature factor for laminar viscosity
+        scalar temperatureFactor(scalar T) const;
+
+        //- Calculate the temperature factor for laminar viscosity []
         void calcTemperatureFactor(const volScalarField& T);
 
 
