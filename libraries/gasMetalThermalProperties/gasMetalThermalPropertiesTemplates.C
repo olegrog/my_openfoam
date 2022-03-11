@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2021 Oleg Rogozin
+                            | Copyright (C) 2020-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of gasMetalThermalProperties.
@@ -311,8 +311,9 @@ void Foam::gasMetalThermalProperties<Mixture>::correctPassiveFields()
             {
                 const scalar deltaT = T_.mesh().time().deltaTValue();
                 const scalar coolingRate = (T_.oldTime()[cellI] - T_[cellI])/deltaT;
+                const scalar coolingRateTol = SMALL*thermo_.Tmelting().value()/deltaT;
 
-                if (coolingRate < 0)
+                if (coolingRate < -coolingRateTol)
                 {
                     FatalErrorInFunction
                         << " coolingRate = " << coolingRate
