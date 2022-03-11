@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2021 Oleg Rogozin
+                            | Copyright (C) 2020-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -30,6 +30,8 @@ License
 #include "fvcGrad.H"
 #include "fvcReconstruct.H"
 #include "constants.H"
+
+#include "generateGeometricField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -57,25 +59,48 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
     immiscibleIncompressibleTwoPhaseMixture(U, phi),
     gasMetalThermalProperties(U.mesh(), *this),
     sigmaPtr_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
-    dSigmaDT_
-    (
-        "dSigmaDT",
-        this->sigmaK()().dimensions()/dimTemperature*dimLength,
-        sigmaPtr_->value(1) - sigmaPtr_->value(0)
-    ),
     mushyCoeff_("mushyCoeff", *this)
 {
-    // --- Diagnostic info
+    const scalar Tmelting = thermo().Tmelting().value();
 
-    Info<< " -- Surface tension = " << sigmaPtr_->value(0) << " + ("
-        << dSigmaDT_.value() << ")*T\n" << endl;
+    Info<< endl
+        << " -- Surface tension at Tmelting = " << sigmaPtr_->value(Tmelting) << endl
+        << " -- Marangoni coefficient at Tmelting = " << dSigmaDT(Tmelting) << endl
+        << endl;
 
-    // --- Activate auto-writing of additional fields
+    // Activate auto-writing of additional fields
     if (writeAllFields_)
     {
         // nu_ is defined in incompressibleTwoPhaseMixture
         nu_.writeOpt() = IOobject::AUTO_WRITE;
     }
+}
+
+
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+Foam::scalar Foam::incompressibleGasMetalMixture::dSigmaDT(scalar T) const
+{
+    // Function1 does not support derivatives; therefore, we compute them manually
+    const scalar dT = ROOTSMALL;
+
+    return (sigmaPtr_->value(T+dT) - sigmaPtr_->value(T-dT))/2/dT;
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::dSigmaDT() const
+{
+    return generateGeometricField<volScalarField>
+    (
+        "dSigmaDT",
+        T().mesh(),
+        dimEnergy/dimArea/dimTemperature,
+        [this](scalar T)
+        {
+            return dSigmaDT(T);
+        },
+        T()
+    );
 }
 
 
@@ -92,7 +117,7 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
     // This is an alternative formula:
     //  gradT = TPrimeEnthalpy()*fvc::grad(h_) + TPrimeMetalFraction()*gradAlphaM;
 
-    return dSigmaDT_*(gradT & I_nn)*mag(gradAlphaM);
+    return dSigmaDT()*(gradT & I_nn)*mag(gradAlphaM);
 }
 
 

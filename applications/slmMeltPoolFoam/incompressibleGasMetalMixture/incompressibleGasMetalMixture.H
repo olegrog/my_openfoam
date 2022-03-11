@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2020-2021 Oleg Rogozin
+                            | Copyright (C) 2020-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -60,17 +60,20 @@ class incompressibleGasMetalMixture
 
         // Constants
 
-            //- Surface tension as a function of temperature
+            //- Surface tension as a function of temperature [J/m^2]
             autoPtr<Function1<scalar>> sigmaPtr_;
-
-            //- Derivative of the surface tension w.r.t temperature [kg/s^2/K]
-            const dimensionedScalar dSigmaDT_;
 
             //- Coefficient related to the permeability of mushy layer [kg/m^3/s]
             const dimensionedScalar mushyCoeff_;
 
 
     // Private Member Functions
+
+        //- Calculates the Marangoni coefficient
+        scalar dSigmaDT(scalar T) const;
+
+        //- Returns the Marangoni coefficient [J/m^2/K]
+        tmp<volScalarField> dSigmaDT() const;
 
         //- No copy construct
         incompressibleGasMetalMixture(const incompressibleGasMetalMixture&) = delete;
