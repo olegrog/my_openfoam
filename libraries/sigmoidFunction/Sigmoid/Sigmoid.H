@@ -24,10 +24,13 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::sigmoid
+    Foam::Sigmoid
 
 Description
     Class template for an arbitrary sigmoid function with internal checks.
+
+SourceFiles
+    SigmoidTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
