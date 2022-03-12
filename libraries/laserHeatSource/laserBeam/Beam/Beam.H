@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2021 Oleg Rogozin
+                            | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of laserHeatSource.
@@ -24,18 +24,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::beam::Gaussian
+    Foam::Beam
 
 Description
-    Abstract base class for laser beam properties.
+    Class template for arbitrary laser beam intensity.
 
 SourceFiles
-    Gaussian.C
+    BeamTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef beam_Gaussian_H
-#define beam_Gaussian_H
+#ifndef Beam_H
+#define Beam_H
 
 #include "laserBeam.H"
 
@@ -43,14 +43,13 @@ SourceFiles
 
 namespace Foam
 {
-namespace beam
-{
 
 /*---------------------------------------------------------------------------*\
-                          Class Gaussian Declaration
+                            Class Beam Declaration
 \*---------------------------------------------------------------------------*/
 
-class Gaussian
+template<class Type>
+class Beam
 :
     public laserBeam
 {
@@ -58,10 +57,10 @@ class Gaussian
 public:
 
     //- Runtime type information
-    TypeName("Gaussian");
+    TypeName("Beam");
 
     //- Constructor
-    Gaussian
+    Beam
     (
         const dictionary& dict,
         const fvMesh& mesh,
@@ -71,23 +70,28 @@ public:
         laserBeam(dict, mesh, laser) {}
 
     //- Destructor
-    ~Gaussian() override = default;
+    ~Beam() final = default;
 
 
     // Member Functions
 
         //- Return the intensity as a function of coordinate [W/m2]
-        scalar I(const vector& r) const override;
+        scalar I(const vector& r) const final;
 
         //- Return the intensity distribution [W/m2]
-        tmp<volScalarField> I() const override;
+        tmp<volScalarField> I() const final;
 };
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace beam
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+    #include "BeamTemplates.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

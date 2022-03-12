@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2021 Oleg Rogozin
+                            | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of laserHeatSource.
@@ -25,61 +25,26 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Gaussian.H"
-
-#include "addToRunTimeSelectionTable.H"
-#include "constants.H"
+#include "Beam.H"
 
 #include "generateGeometricField.H"
 #include "laserProperties.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace
-{
-
-Foam::scalar intensity
-(
-    Foam::scalar P,
-    Foam::scalar R,
-    const Foam::vector& x0,
-    const Foam::vector& x,
-    const Foam::vector& n
-)
-{
-    using namespace Foam;
-    using constant::mathematical::piByTwo;
-
-    return P*Foam::exp(-2*magSqr(((x - x0) ^ n)/R))/piByTwo/sqr(R);
-}
-
-
-} // End namespace
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    namespace beam
-    {
-        defineTypeName(Gaussian);
-        addToRunTimeSelectionTable(laserBeam, Gaussian, dictionary);
-    }
-}
-
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::scalar Foam::beam::Gaussian::I(const vector& x) const
+template<class Type>
+Foam::scalar Foam::Beam<Type>::I(const vector& x) const
 {
     const scalar P = laser_.power().value();
     const scalar R = laser_.radius().value();
     const vector x0 = laser_.position().value();
 
-    return intensity(P, R, x0, x, direction_);
+    return P*Type::intensity(x, x0, direction_, R);
 }
 
 
-Foam::tmp<Foam::volScalarField> Foam::beam::Gaussian::I() const
+template<class Type>
+Foam::tmp<Foam::volScalarField> Foam::Beam<Type>::I() const
 {
     const scalar P = laser_.power().value();
     const scalar R = laser_.radius().value();
@@ -88,12 +53,12 @@ Foam::tmp<Foam::volScalarField> Foam::beam::Gaussian::I() const
 
     return generateGeometricField<volScalarField>
     (
-        "I",
+        "BeamIntensity",
         mesh_,
         dimPower/dimArea,
         [=](vector x)
         {
-            return intensity(P, R, x0, x, direction_);
+            return P*Type::intensity(x, x0, direction_, R);
         },
         x
     );

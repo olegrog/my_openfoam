@@ -3,6 +3,6 @@ laserHeatSource/laserHeatSource.C
 laserProperties/laserProperties.C
 
 laserBeam/laserBeam/laserBeam.C
-laserBeam/Gaussian/Gaussian.C
+laserBeam/Beam/makeBeams.C
 
 LIB = $(FOAM_USER_LIBBIN)/liblaserHeatSource

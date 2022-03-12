@@ -32,7 +32,7 @@ timeStop    [ s ]   0.0005;
 
 beam
 {
-    type    Gaussian; // divergeGaussian
+    type    Gaussian; // topHat
     direction           ( 0 0 -1 );
     waveLength  [ m ]   1e-6;
 }

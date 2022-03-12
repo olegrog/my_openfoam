@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2021 Oleg Rogozin
+                            | Copyright (C) 2021-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of laserHeatSource.
@@ -24,106 +24,46 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::laserBeam
+    beam::Gaussian
 
 Description
-    Abstract base class for perfectly collimated laser beam properties.
-
-SourceFiles
-    laserBeam.C
+    Gaussian laser beam.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef laserBeam_H
-#define laserBeam_H
-
-#include "runTimeSelectionTables.H"
-#include "volFields.H"
+#ifndef beam_Gaussian_H
+#define beam_Gaussian_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-class laserProperties;
-
-/*---------------------------------------------------------------------------*\
-                       Class laserBeam Declaration
-\*---------------------------------------------------------------------------*/
-
-class laserBeam
+namespace beam
 {
 
-protected:
+/*---------------------------------------------------------------------------*\
+                          Class Gaussian Declaration
+\*---------------------------------------------------------------------------*/
 
-    // Protected data
-
-        //- Reference to laser properties
-        const fvMesh& mesh_;
-
-        //- Reference to laser properties
-        const laserProperties& laser_;
-
-        //- Beam direction
-        const vector direction_;
-
-public:
-
-    //- Runtime type information
-    TypeName("laserBeam");
-
-    //- Declare run-time constructor selection table
-    declareRunTimeSelectionTable
+struct Gaussian
+{
+    static scalar intensity
     (
-        autoPtr,
-        laserBeam,
-        dictionary,
-        (
-            const dictionary& dict,
-            const fvMesh& mesh,
-            const laserProperties& laser
-        ),
-        (dict, mesh, laser)
-    );
+        const vector& x0,
+        const vector& x,
+        const vector& n,
+        scalar R
+    )
+    {
+        using constant::mathematical::piByTwo;
 
-    //- Constructor
-    laserBeam
-    (
-        const dictionary& dict,
-        const fvMesh& mesh,
-        const laserProperties& laser
-    );
-
-    //- Selector
-    static autoPtr<laserBeam> New
-    (
-        const dictionary& dict,
-        const fvMesh& mesh,
-        const laserProperties& laser
-    );
-
-    //- Destructor
-    virtual ~laserBeam() = default;
-
-
-    // Member Functions
-
-        //- Return the direction of the laser beam
-        const vector& direction() const
-        {
-            return direction_;
-        }
-
-        //- Return the intensity as a function of coordinate [W/m2]
-        virtual scalar I(const vector& r) const = 0;
-
-        //- Return the intensity distribution [W/m2]
-        virtual tmp<volScalarField> I() const = 0;
+        return exp(-2*magSqr(((x - x0) ^ n)/R))/piByTwo/sqr(R);
+    }
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+} // End namespace beam
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
