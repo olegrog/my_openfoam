@@ -39,6 +39,7 @@ SourceFiles
 #define rayTracingHeatSource_H
 
 #include "Cloud.H"
+#include "Random.H"
 
 #include "surfaceLaserHeatSource.H"
 #include "scatteringModel.H"
@@ -73,6 +74,9 @@ class rayTracingHeatSource
 
         //- Flag to write OBJ file for inspection in ParaView
         const bool writeOBJ_;
+
+        //- Generator of random numbers
+        Random random_;
 
         //- Flag to use the subcell data obtained from isoAdvector
         const bool useSubCellData_;

@@ -30,7 +30,6 @@ License
 
 #include "addToRunTimeSelectionTable.H"
 #include "constants.H"
-#include "Random.H"
 #include "OBJstream.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
@@ -61,6 +60,7 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
     nr_(modelDict_.get<label>("nr")),
     maxr_(modelDict_.get<scalar>("maxr")),
     writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
+    random_(modelDict_.getOrDefault("seed", 1234)),
     useSubCellData_(modelDict_.getOrDefault("useSubCellData", true)),
     scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
 {
@@ -144,12 +144,11 @@ void Foam::rayTracingHeatSource::calcSource()
     // A unit vector normal to the laser direction
     vector vHatInPlane = Zero;
     {
-        Random rnd(1234);
         scalar magr = 0;
 
         while (magr < VSMALL)
         {
-            const vector v = rnd.sample01<vector>();
+            const vector v = random_.sample01<vector>();
             vHatInPlane = v - (v & laserDir)*laserDir;
             magr = mag(vHatInPlane);
         }

@@ -30,8 +30,6 @@ License
 
 #include "generateGeometricField.H"
 
-#include "Sigmoid.H"
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 template<class Function>
