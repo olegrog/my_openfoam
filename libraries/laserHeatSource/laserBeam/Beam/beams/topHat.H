@@ -47,17 +47,14 @@ namespace beam
 
 struct topHat
 {
-    static scalar intensity
-    (
-        const vector& x0,
-        const vector& x,
-        const vector& n,
-        scalar R
-    )
+    static scalar intensity(scalar r)
     {
-        using constant::mathematical::pi;
+        return pos(1 - r);
+    }
 
-        return pos(sqr(R) - magSqr((x - x0) ^ n))/pi/sqr(R);
+    static scalar integral(scalar r)
+    {
+        return sqr(r)*pos(1 - r) + pos0(r - 1);
     }
 };
 

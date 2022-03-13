@@ -47,17 +47,14 @@ namespace beam
 
 struct Gaussian
 {
-    static scalar intensity
-    (
-        const vector& x0,
-        const vector& x,
-        const vector& n,
-        scalar R
-    )
+    static scalar intensity(scalar r)
     {
-        using constant::mathematical::piByTwo;
+        return 2*exp(-2*sqr(r));
+    }
 
-        return exp(-2*magSqr(((x - x0) ^ n)/R))/piByTwo/sqr(R);
+    static scalar integral(scalar r)
+    {
+        return 1 - exp(-2*sqr(r));
     }
 };
 

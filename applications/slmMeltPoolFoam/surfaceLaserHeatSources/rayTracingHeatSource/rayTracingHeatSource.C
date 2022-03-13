@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
                   laserDTRM | Copyright (C) 2017-2019 OpenCFD Ltd.
-       rayTracingHeatSource | Copyright (C) 2021 Oleg Rogozin
+       rayTracingHeatSource | Copyright (C) 2021-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -56,14 +56,15 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
 )
 :
     surfaceLaserHeatSource(typeName, mixture, advector),
-    nTheta_(modelDict_.get<label>("nTheta")),
-    nr_(modelDict_.get<label>("nr")),
-    maxr_(modelDict_.get<scalar>("maxr")),
+    nRays_(modelDict_.get<label>("nRays")),
+    RcutByR_(modelDict_.get<scalar>("RcutByR")),
     writeOBJ_(modelDict_.getOrDefault("writeOBJ", false)),
     random_(modelDict_.getOrDefault("seed", 1234)),
     useSubCellData_(modelDict_.getOrDefault("useSubCellData", true)),
     scatteringModelPtr_(scatteringModel::New(modelDict_.subDict("scattering")))
 {
+    // 1. Check that threshold is low enough
+
     const scalar threshold = scatteringModelPtr_->threshold();
     const scalar densityRatio = (mixture.rho2()/mixture.rho1()).value();
 
@@ -73,6 +74,29 @@ Foam::rayTracingHeatSource::rayTracingHeatSource
             << "Scattering threshold = " << threshold << " is not low enough." << nl
             << "It should be less than the density ratio = " << densityRatio
             << exit(FatalError);
+    }
+
+    // 2. Check that RcutByR is appropriate
+
+    const label nRings = floor(sqrt(0. + nRays_));
+    const scalar Rcut = RcutByR_*radius().value();
+    const scalar P = power().value();
+    const scalar dr = Rcut/nRings;
+    const scalar lastIdr = (beam().integralI(Rcut) - beam().integralI(Rcut - dr))/P;
+    const scalar cutFraction = 1 - beam().integralI(Rcut)/P;
+
+    if (lastIdr*nRays_ < 3)
+    {
+        FatalError
+            << "`RcutByR` is too large for the specified number of rays." << nl
+            << "Fraction of the energy source at " << RcutByR_ << "*R = " << lastIdr
+            << exit(FatalError);
+    }
+
+    if (cutFraction > 0.05)
+    {
+        Warning
+            << "Fraction of the truncated energy source = " << cutFraction << endl;
     }
 }
 
@@ -124,8 +148,9 @@ void Foam::rayTracingHeatSource::calcSource()
 
     // 1. Prepare calculations
 
-    const scalar dr = maxr_*radius().value()/nr_;
-    const scalar dTheta = 2*pi/nTheta_;
+    const label nRings = floor(sqrt(0. + nRays_));
+    const scalar Rcut = RcutByR_*radius().value();
+    const scalar dr = Rcut/nRings;
     const scalar maxTrackLength = mesh_.bounds().mag();
 
     source_.primitiveFieldRef() = 0;
@@ -136,41 +161,51 @@ void Foam::rayTracingHeatSource::calcSource()
     const scalar laserPower = power().value();
     const point laserPos = position().value();
     const vector laserDir = beam().direction();
+    const scalar cutFraction = 1 - beam().integralI(Rcut)/laserPower;
 
     DebugInfo
         << "Laser position = " << laserPos << nl
         << "Laser direction = " << laserDir << endl;
-
-    // A unit vector normal to the laser direction
-    vector vHatInPlane = Zero;
-    {
-        scalar magr = 0;
-
-        while (magr < VSMALL)
-        {
-            const vector v = random_.sample01<vector>();
-            vHatInPlane = v - (v & laserDir)*laserDir;
-            magr = mag(vHatInPlane);
-        }
-    }
-    vHatInPlane.normalise();
 
     // 2. Generate a cloud of rayTracing particles
 
     Cloud<rayTracingParticle> cloud(mesh_, "cloud", IDLList<rayTracingParticle>());
     particle::particleCount_ = 0;
 
-    for (label ri = 0; ri < nr_; ri++)
+    for (label ri = 0; ri < nRings; ri++)
     {
-        // TODO: nonuniform step along radial axis (should be implemented in laserBeam)
-        const scalar r1 = SMALL + dr*ri;
+        // A unit vector normal to the laser direction
+        vector vHatInPlane = Zero;
+        {
+            scalar magr = 0;
+
+            while (magr < VSMALL)
+            {
+                const vector v = random_.sample01<vector>();
+                vHatInPlane = v - (v & laserDir)*laserDir;
+                magr = mag(vHatInPlane);
+            }
+        }
+        vHatInPlane.normalise();
+
+        const scalar r1 = dr*ri;
         const scalar r2 = r1 + dr;
         const scalar rP = (r1 + r2)/2;
         const point localR = rP*vHatInPlane;
+        const scalar Idr = (beam().integralI(r2) - beam().integralI(r1))/laserPower; // []
+        const label nTheta = ceil(nRays_*Idr);
+        const scalar dTheta = 2*pi/nTheta;
+        const scalar dA = (sqr(r2) - sqr(r1))*dTheta/2; // [m2]
 
-        for (label thetai = 0; thetai < nTheta_; thetai++)
+        // Fraction of the energy source transmitted by the ray
+        const scalar dQ = Idr/nTheta/(1 - cutFraction);
+
+        totalPower += dQ*laserPower;
+        totalArea += dA;
+
+        for (label thetai = 0; thetai < nTheta; thetai++)
         {
-            const scalar theta1 = SMALL + dTheta*thetai;
+            const scalar theta1 = dTheta*thetai;
             const scalar theta2 = theta1 + dTheta;
             const scalar thetaP = (theta1 + theta2)/2;
 
@@ -180,12 +215,8 @@ void Foam::rayTracingHeatSource::calcSource()
             const point p0 = laserPos + localPos;
             const point p1 = p0 + maxTrackLength*laserDir;
 
-            const scalar Ip = beam().I(p0)/laserPower; // [1/m2]
-            const scalar dA = (sqr(r2) - sqr(r1))*dTheta/2; // [m2]
-            const scalar dQ = Ip*dA; // fraction of the energy source transmitted by the ray
-
-            totalPower += dQ*laserPower;
-            totalArea += dA;
+            // const scalar Ip = beam().I(p0)/laserPower; // [1/m2]
+            // dQ is approximately equal to Ip*dA
 
             const label cellI = mesh_.findCell(p0);
 

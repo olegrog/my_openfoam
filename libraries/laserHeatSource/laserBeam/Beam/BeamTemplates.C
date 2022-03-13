@@ -33,19 +33,32 @@ License
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-Foam::scalar Foam::Beam<Type>::I(const vector& x) const
+Foam::scalar Foam::Beam<Type>::I(scalar r) const
+{
+    using constant::mathematical::pi;
+
+    const scalar P = laser_.power().value();
+    const scalar R = laser_.radius().value();
+
+    return P*Type::intensity(r/R)/pi/sqr(R);
+}
+
+
+template<class Type>
+Foam::scalar Foam::Beam<Type>::integralI(scalar r) const
 {
     const scalar P = laser_.power().value();
     const scalar R = laser_.radius().value();
-    const vector x0 = laser_.position().value();
 
-    return P*Type::intensity(x, x0, direction_, R);
+    return P*Type::integral(r/R);
 }
 
 
 template<class Type>
 Foam::tmp<Foam::volScalarField> Foam::Beam<Type>::I() const
 {
+    using constant::mathematical::pi;
+
     const scalar P = laser_.power().value();
     const scalar R = laser_.radius().value();
     const vector x0 = laser_.position().value();
@@ -58,7 +71,8 @@ Foam::tmp<Foam::volScalarField> Foam::Beam<Type>::I() const
         dimPower/dimArea,
         [=](vector x)
         {
-            return P*Type::intensity(x, x0, direction_, R);
+            const scalar r = mag((x - x0) ^ direction_)/R;
+            return P*Type::intensity(r)/pi/sqr(R);
         },
         x
     );

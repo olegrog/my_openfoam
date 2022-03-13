@@ -75,10 +75,13 @@ public:
 
     // Member Functions
 
-        //- Return the intensity as a function of coordinate [W/m2]
-        scalar I(const vector& r) const final;
+        //- Intensity as a function of radial coordinate [W/m2]
+        scalar I(scalar r) const final;
 
-        //- Return the intensity distribution [W/m2]
+        //- Integral of the intensity over the disk of radius r [W]
+        scalar integralI(scalar r) const final;
+
+        //- Intensity field [W/m2]
         tmp<volScalarField> I() const final;
 };
 

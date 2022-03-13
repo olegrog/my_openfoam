@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
                   laserDTRM | Copyright (C) 2017-2019 OpenCFD Ltd.
-       rayTracingHeatSource | Copyright (C) 2021 Oleg Rogozin
+       rayTracingHeatSource | Copyright (C) 2021-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
@@ -63,14 +63,11 @@ class rayTracingHeatSource
         //- Dictionary
         const dictionary dict_;
 
-        //- Number of theta angles
-        const label nTheta_;
+        //- Total number of rays
+        const label nRays_;
 
-        //- Number of radials
-        const label nr_;
-
-        //- Maximum radius
-        const scalar maxr_;
+        //- Ratio of the cut-off radius to the beam radius
+        const scalar RcutByR_;
 
         //- Flag to write OBJ file for inspection in ParaView
         const bool writeOBJ_;

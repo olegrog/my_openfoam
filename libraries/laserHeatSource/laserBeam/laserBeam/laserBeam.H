@@ -5,7 +5,7 @@
     \\  /    A nd           | Copyright held by original author(s)
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
-                            | Copyright (C) 2021 Oleg Rogozin
+                            | Copyright (C) 2021-2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of laserHeatSource.
@@ -114,10 +114,13 @@ public:
             return direction_;
         }
 
-        //- Return the intensity as a function of coordinate [W/m2]
-        virtual scalar I(const vector& r) const = 0;
+        //- Intensity as a function of radial coordinate [W/m2]
+        virtual scalar I(scalar r) const = 0;
 
-        //- Return the intensity distribution [W/m2]
+        //- Integral of the intensity over the disk of radius r [W]
+        virtual scalar integralI(scalar r) const = 0;
+
+        //- Intensity field [W/m2]
         virtual tmp<volScalarField> I() const = 0;
 };
 
