@@ -56,7 +56,7 @@ Foam::Sigmoid<Function>::Sigmoid(scalar a, scalar b)
         if (notEqual(pair.first(), pair.second()))
         {
             FatalErrorInFunction
-                << "wrong implemented sigmoid function since "
+                << "Wrong implemented sigmoid function since "
                 << pair.first() << " != " << pair.second()
                 << exit(FatalError);
         }

@@ -25,10 +25,47 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "Beam.H"
+#include "error.H"
+#include "sigFpe.H"
 
 #include "generateGeometricField.H"
 #include "laserProperties.H"
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+template<class Type>
+Foam::Beam<Type>::Beam
+(
+    const dictionary& dict,
+    const fvMesh& mesh,
+    const laserProperties& laser
+)
+:
+    laserBeam(dict, mesh, laser)
+{
+    const bool sigActive = sigFpe::active();
+    // SIGFPE can be trapped, but here we have to disable this feature
+    if (sigActive) sigFpe::unset();
+    const List<Pair<scalar>> actualVsExpected
+    {
+        { Type::intensity(VGREAT), 0},
+        { Type::integral(0), 0},
+        { Type::integral(VGREAT), 1},
+    };
+    if (sigActive) sigFpe::set();
+
+    for (const auto& pair : actualVsExpected)
+    {
+        if (notEqual(pair.first(), pair.second()))
+        {
+            FatalErrorInFunction
+                << "Wrong implemented laser beam intensity model since "
+                << pair.first() << " != " << pair.second()
+                << exit(FatalError);
+        }
+    }
+}
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 

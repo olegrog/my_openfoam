@@ -54,7 +54,7 @@ struct topHat
 
     static scalar integral(scalar r)
     {
-        return sqr(r)*pos(1 - r) + pos0(r - 1);
+        return r < 1 ? sqr(r) : 1;
     }
 };
 

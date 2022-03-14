@@ -65,9 +65,7 @@ public:
         const dictionary& dict,
         const fvMesh& mesh,
         const laserProperties& laser
-    )
-    :
-        laserBeam(dict, mesh, laser) {}
+    );
 
     //- Destructor
     ~Beam() final = default;
