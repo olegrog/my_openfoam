@@ -2,5 +2,5 @@ EXE_INC = \
     -I../../src \
     -I$(LIB_SRC)/finiteVolume/lnInclude
 
-EXE_LIBS = \
+LIB_LIBS = \
     -lfiniteVolume

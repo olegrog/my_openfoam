@@ -1,4 +1,4 @@
-FROM opencfd/openfoam2106-default:latest
+FROM opencfd/openfoam2112-default:latest
 
 USER root
 
