@@ -10,6 +10,40 @@ psiThermo& thermo = pThermo();
 
 volScalarField& e = thermo.he();
 
+dimensionedScalar D("D", dimViscosity, thermo);
+
+Info<< "Reading chemical properties\n" << endl;
+IOdictionary chemicalProperties
+(
+    IOobject
+    (
+        "chemicalProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+    )
+);
+
+dimensionedScalar Q("Q", dimEnergy/dimMass, chemicalProperties);
+dimensionedScalar E("E", dimEnergy/dimMass, chemicalProperties);
+dimensionedScalar k("k", inv(dimTime), chemicalProperties);
+
+
+Info<< "Reading field lambda\n" << endl;
+volScalarField lambda
+(
+    IOobject
+    (
+        "lambda",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh
+);
+
 Info<< "Reading field U\n" << endl;
 volVectorField U
 (
@@ -60,7 +94,20 @@ volScalarField rhoE
         IOobject::NO_READ,
         IOobject::NO_WRITE
     ),
-    rho*(e + 0.5*magSqr(U))
+    rho*(e + 0.5*magSqr(U) - lambda*Q)
+);
+
+volScalarField rhoLambda
+(
+    IOobject
+    (
+        "rhoLambda",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    rho*lambda
 );
 
 surfaceScalarField pos

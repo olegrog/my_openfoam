@@ -107,6 +107,9 @@ int main(int argc, char *argv[])
         surfaceScalarField e_pos(interpolate(e, pos, T.name()));
         surfaceScalarField e_neg(interpolate(e, neg, T.name()));
 
+        surfaceScalarField lambda_pos(interpolate(lambda, pos, lambda.name()));
+        surfaceScalarField lambda_neg(interpolate(lambda, neg, lambda.name()));
+
         surfaceVectorField U_pos("U_pos", rhoU_pos/rho_pos);
         surfaceVectorField U_neg("U_neg", rhoU_neg/rho_neg);
 
@@ -205,6 +208,12 @@ int main(int argc, char *argv[])
           + aSf*p_pos - aSf*p_neg
         );
 
+        surfaceScalarField phiLambdap
+        (
+            "phiLambdap",
+            aphiv_pos*rho_pos*lambda_pos + aphiv_neg*rho_neg*lambda_neg
+        );
+
         // Make flux for pressure-work absolute
         if (mesh.moving())
         {
@@ -239,6 +248,30 @@ int main(int argc, char *argv[])
             rhoU = rho*U;
         }
 
+        // --- Solve reaction
+        volScalarField reactionRate = k*exp(-rho*E/p);
+        solve
+        (
+            fvm::ddt(rhoLambda)
+          + fvc::div(phiLambdap)
+          ==
+            rho*reactionRate - fvm::Sp(reactionRate, rhoLambda)
+        );
+
+        lambda.ref() = rhoLambda()/rho();
+        lambda.correctBoundaryConditions();
+        rhoLambda.boundaryFieldRef() == rho.boundaryField()*lambda.boundaryField();
+
+        if (!inviscid)
+        {
+            solve
+            (
+                fvm::ddt(rho, lambda) - fvc::ddt(rho, lambda)
+              - fvm::laplacian(rho*D, lambda)
+            );
+            rhoLambda = rho*lambda;
+        }
+
         // --- Solve energy
         surfaceScalarField sigmaDotU
         (
@@ -257,13 +290,13 @@ int main(int argc, char *argv[])
           - fvc::div(sigmaDotU)
         );
 
-        e = rhoE/rho - 0.5*magSqr(U);
+        e = rhoE/rho - 0.5*magSqr(U) + lambda*Q;
         e.correctBoundaryConditions();
         thermo.correct();
         rhoE.boundaryFieldRef() ==
             rho.boundaryField()*
             (
-                e.boundaryField() + 0.5*magSqr(U.boundaryField())
+                e.boundaryField() + 0.5*magSqr(U.boundaryField()) - lambda.boundaryField()*Q.value()
             );
 
         if (!inviscid)
@@ -274,7 +307,7 @@ int main(int argc, char *argv[])
               - fvm::laplacian(turbulence->alphaEff(), e)
             );
             thermo.correct();
-            rhoE = rho*(e + 0.5*magSqr(U));
+            rhoE = rho*(e + 0.5*magSqr(U) - lambda*Q);
         }
 
         p.ref() =
