@@ -10,7 +10,7 @@ psiThermo& thermo = pThermo();
 
 volScalarField& e = thermo.he();
 
-dimensionedScalar D("D", dimViscosity, thermo);
+dimensionedScalar Sc("Sc", dimless, thermo);
 
 Info<< "Reading chemical properties\n" << endl;
 IOdictionary chemicalProperties
@@ -147,3 +147,8 @@ autoPtr<compressible::turbulenceModel> turbulence
         thermo
     )
 );
+
+// For moving reference frame capability
+dictionary referenceFrameDict = runTime.controlDict().subOrEmptyDict("referenceFrame");
+dimensionedVector Urel("Urel", U.dimensions(), vector::zero);
+dimensionedVector UrelPrime("UrelPrime", U.dimensions()/dimTime, vector::zero);

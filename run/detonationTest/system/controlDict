@@ -16,13 +16,13 @@ FoamFile
 
 application     detonationFoam;
 
-startFrom       startTime;
+startFrom       latestTime;
 
 startTime       0;
 
 stopAt          endTime;
 
-endTime         2;
+endTime         3;
 
 deltaT          1e-4;
 
@@ -46,9 +46,36 @@ runTimeModifiable true;
 
 adjustTimeStep  yes;
 
-maxCo           0.1;
+maxCo           0.2;
 
 maxDeltaT       1;
 
+referenceFrame
+{
+    enabled     yes;
+    factor      6.8094746; // Chapman-Jouguet velocity
+
+    Urel
+    {
+        type coded;
+        name exponentialRelaxation;
+
+        code
+        #{
+            return vector(1 - exp(-x/4), 0, 0);
+        #};
+    }
+
+    UrelPrime
+    {
+        type coded;
+        name exponentialRelaxation1;
+
+        code
+        #{
+            return vector(exp(-x/2)/4, 0, 0);
+        #};
+    }
+}
 
 // ************************************************************************* //

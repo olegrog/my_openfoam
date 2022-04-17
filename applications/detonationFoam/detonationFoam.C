@@ -131,6 +131,24 @@ int main(int argc, char *argv[])
             phiv_neg -= meshPhi;
         }
 
+        // Moving reference frame
+        if (referenceFrameDict.getOrDefault("enabled", false))
+        {
+            auto pUrel = Function1<vector>::New("Urel", referenceFrameDict, &mesh);
+            auto pUrelPrime = Function1<vector>::New("UrelPrime", referenceFrameDict, &mesh);
+
+            scalar factor = referenceFrameDict.getOrDefault("factor", 1.);
+            scalar t = runTime.value();
+
+            Urel.value() = factor*pUrel->value(t);
+            UrelPrime.value() = factor*pUrelPrime->value(t);
+
+            surfaceScalarField phiRel("phiRel", Urel & mesh.Sf());
+            phiRel.setOriented(false);
+            phiv_pos -= phiRel;
+            phiv_neg -= phiRel;
+        }
+
         volScalarField c("c", sqrt(thermo.Cp()/thermo.Cv()*rPsi));
         surfaceScalarField cSf_pos
         (
@@ -229,7 +247,7 @@ int main(int argc, char *argv[])
         solve(fvm::ddt(rho) + fvc::div(phi));
 
         // --- Solve momentum
-        solve(fvm::ddt(rhoU) + fvc::div(phiUp));
+        solve(fvm::ddt(rhoU) + fvc::div(phiUp) + rho*UrelPrime);
 
         U.ref() =
             rhoU()
@@ -267,7 +285,7 @@ int main(int argc, char *argv[])
             solve
             (
                 fvm::ddt(rho, lambda) - fvc::ddt(rho, lambda)
-              - fvm::laplacian(rho*D, lambda)
+              - fvm::laplacian(muEff/Sc, lambda)
             );
             rhoLambda = rho*lambda;
         }
@@ -287,6 +305,7 @@ int main(int argc, char *argv[])
         (
             fvm::ddt(rhoE)
           + fvc::div(phiEp)
+          + rho*(U & UrelPrime)
           - fvc::div(sigmaDotU)
         );
 
@@ -296,7 +315,9 @@ int main(int argc, char *argv[])
         rhoE.boundaryFieldRef() ==
             rho.boundaryField()*
             (
-                e.boundaryField() + 0.5*magSqr(U.boundaryField()) - lambda.boundaryField()*Q.value()
+                e.boundaryField()
+              + 0.5*magSqr(U.boundaryField())
+              - lambda.boundaryField()*Q.value()
             );
 
         if (!inviscid)
