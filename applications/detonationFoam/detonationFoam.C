@@ -221,8 +221,8 @@ int main(int argc, char *argv[])
         surfaceScalarField phiEp
         (
             "phiEp",
-            aphiv_pos*(rho_pos*(e_pos + 0.5*magSqr(U_pos)) + p_pos)
-          + aphiv_neg*(rho_neg*(e_neg + 0.5*magSqr(U_neg)) + p_neg)
+            aphiv_pos*(rho_pos*(e_pos + 0.5*magSqr(U_pos) - lambda_pos*Q) + p_pos)
+          + aphiv_neg*(rho_neg*(e_neg + 0.5*magSqr(U_neg) - lambda_neg*Q) + p_neg)
           + aSf*p_pos - aSf*p_neg
         );
 
