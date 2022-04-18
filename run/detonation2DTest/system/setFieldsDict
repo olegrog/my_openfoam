@@ -10,62 +10,33 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      blockMeshDict;
+    location    "system";
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-scale   1;
-
-L   20;
-N   100;
-
-vertices
+defaultFieldValues
 (
-    (0 0 0)
-    ($L 0 0)
-    ($L 1 0)
-    (0 1 0)
-    (0 0 1)
-    ($L 0 1)
-    ($L 1 1)
-    (0 1 1)
+    volScalarFieldValue p 1
+    volScalarFieldValue T 1
+    volScalarFieldValue lambda 0
 );
 
-blocks
-(
-    hex (0 1 2 3 4 5 6 7) (#eval "$N*$L" 1 1) simpleGrading (1 1 1)
-);
+high 1e5;
+low -1e5;
 
-edges
+regions
 (
-);
-
-boundary
-(
-    leftAndRight
+    boxToCell
     {
-        type wall;
-        faces
+        box (0 $low 0) (10 $high 25);
+        fieldValues
         (
-            (0 4 7 3)
-            (2 6 5 1)
+            volScalarFieldValue p 100
+            volScalarFieldValue T 20
+            volScalarFieldValue lambda 1
         );
     }
-    empty
-    {
-        type empty;
-        faces
-        (
-            (1 5 4 0)
-            (3 7 6 2)
-            (0 3 2 1)
-            (4 5 6 7)
-        );
-    }
-);
-
-mergePatchPairs
-(
 );
 
 

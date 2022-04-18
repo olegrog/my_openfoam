@@ -1,0 +1,26 @@
+#!/bin/bash -e
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+application=$(getApplication)
+
+runApplication blockMesh
+restore0Dir
+runApplication setFields
+
+if [[ "$1" == "-parallel" ]]; then
+    runApplication decomposePar
+    runParallel $application
+    # Mesh reconstruction is not needed when a dynamic mesh is used
+    # Use "Decomposed Case" in Paraview instead
+    meshType="$(foamDictionary -entry dynamicFvMesh -value constant/dynamicMeshDict)"
+    if [[ "$meshType" == staticFvMesh ]]; then
+        runApplication reconstructPar
+    fi
+else
+    runApplication $application
+fi
+
+# ----------------------------------------------------------------- end-of-file
