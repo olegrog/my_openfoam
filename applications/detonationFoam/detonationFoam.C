@@ -82,6 +82,18 @@ int main(int argc, char *argv[])
     {
         #include "readTimeControls.H"
 
+        // Indicator for mesh refinement
+        autoPtr<volScalarField> normalisedGradRhoPtr;
+        if (mesh.dynamic())
+        {
+            volScalarField magGradRho = mag(fvc::grad(rho));
+            normalisedGradRhoPtr.reset
+            (
+                new volScalarField("normalisedGradRho", magGradRho/gMax(magGradRho))
+            );
+            normalisedGradRhoPtr().writeOpt() = IOobject::AUTO_WRITE;
+        }
+
         if (!LTS)
         {
             #include "setDeltaT.H"
