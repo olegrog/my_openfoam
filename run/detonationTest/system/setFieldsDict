@@ -29,11 +29,11 @@ regions
 (
     boxToCell
     {
-        box (0 $low $low) (1 $high $high);
+        box (0 $low $low) (2 $high $high);
         fieldValues
         (
-            volScalarFieldValue p 100
-            volScalarFieldValue T 20
+            volScalarFieldValue p 300
+            volScalarFieldValue T 50
             volScalarFieldValue lambda 1
         );
     }

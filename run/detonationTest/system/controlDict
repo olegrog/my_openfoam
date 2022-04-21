@@ -22,13 +22,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         3;
+endTime         20;
 
 deltaT          1e-4;
 
 writeControl    adjustable;
 
-writeInterval   1e-2;
+writeInterval   1e-1;
 
 purgeWrite      0;
 
@@ -62,20 +62,11 @@ referenceFrame
 
         code
         #{
-            return vector(1 - exp(-x/4), 0, 0);
+            return vector(1 - exp(-2*x), 0, 0);
         #};
     }
 
-    UrelPrime
-    {
-        type coded;
-        name exponentialRelaxation1;
-
-        code
-        #{
-            return vector(exp(-x/2)/4, 0, 0);
-        #};
-    }
+    UrelPrime   constant (0 0 0);
 }
 
 // ************************************************************************* //

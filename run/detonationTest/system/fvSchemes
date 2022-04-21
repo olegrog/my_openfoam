@@ -45,6 +45,7 @@ interpolationSchemes
     reconstruct(rho) vanLeer;
     reconstruct(U)  vanLeerV;
     reconstruct(T)  vanLeer;
+    reconstruct(lambda)  vanLeer;
 }
 
 snGradSchemes

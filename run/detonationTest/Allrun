@@ -10,4 +10,6 @@ runApplication setFields
 
 runApplication `getApplication`
 
+runApplication postProcess -func singleGraph -latestTime
+
 # ----------------------------------------------------------------- end-of-file
