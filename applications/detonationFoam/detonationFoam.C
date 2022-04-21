@@ -142,8 +142,9 @@ int main(int argc, char *argv[])
 
             Urel.value() = factor*pUrel->value(t);
             UrelPrime.value() = factor*pUrelPrime->value(t);
+            Info<< "Urel = " << Urel.value() << endl;
 
-            surfaceScalarField phiRel("phiRel", Urel & mesh.Sf());
+            phiRel = Urel & mesh.Sf();
             phiRel.setOriented(false);
             phiv_pos -= phiRel;
             phiv_neg -= phiRel;
@@ -223,7 +224,7 @@ int main(int argc, char *argv[])
             "phiEp",
             aphiv_pos*(rho_pos*(e_pos + 0.5*magSqr(U_pos) - lambda_pos*Q) + p_pos)
           + aphiv_neg*(rho_neg*(e_neg + 0.5*magSqr(U_neg) - lambda_neg*Q) + p_neg)
-          + aSf*p_pos - aSf*p_neg
+          + (a_pos*phiRel + aSf)*p_pos + (a_neg*phiRel - aSf)*p_neg
         );
 
         surfaceScalarField phiLambdap

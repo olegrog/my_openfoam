@@ -152,3 +152,4 @@ autoPtr<compressible::turbulenceModel> turbulence
 dictionary referenceFrameDict = runTime.controlDict().subOrEmptyDict("referenceFrame");
 dimensionedVector Urel("Urel", U.dimensions(), vector::zero);
 dimensionedVector UrelPrime("UrelPrime", U.dimensions()/dimTime, vector::zero);
+surfaceScalarField phiRel("phiRel", Urel & mesh.Sf());
