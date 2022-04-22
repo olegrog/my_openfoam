@@ -32,8 +32,8 @@ regions
         box (0 $low 0) (10 $high 25);
         fieldValues
         (
-            volScalarFieldValue p 100
-            volScalarFieldValue T 20
+            volScalarFieldValue p 300
+            volScalarFieldValue T 50
             volScalarFieldValue lambda 1
         );
     }

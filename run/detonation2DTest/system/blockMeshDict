@@ -16,7 +16,7 @@ FoamFile
 
 scale   1;
 
-L   50;
+L   100;
 D   50;
 N   10;
 
@@ -57,8 +57,8 @@ boundary
         type wall;
         faces
         (
-            (3 7 6 2)
-            (1 5 4 0)
+            (0 3 2 1)
+            (4 5 6 7)
         );
     }
     empty
@@ -66,8 +66,8 @@ boundary
         type empty;
         faces
         (
-            (0 3 2 1)
-            (4 5 6 7)
+            (3 7 6 2)
+            (1 5 4 0)
         );
     }
 );
