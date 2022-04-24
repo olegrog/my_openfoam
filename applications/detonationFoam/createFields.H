@@ -149,3 +149,25 @@ autoPtr<compressible::turbulenceModel> turbulence
 );
 
 autoPtr<movingReferenceFrame> MRF(movingReferenceFrame::New(mesh));
+
+// Indicator for mesh refinement
+autoPtr<volScalarField> normalisedGradRhoPtr;
+if (mesh.dynamic())
+{
+    normalisedGradRhoPtr.reset
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "normalisedGradRho",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh,
+            dimDensity/dimLength
+        )
+    );
+}

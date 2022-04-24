@@ -78,6 +78,10 @@ int main(int argc, char *argv[])
     scalar CoNum = 0.0;
     scalar meanCoNum = 0.0;
 
+    // For counting time of mesh refinement
+    scalar meshStartTime = 0.;
+    scalar meshElapsedTime = 0.;
+
     Info<< "\nStarting time loop\n" << endl;
 
     while (runTime.run())
@@ -85,15 +89,12 @@ int main(int argc, char *argv[])
         #include "readTimeControls.H"
 
         // Indicator for mesh refinement
-        autoPtr<volScalarField> normalisedGradRhoPtr;
         if (mesh.dynamic())
         {
-            volScalarField magGradRho = mag(fvc::grad(rho));
-            normalisedGradRhoPtr.reset
-            (
-                new volScalarField("normalisedGradRho", magGradRho/gMax(magGradRho))
-            );
-            normalisedGradRhoPtr().writeOpt() = IOobject::AUTO_WRITE;
+            meshStartTime = runTime.elapsedCpuTime();
+            volScalarField& normalisedGradRho = *normalisedGradRhoPtr;
+            normalisedGradRho = mag(fvc::grad(rho));
+            normalisedGradRho /= gMax(normalisedGradRho);
         }
 
         if (!LTS)
@@ -104,6 +105,7 @@ int main(int argc, char *argv[])
 
             // Do any mesh changes
             mesh.update();
+            meshElapsedTime += runTime.elapsedCpuTime() - meshStartTime;
         }
 
         // --- Directed interpolation of primitive fields onto faces
@@ -341,6 +343,11 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
+        if (mesh.dynamic())
+        {
+            Info<< "Mesh refinement time consumption = "
+                << label(100*meshElapsedTime/runTime.elapsedCpuTime()) << "%" << endl;
+        }
         runTime.printExecutionTime(Info);
     }
 
