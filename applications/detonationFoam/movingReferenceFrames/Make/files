@@ -1,0 +1,7 @@
+movingReferenceFrame/movingReferenceFrame.C
+
+laboratoryFrame/laboratoryFrame.C
+givenFrame/givenFrame.C
+adaptiveFrame/adaptiveFrame.C
+
+LIB = $(FOAM_USER_LIBBIN)/libmovingReferenceFrames

@@ -50,23 +50,9 @@ maxCo           0.2;
 
 maxDeltaT       1;
 
-referenceFrame
+DebugSwitches
 {
-    enabled     yes;
-    factor      6.8094746; // Chapman-Jouguet velocity
-
-    Urel
-    {
-        type coded;
-        name exponentialRelaxation;
-
-        code
-        #{
-            return vector(1 - exp(-2*x), 0, 0);
-        #};
-    }
-
-    UrelPrime   constant (0 0 0);
+    adaptive   0;
 }
 
 // ************************************************************************* //

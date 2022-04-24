@@ -148,8 +148,4 @@ autoPtr<compressible::turbulenceModel> turbulence
     )
 );
 
-// For moving reference frame capability
-dictionary referenceFrameDict = runTime.controlDict().subOrEmptyDict("referenceFrame");
-dimensionedVector Urel("Urel", U.dimensions(), vector::zero);
-dimensionedVector UrelPrime("UrelPrime", U.dimensions()/dimTime, vector::zero);
-surfaceScalarField phiRel("phiRel", Urel & mesh.Sf());
+autoPtr<movingReferenceFrame> MRF(movingReferenceFrame::New(mesh));

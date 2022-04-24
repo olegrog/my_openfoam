@@ -10,49 +10,35 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      movingFrameDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     detonationFoam;
+type    adaptive; // none, given, adaptive
 
-startFrom       latestTime;
-
-startTime       0;
-
-stopAt          endTime;
-
-endTime         100;
-
-deltaT          1e-4;
-
-writeControl    adjustable;
-
-writeInterval   2e-1;
-
-purgeWrite      0;
-
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-adjustTimeStep  yes;
-
-maxCo           0.2;
-
-maxDeltaT       1;
-
-DebugSwitches
+adaptiveFrame
 {
-    adaptive   0;
+    direction           (1 0 0);
+    fieldName           lambda;
+    meanValue           0.8;
+    valueFactor         10;     // for lambda - meanValue [m/s^2]
+    derivativeFactor    50;     // for dotLambda [m/s]
 }
 
-// ************************************************************************* //
+givenFrame
+{
+    factor      6.8094746; // Chapman-Jouguet velocity
+
+    Urel
+    {
+        type coded;
+        name exponentialRelaxation;
+
+        code
+        #{
+            return vector(1 - exp(-x/4), 0, 0);
+        #};
+    }
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

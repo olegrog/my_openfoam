@@ -42,6 +42,8 @@ Description
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
 
+#include "movingReferenceFrame.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -144,23 +146,9 @@ int main(int argc, char *argv[])
         }
 
         // Moving reference frame
-        if (referenceFrameDict.getOrDefault("enabled", false))
-        {
-            auto pUrel = Function1<vector>::New("Urel", referenceFrameDict, &mesh);
-            auto pUrelPrime = Function1<vector>::New("UrelPrime", referenceFrameDict, &mesh);
-
-            scalar factor = referenceFrameDict.getOrDefault("factor", 1.);
-            scalar t = runTime.value();
-
-            Urel.value() = factor*pUrel->value(t);
-            UrelPrime.value() = factor*pUrelPrime->value(t);
-            Info<< "Urel = " << Urel.value() << endl;
-
-            phiRel = Urel & mesh.Sf();
-            phiRel.setOriented(false);
-            phiv_pos -= phiRel;
-            phiv_neg -= phiRel;
-        }
+        const surfaceScalarField& phiRel = MRF->phiRel();
+        phiv_pos -= phiRel;
+        phiv_neg -= phiRel;
 
         volScalarField c("c", sqrt(thermo.Cp()/thermo.Cv()*rPsi));
         surfaceScalarField cSf_pos
@@ -260,7 +248,7 @@ int main(int argc, char *argv[])
         solve(fvm::ddt(rho) + fvc::div(phi));
 
         // --- Solve momentum
-        solve(fvm::ddt(rhoU) + fvc::div(phiUp) + rho*UrelPrime);
+        solve(fvm::ddt(rhoU) + fvc::div(phiUp));
 
         U.ref() =
             rhoU()
@@ -318,7 +306,6 @@ int main(int argc, char *argv[])
         (
             fvm::ddt(rhoE)
           + fvc::div(phiEp)
-          + rho*(U & UrelPrime)
           - fvc::div(sigmaDotU)
         );
 

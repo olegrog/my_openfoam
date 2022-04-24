@@ -29,7 +29,7 @@ regions
 (
     boxToCell
     {
-        box (0 $low 0) (10 $high 25);
+        box (0 $low 0) (10 $high 40);
         fieldValues
         (
             volScalarFieldValue p 300
