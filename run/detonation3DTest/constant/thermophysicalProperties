@@ -10,44 +10,39 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    object      thermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     detonationFoam;
+thermoType
+{
+    type            hePsiThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleInternalEnergy;
+}
 
-startFrom       latestTime;
+mixture
+{
+    specie
+    {
+        molWeight   8.3144626e3; // =R [kg/kmol]
+    }
+    thermodynamics
+    {
+        Cp          6; // =gamma/(gamma-1)
+        Hf          0;
+    }
+    transport
+    {
+        mu          0.2;
+        Pr          1;  // Prandtl number = nu/alpha
+    }
+}
 
-startTime       0;
-
-stopAt          endTime;
-
-endTime         100;
-
-deltaT          1e-4;
-
-writeControl    adjustable;
-
-writeInterval   2e-1;
-
-purgeWrite      0;
-
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-adjustTimeStep  yes;
-
-maxCo           0.2;
-
-maxDeltaT       1;
+Sc      1;  // Schmidt number = nu/D
 
 // ************************************************************************* //

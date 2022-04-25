@@ -10,44 +10,31 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      controlDict;
+    location    "system";
+    object      setFieldsDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     detonationFoam;
+defaultFieldValues
+(
+    volScalarFieldValue p 1
+    volScalarFieldValue T 1
+    volScalarFieldValue lambda 0
+);
 
-startFrom       latestTime;
+regions
+(
+    boxToCell
+    {
+        box (0 0 0) (10 30 40);
+        fieldValues
+        (
+            volScalarFieldValue p 300
+            volScalarFieldValue T 50
+            volScalarFieldValue lambda 1
+        );
+    }
+);
 
-startTime       0;
-
-stopAt          endTime;
-
-endTime         100;
-
-deltaT          1e-4;
-
-writeControl    adjustable;
-
-writeInterval   2e-1;
-
-purgeWrite      0;
-
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-adjustTimeStep  yes;
-
-maxCo           0.2;
-
-maxDeltaT       1;
 
 // ************************************************************************* //

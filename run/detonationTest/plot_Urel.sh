@@ -7,7 +7,7 @@ dict=system/movingFrameDict
 [ -f "$dict" ] || { echo "There is no $dict file"; exit 1; }
 
 if [ -z $DISPLAY ]; then
-    cmd1='set term dumb;'
+    cmd='set term dumb;'
 fi
 
 gnuplot -p -e "$cmd plot '<&3' u 2:1 w l title 'Urel(t)'" \

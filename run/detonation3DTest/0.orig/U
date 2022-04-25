@@ -9,45 +9,35 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      controlDict;
+    class       volVectorField;
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     detonationFoam;
+dimensions      [0 1 -1 0 0 0 0];
 
-startFrom       latestTime;
+internalField   uniform (0 0 0);
 
-startTime       0;
+boundaryField
+{
+    leftAndRight
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
 
-stopAt          endTime;
+    topAndBottom
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
 
-endTime         100;
+    frontAndBack
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+}
 
-deltaT          1e-4;
-
-writeControl    adjustable;
-
-writeInterval   2e-1;
-
-purgeWrite      0;
-
-writeFormat     binary;
-
-writePrecision  6;
-
-writeCompression off;
-
-timeFormat      general;
-
-timePrecision   6;
-
-runTimeModifiable true;
-
-adjustTimeStep  yes;
-
-maxCo           0.2;
-
-maxDeltaT       1;
 
 // ************************************************************************* //
