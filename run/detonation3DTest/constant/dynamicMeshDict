@@ -25,11 +25,11 @@ refineInterval  5;
 field           normalisedGradRho;
 
 // Refine field in between lower..upper
-lowerRefineLevel 0.05;
+lowerRefineLevel 0.02;
 upperRefineLevel 1;
 
 // If value < unrefineLevel unrefine
-unrefineLevel   0.025;
+unrefineLevel   0.015;
 
 // Have slower than 2:1 refinement
 nBufferLayers   0;
@@ -38,7 +38,7 @@ nBufferLayers   0;
 maxRefinement   3;
 
 // Stop refinement if maxCells reached
-maxCells        5000000;
+maxCells        8000000;
 
 // Flux field and corresponding velocity field. Fluxes on changed
 // faces get recalculated by interpolating the velocity. Use 'none'
