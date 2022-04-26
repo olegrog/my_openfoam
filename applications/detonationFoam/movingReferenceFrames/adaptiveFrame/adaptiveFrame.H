@@ -63,20 +63,20 @@ class adaptiveFrame
         //- Adaptation field name
         const word fieldName_;
 
-        //- The mean value of the field
+        //- Reference to the adaptation field
+        const volScalarField& field_;
+
+        //- Target mean value of the field
         const scalar meanValue_;
+
+        //- Mean value of the field at the previous time step
+        scalar meanValuePrev_;
 
         //- Factor for deviation from the mean value
         const scalar valueFactor_;
 
         //- Factor for deviation from its derivative
         const scalar derivativeFactor_;
-
-        //- Field at the previous time step
-        autoPtr<volScalarField> prevFieldPtr_;
-
-        //- Urel at the previous time step
-        vector prevUrel_;
 
 
     // Private Member Functions

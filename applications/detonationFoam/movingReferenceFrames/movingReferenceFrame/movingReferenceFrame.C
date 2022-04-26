@@ -90,7 +90,19 @@ Foam::movingReferenceFrame::movingReferenceFrame(const fvMesh& mesh)
         )
     ),
     mesh_(mesh),
-    Urel_("Urel", dimVelocity, vector::zero),
+    UrelDict_
+    (
+        IOobject
+        (
+            "Urel",
+            mesh.time().timeName(),
+            "uniform",
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        )
+    ),
+    Urel_("Urel", dimVelocity, vector::zero, UrelDict_),
     phiRel_("phiRel", Urel_ & mesh.Sf())
 {}
 
@@ -100,6 +112,7 @@ Foam::movingReferenceFrame::movingReferenceFrame(const fvMesh& mesh)
 const Foam::surfaceScalarField& Foam::movingReferenceFrame::phiRel()
 {
     evaluate();
+    UrelDict_.set(Urel_.name(), Urel_.value());
 
     if (mag(Urel_.value()) > 0)
     {

@@ -62,6 +62,9 @@ protected:
         //- Reference to the mesh
         const fvMesh& mesh_;
 
+        //- Dictionary for serialization
+        IOdictionary UrelDict_;
+
         //- Frame velocity
         dimensionedVector Urel_;
 
@@ -77,6 +80,7 @@ private:
 
         //- Evaluate the frame velocity
         virtual void evaluate() = 0;
+
 
 public:
 

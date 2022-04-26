@@ -47,11 +47,18 @@ Foam::adaptiveFrame::adaptiveFrame(const fvMesh& mesh)
     dict_(subDict(typeName + "Frame")),
     direction_(dict_.get<vector>("direction")),
     fieldName_(dict_.get<word>("fieldName")),
+    field_(mesh_.lookupObject<volScalarField>(fieldName_)),
     meanValue_(dict_.get<scalar>("meanValue")),
+    meanValuePrev_
+    (
+        UrelDict_.getOrDefault
+        (
+            "meanValue",
+            fvc::domainIntegrate(field_).value()/gSum(mesh.V())
+        )
+    ),
     valueFactor_(dict_.get<scalar>("valueFactor")),
-    derivativeFactor_(dict_.get<scalar>("derivativeFactor")),
-    prevFieldPtr_(nullptr),
-    prevUrel_(vector::zero)
+    derivativeFactor_(dict_.get<scalar>("derivativeFactor"))
 {}
 
 
@@ -60,23 +67,13 @@ Foam::adaptiveFrame::adaptiveFrame(const fvMesh& mesh)
 void Foam::adaptiveFrame::evaluate()
 {
     const scalar dt = mesh_.time().deltaTValue();
-    const scalar meshVolume = gSum(mesh_.V());
-    const volScalarField& field = mesh_.lookupObject<volScalarField>(fieldName_);
-    const scalar meanValueCurr = fvc::domainIntegrate(field).value()/meshVolume;
+    const scalar dt0 = mesh_.time().deltaT0Value();
+    const scalar meanValueCurr = fvc::domainIntegrate(field_).value()/gSum(mesh_.V());
     const scalar delta = meanValueCurr - meanValue_;
+    const scalar dotMean = (meanValueCurr - meanValuePrev_)/dt0;
 
-    // Estimate the time derivative
-    scalar dotMean = 0;
-    if (prevFieldPtr_)
-    {
-        const scalar dt0 = mesh_.time().deltaT0Value();
-        dotMean = fvc::domainIntegrate(field - *prevFieldPtr_).value()/meshVolume/dt0;
-        *prevFieldPtr_ == field;
-    }
-    else
-    {
-        prevFieldPtr_.reset(new volScalarField(field.name() + "Prev", field));
-    }
+    meanValuePrev_ = meanValueCurr;
+    UrelDict_.set("meanValue", meanValuePrev_);
 
     if (debug)
     {
@@ -85,8 +82,7 @@ void Foam::adaptiveFrame::evaluate()
     }
 
     const scalar dUrelDt = valueFactor_*delta + derivativeFactor_*dotMean;
-    prevUrel_ = Urel_.value();
-    Urel_.value() = prevUrel_ + direction_*dUrelDt*dt;
+    Urel_.value() += direction_*dUrelDt*dt;
 }
 
 
