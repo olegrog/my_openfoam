@@ -20,10 +20,28 @@ internalField   uniform (0 0 0);
 
 boundaryField
 {
-    leftAndRight
+    left
     {
-        type            fixedValue;
+        type            uniformFixedValue;
         value           $internalField;
+
+        uniformValue
+        {
+            type scale;
+
+            value constant (3.0151 0 0);
+
+            scale
+            {
+                type        linearRamp;
+                duration    2;
+            }
+        }
+    }
+
+    right
+    {
+        type            zeroGradient;
     }
 
     empty
