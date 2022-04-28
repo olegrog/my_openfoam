@@ -5,7 +5,7 @@ import numpy as np
 from numpy import sqrt, exp
 from scipy.integrate import solve_ivp
 
-parser = argparse.ArgumentParser(description='Script for finding the Chapman--Jouguet solution')
+parser = argparse.ArgumentParser(description='Script for finding the ZND solution')
 parser.add_argument('-g', '--gamma', type=float, default=1.2, help='heat capacity ratio')
 parser.add_argument('-E', type=float, default=25, help='activation energy')
 parser.add_argument('-Q', type=float, default=50, help='heat release')
@@ -21,7 +21,7 @@ g = args.gamma
 D = sqrt(g + (g**2-1)/2*args.Q) + sqrt((g**2-1)/2*args.Q)
 
 if args.verbose:
-    print(f'D = {D:.5g}')
+    print(f'Chapman--Jouguet velocity = {D:.5g}')
 
 _1l = lambda l: np.maximum(1-l, 1e-16)
 _U = lambda l: 1/(g+1)*(D**2-g)/D*(1+sqrt(_1l(l)))

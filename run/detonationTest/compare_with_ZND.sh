@@ -8,7 +8,7 @@ echo "Using $dir"
 file0=constant/chemicalProperties
 file1="$dir/line_lambda_p_rho.xy"
 file2="$dir/line_U.xy"
-file3=_solutionCJ.txt
+file3=_solutionZND.txt
 
 read_property() {
     local file=$1
@@ -32,7 +32,7 @@ k=$(read_property $file0 k)
 
 if [[ ! -f "$file3" ]]; then
     set -x
-    ./find_CJ.py -v -L=$L -Q=$Q -E=$E -k=$k --output=$file3
+    ./find_ZND.py -v -L=$L -Q=$Q -E=$E -k=$k --output=$file3
     set +x
 fi
 
