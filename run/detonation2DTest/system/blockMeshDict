@@ -43,12 +43,19 @@ edges
 
 boundary
 (
-    leftAndRight
+    left
     {
         type wall;
         faces
         (
             (0 4 7 3)
+        );
+    }
+    right
+    {
+        type wall;
+        faces
+        (
             (2 6 5 1)
         );
     }
