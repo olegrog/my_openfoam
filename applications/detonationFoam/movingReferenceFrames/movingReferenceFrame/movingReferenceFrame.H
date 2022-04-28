@@ -109,8 +109,18 @@ public:
 
     // Member functions
 
-        //- Return the relative flux
-        const surfaceScalarField& phiRel();
+        //- Access
+
+            //- Return the relative fluxes
+            const surfaceScalarField& phiRel() const
+            {
+                return phiRel_;
+            }
+
+        //- Evaluation
+
+            //- Correct the relative fluxes and others
+            void correct();
 
 };
 

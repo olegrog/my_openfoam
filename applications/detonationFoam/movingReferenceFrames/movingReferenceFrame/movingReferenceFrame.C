@@ -107,22 +107,20 @@ Foam::movingReferenceFrame::movingReferenceFrame(const fvMesh& mesh)
 {}
 
 
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-const Foam::surfaceScalarField& Foam::movingReferenceFrame::phiRel()
+void Foam::movingReferenceFrame::correct()
 {
     evaluate();
-    UrelDict_.set(Urel_.name(), Urel_.value());
 
     if (mag(Urel_.value()) > 0)
     {
+        UrelDict_.set(Urel_.name(), Urel_.value());
         Info<< "Urel = " << Urel_.value() << endl;
     }
 
     phiRel_ = Urel_ & mesh_.Sf();
     phiRel_.setOriented(false);
-
-    return phiRel_;
 }
 
 

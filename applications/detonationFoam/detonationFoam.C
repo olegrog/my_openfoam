@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
     #include "readFluxScheme.H"
 
     const dimensionedScalar v_zero(dimVolume/dimTime, Zero);
+    const surfaceScalarField& phiRel = MRF->phiRel();
 
     // Courant numbers used to adjust the time-step
     scalar CoNum = 0.0;
@@ -148,7 +149,7 @@ int main(int argc, char *argv[])
         }
 
         // Moving reference frame
-        const surfaceScalarField& phiRel = MRF->phiRel();
+        MRF->correct();
         phiv_pos -= phiRel;
         phiv_neg -= phiRel;
 
