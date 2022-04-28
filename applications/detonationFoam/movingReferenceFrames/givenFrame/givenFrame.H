@@ -27,7 +27,8 @@ Class
     Foam::givenFrame
 
 Description
-    Moving reference frame with a given velocity as a function of time.
+    Moving reference frame with a given velocity as a function of time
+    using Function1.
 
 SourceFiles
     givenFrame.C
@@ -61,9 +62,6 @@ class givenFrame
 
         //- Frame velocity as a function of time
         const autoPtr<Function1<vector>> UrelFunc_;
-
-        //- Frame velocity factor
-        const scalar factor_;
 
 
     // Private Member Functions

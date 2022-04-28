@@ -43,8 +43,7 @@ Foam::givenFrame::givenFrame(const fvMesh& mesh)
 :
     movingReferenceFrame(mesh),
     dict_(subDict(typeName + "Frame")),
-    UrelFunc_(Function1<vector>::New("Urel", dict_, &mesh)),
-    factor_(dict_.getOrDefault("factor", 1.))
+    UrelFunc_(Function1<vector>::New("Urel", dict_, &mesh))
 {}
 
 
@@ -53,7 +52,7 @@ Foam::givenFrame::givenFrame(const fvMesh& mesh)
 void Foam::givenFrame::evaluate()
 {
     const scalar t = mesh_.time().value();
-    Urel_.value() = factor_*UrelFunc_->value(t);
+    Urel_.value() = UrelFunc_->value(t);
 }
 
 

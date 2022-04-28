@@ -27,8 +27,6 @@ adaptiveFrame
 
 givenFrame
 {
-    factor      6.8094746; // Chapman-Jouguet velocity
-
     Urel
     {
         type coded;
@@ -36,7 +34,7 @@ givenFrame
 
         code
         #{
-            return vector(1 - exp(-2*x), 0, 0);
+            return 6.80947*vector(1 - exp(-2*x), 0, 0);
         #};
     }
 }
