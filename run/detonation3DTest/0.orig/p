@@ -20,12 +20,7 @@ internalField   uniform 1;
 
 boundaryField
 {
-    leftAndRight
-    {
-        type            zeroGradient;
-    }
-
-    topAndBottom
+    ".*"
     {
         type            zeroGradient;
     }
