@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,20 +24,22 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::adaptiveFrame
+    Foam::movingReferenceFrame
 
 Description
-    Moving reference frame with an adaptive velocity.
+    Abstract base class for an inertial moving reference frame.
 
 SourceFiles
-    adaptiveFrame.C
+    movingReferenceFrame.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef adaptiveFrame_H
-#define adaptiveFrame_H
+#ifndef movingReferenceFrame_H
+#define movingReferenceFrame_H
 
-#include "movingReferenceFrame.H"
+#include "runTimeSelectionTables.H"
+#include "surfaceFields.H"
+#include "volFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -45,55 +47,86 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class adaptiveFrame Declaration
+                    Class movingReferenceFrame Declaration
 \*---------------------------------------------------------------------------*/
 
-class adaptiveFrame
+class movingReferenceFrame
 :
-    public movingReferenceFrame
+    public IOdictionary
 {
+
+protected:
+
+    // Protected data
+
+        //- Reference to the mesh
+        const fvMesh& mesh_;
+
+        //- Dictionary for serialization
+        IOdictionary UrelDict_;
+
+        //- Frame velocity
+        dimensionedVector Urel_;
+
+
+private:
+
     // Private data
 
-        //- Dictionary
-        const dictionary dict_;
-
-        //- Direction of the frame velocity
-        const vector direction_;
-
-        //- Adaptation field name
-        const word fieldName_;
-
-        //- Reference to the adaptation field
-        const volScalarField& field_;
-
-        //- Target mean value of the field
-        const scalar meanValue_;
-
-        //- Mean value of the field at the previous time step
-        scalar meanValuePrev_;
-
-        //- Factor for deviation from the mean value
-        const scalar valueFactor_;
-
-        //- Factor for deviation from its derivative
-        const scalar derivativeFactor_;
-
+        //- Flux due to reference frame
+        surfaceScalarField phiRel_;
 
     // Private Member Functions
 
         //- Evaluate the frame velocity
-        void evaluate() final;
+        virtual void evaluate() = 0;
+
 
 public:
 
     //- Runtime type information
-    TypeName("adaptive");
+    TypeName("movingReferenceFrame");
+
+    //- Declare run-time constructor selection table
+    declareRunTimeSelectionTable
+    (
+        autoPtr,
+        movingReferenceFrame,
+        mesh,
+        (const fvMesh& mesh),
+        (mesh)
+    );
 
     //- Constructor
-    adaptiveFrame(const fvMesh& mesh);
+    movingReferenceFrame(const fvMesh& mesh);
+
+    //- Selector
+    static autoPtr<movingReferenceFrame> New(const fvMesh& mesh);
 
     //- Destructor
-    ~adaptiveFrame() final = default;
+    virtual ~movingReferenceFrame() = default;
+
+
+    // Member functions
+
+        //- Access
+
+            //- Return the relative fluxes
+            const surfaceScalarField& phiRel() const
+            {
+                return phiRel_;
+            }
+
+            //- Is the reference frame moving?
+            virtual bool moving() const
+            {
+                return true;
+            }
+
+        //- Evaluation
+
+            //- Correct the relative fluxes and others
+            void correct();
 
 };
 

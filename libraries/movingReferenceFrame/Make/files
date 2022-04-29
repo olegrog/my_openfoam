@@ -4,4 +4,4 @@ laboratoryFrame/laboratoryFrame.C
 givenFrame/givenFrame.C
 adaptiveFrame/adaptiveFrame.C
 
-LIB = $(FOAM_USER_LIBBIN)/libmovingReferenceFrames
+LIB = $(FOAM_USER_LIBBIN)/libmovingReferenceFrame

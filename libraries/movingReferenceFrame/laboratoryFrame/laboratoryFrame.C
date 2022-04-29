@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -23,71 +23,26 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
-Class
-    Foam::givenFrame
-
-Description
-    Moving reference frame with a given velocity as a function of time
-    using Function1.
-
-SourceFiles
-    givenFrame.C
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef givenFrame_H
-#define givenFrame_H
+#include "laboratoryFrame.H"
 
-#include "Function1.H"
+#include "addToRunTimeSelectionTable.H"
 
-#include "movingReferenceFrame.H"
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
+    defineTypeName(laboratoryFrame);
+    addToRunTimeSelectionTable(movingReferenceFrame, laboratoryFrame, mesh);
+}
 
-/*---------------------------------------------------------------------------*\
-                         Class givenFrame Declaration
-\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-class givenFrame
+Foam::laboratoryFrame::laboratoryFrame(const fvMesh& mesh)
 :
-    public movingReferenceFrame
-{
-    // Private data
+    movingReferenceFrame(mesh)
+{}
 
-        //- Dictionary
-        const dictionary dict_;
-
-        //- Frame velocity as a function of time
-        const autoPtr<Function1<vector>> UrelFunc_;
-
-
-    // Private Member Functions
-
-        //- Evaluate the frame velocity
-        void evaluate() final;
-
-public:
-
-    //- Runtime type information
-    TypeName("given");
-
-    //- Constructor
-    givenFrame(const fvMesh& mesh);
-
-    //- Destructor
-    ~givenFrame() final = default;
-};
-
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,22 +24,20 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::movingReferenceFrame
+    Foam::laboratoryFrame
 
 Description
-    Abstract base class for an inertial moving reference frame.
+    Laboratory reference frame.
 
 SourceFiles
-    movingReferenceFrame.C
+    laboratoryFrame.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef movingReferenceFrame_H
-#define movingReferenceFrame_H
+#ifndef laboratoryFrame_H
+#define laboratoryFrame_H
 
-#include "runTimeSelectionTables.H"
-#include "surfaceFields.H"
-#include "volFields.H"
+#include "movingReferenceFrame.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,81 +45,37 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                    Class movingReferenceFrame Declaration
+                         Class laboratoryFrame Declaration
 \*---------------------------------------------------------------------------*/
 
-class movingReferenceFrame
+class laboratoryFrame
 :
-    public IOdictionary
+    public movingReferenceFrame
 {
-
-protected:
-
-    // Protected data
-
-        //- Reference to the mesh
-        const fvMesh& mesh_;
-
-        //- Dictionary for serialization
-        IOdictionary UrelDict_;
-
-        //- Frame velocity
-        dimensionedVector Urel_;
-
-
-private:
-
-    // Private data
-
-        //- Flux due to reference frame
-        surfaceScalarField phiRel_;
 
     // Private Member Functions
 
         //- Evaluate the frame velocity
-        virtual void evaluate() = 0;
-
+        void evaluate() final {}
 
 public:
 
     //- Runtime type information
-    TypeName("movingReferenceFrame");
-
-    //- Declare run-time constructor selection table
-    declareRunTimeSelectionTable
-    (
-        autoPtr,
-        movingReferenceFrame,
-        mesh,
-        (const fvMesh& mesh),
-        (mesh)
-    );
+    TypeName("none");
 
     //- Constructor
-    movingReferenceFrame(const fvMesh& mesh);
-
-    //- Selector
-    static autoPtr<movingReferenceFrame> New(const fvMesh& mesh);
+    laboratoryFrame(const fvMesh& mesh);
 
     //- Destructor
-    virtual ~movingReferenceFrame() = default;
-
+    ~laboratoryFrame() final = default;
 
     // Member functions
 
-        //- Access
-
-            //- Return the relative fluxes
-            const surfaceScalarField& phiRel() const
-            {
-                return phiRel_;
-            }
-
-        //- Evaluation
-
-            //- Correct the relative fluxes and others
-            void correct();
-
+        //- Is the reference frame moving?
+        bool moving() const final
+        {
+            return false;
+        }
 };
 
 

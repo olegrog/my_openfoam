@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by

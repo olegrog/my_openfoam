@@ -73,7 +73,6 @@ int main(int argc, char *argv[])
     #include "readFluxScheme.H"
 
     const dimensionedScalar v_zero(dimVolume/dimTime, Zero);
-    const surfaceScalarField& phiRel = MRF->phiRel();
 
     // Courant numbers used to adjust the time-step
     scalar CoNum = 0.0;
@@ -149,9 +148,12 @@ int main(int argc, char *argv[])
         }
 
         // Moving reference frame
-        MRF->correct();
-        phiv_pos -= phiRel;
-        phiv_neg -= phiRel;
+        if (MRF->moving())
+        {
+            MRF->correct();
+            phiv_pos -= MRF->phiRel();
+            phiv_neg -= MRF->phiRel();
+        }
 
         volScalarField c("c", sqrt(thermo.Cp()/thermo.Cv()*rPsi));
         surfaceScalarField cSf_pos
@@ -227,7 +229,7 @@ int main(int argc, char *argv[])
             "phiEp",
             aphiv_pos*(rho_pos*(e_pos + 0.5*magSqr(U_pos) - lambda_pos*Q) + p_pos)
           + aphiv_neg*(rho_neg*(e_neg + 0.5*magSqr(U_neg) - lambda_neg*Q) + p_neg)
-          + (a_pos*phiRel + aSf)*p_pos + (a_neg*phiRel - aSf)*p_neg
+          + aSf*p_pos - aSf*p_neg
         );
 
         surfaceScalarField phiLambdap
@@ -242,6 +244,11 @@ int main(int argc, char *argv[])
             surfaceScalarField meshPhi(mesh.phi());
             meshPhi.setOriented(false);
             phiEp += meshPhi*(a_pos*p_pos + a_neg*p_neg);
+        }
+
+        if (MRF->moving())
+        {
+            phiEp += MRF->phiRel()*(a_pos*p_pos + a_neg*p_neg);
         }
 
         volScalarField muEff("muEff", turbulence->muEff());

@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -25,64 +25,34 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "adaptiveFrame.H"
+#include "givenFrame.H"
 
 #include "addToRunTimeSelectionTable.H"
-#include "fvcVolumeIntegrate.H"
-#include "fvcDdt.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(adaptiveFrame, 0);
-    addToRunTimeSelectionTable(movingReferenceFrame, adaptiveFrame, mesh);
+    defineTypeName(givenFrame);
+    addToRunTimeSelectionTable(movingReferenceFrame, givenFrame, mesh);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::adaptiveFrame::adaptiveFrame(const fvMesh& mesh)
+Foam::givenFrame::givenFrame(const fvMesh& mesh)
 :
     movingReferenceFrame(mesh),
     dict_(subDict(typeName + "Frame")),
-    direction_(dict_.get<vector>("direction")),
-    fieldName_(dict_.get<word>("fieldName")),
-    field_(mesh_.lookupObject<volScalarField>(fieldName_)),
-    meanValue_(dict_.get<scalar>("meanValue")),
-    meanValuePrev_
-    (
-        UrelDict_.getOrDefault
-        (
-            "meanValue",
-            fvc::domainIntegrate(field_).value()/gSum(mesh.V())
-        )
-    ),
-    valueFactor_(dict_.get<scalar>("valueFactor")),
-    derivativeFactor_(dict_.get<scalar>("derivativeFactor"))
+    UrelFunc_(Function1<vector>::New("Urel", dict_, &mesh))
 {}
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::adaptiveFrame::evaluate()
+void Foam::givenFrame::evaluate()
 {
-    const scalar dt = mesh_.time().deltaTValue();
-    const scalar dt0 = mesh_.time().deltaT0Value();
-    const scalar meanValueCurr = fvc::domainIntegrate(field_).value()/gSum(mesh_.V());
-    const scalar delta = meanValueCurr - meanValue_;
-    const scalar dotMean = (meanValueCurr - meanValuePrev_)/dt0;
-
-    meanValuePrev_ = meanValueCurr;
-    UrelDict_.set("meanValue", meanValuePrev_);
-
-    if (debug)
-    {
-        Info<< "delta = " << delta << " dotMean = " << dotMean << endl;
-        Info<< "meanValue = " << meanValueCurr << endl;
-    }
-
-    const scalar dUrelDt = valueFactor_*delta + derivativeFactor_*dotMean;
-    Urel_.value() += direction_*dUrelDt*dt;
+    const scalar t = mesh_.time().value();
+    Urel_.value() = UrelFunc_->value(t);
 }
 
 

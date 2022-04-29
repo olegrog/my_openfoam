@@ -8,7 +8,7 @@
                             | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
-    This file is part of detonationFoam.
+    This file is part of movingReferenceFrame.
 
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
@@ -24,18 +24,18 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::laboratoryFrame
+    Foam::adaptiveFrame
 
 Description
-    Laboratory reference frame.
+    Moving reference frame with an adaptive velocity.
 
 SourceFiles
-    laboratoryFrame.C
+    adaptiveFrame.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef laboratoryFrame_H
-#define laboratoryFrame_H
+#ifndef adaptiveFrame_H
+#define adaptiveFrame_H
 
 #include "movingReferenceFrame.H"
 
@@ -45,29 +45,56 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                         Class laboratoryFrame Declaration
+                         Class adaptiveFrame Declaration
 \*---------------------------------------------------------------------------*/
 
-class laboratoryFrame
+class adaptiveFrame
 :
     public movingReferenceFrame
 {
+    // Private data
+
+        //- Dictionary
+        const dictionary dict_;
+
+        //- Direction of the frame velocity
+        const vector direction_;
+
+        //- Adaptation field name
+        const word fieldName_;
+
+        //- Reference to the adaptation field
+        const volScalarField& field_;
+
+        //- Target mean value of the field
+        const scalar meanValue_;
+
+        //- Mean value of the field at the previous time step
+        scalar meanValuePrev_;
+
+        //- Factor for deviation from the mean value
+        const scalar valueFactor_;
+
+        //- Factor for deviation from its derivative
+        const scalar derivativeFactor_;
+
 
     // Private Member Functions
 
         //- Evaluate the frame velocity
-        void evaluate() final {}
+        void evaluate() final;
 
 public:
 
     //- Runtime type information
-    TypeName("none");
+    TypeName("adaptive");
 
     //- Constructor
-    laboratoryFrame(const fvMesh& mesh);
+    adaptiveFrame(const fvMesh& mesh);
 
     //- Destructor
-    ~laboratoryFrame() final = default;
+    ~adaptiveFrame() final = default;
+
 };
 
 

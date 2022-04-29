@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+
+#------------------------------------------------------------------------------
+
+libs='../../libraries'
+apps='..'
+
+wmake $targetType "$libs/movingReferenceFrame"
+wmake $targetType
+
+#------------------------------------------------------------------------------
