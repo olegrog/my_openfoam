@@ -34,6 +34,12 @@ processor*
 # Graphics
 *.pdf
 *.eps
+*.png
+*.jpg
+
+# Movies
+*.avi
+*.mp4
 
 # Simulation directories
 _*
