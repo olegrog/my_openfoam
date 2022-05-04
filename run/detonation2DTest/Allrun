@@ -13,12 +13,7 @@ runApplication setFields
 if [[ "$1" == "-parallel" ]]; then
     runApplication decomposePar
     runParallel $application
-    # Mesh reconstruction is not needed when a dynamic mesh is used
-    # Use "Decomposed Case" in Paraview instead
-    meshType="$(foamDictionary -entry dynamicFvMesh -value constant/dynamicMeshDict)"
-    if [[ "$meshType" == staticFvMesh ]]; then
-        runApplication reconstructPar
-    fi
+    runApplication reconstructPar
 else
     runApplication $application
 fi
