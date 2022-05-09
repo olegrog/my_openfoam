@@ -6,7 +6,12 @@ cd ${0%/*} || exit 1    # run from this directory
 
 runApplication blockMesh
 restore0Dir
-runApplication setFields
+
+if [[ "$1" == "-ZND" ]]; then
+    runApplication setZNDsolution
+else
+    runApplication setFields
+fi
 
 runApplication `getApplication`
 

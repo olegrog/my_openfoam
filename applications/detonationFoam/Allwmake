@@ -8,6 +8,7 @@ libs='../../libraries'
 apps='..'
 
 wmake $targetType "$libs/movingReferenceFrame"
+wmake $targetType "$apps/setZNDsolution"
 wmake $targetType
 
 #------------------------------------------------------------------------------

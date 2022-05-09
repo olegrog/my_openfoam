@@ -43,10 +43,10 @@ gnuplot -p <<PLT
         "" u (\$1-$s):4 w l title "rho", \
         "" u (\$1-$s):(\$3/\$4) w l title "T", \
         "$file2" u (\$1-$s):2 w l title "U", \
-        "$file3" u 1:2 w l lc 1 lw 2 notitle, \
-        "" u 1:3 w l lc 2 lw 2 notitle, \
-        "" u 1:4 w l lc 3 lw 2 notitle, \
-        "" u 1:(\$3/\$4) w l lc 4 lw 2 notitle, \
-        "" u 1:5 w l lc 5 lw 2 notitle
+        "$file3" u 1:2 w l lc 1 lw 2 dt 2 notitle, \
+        "" u 1:3 w l lc 2 lw 2 dt 2 notitle, \
+        "" u 1:4 w l lc 3 lw 2 dt 2 notitle, \
+        "" u 1:(\$3/\$4) w l lc 4 lw 2 dt 2 notitle, \
+        "" u 1:5 w l lc 5 lw 2 dt 2 notitle
 PLT
 

@@ -135,8 +135,30 @@ int main(int argc, char *argv[])
     const boundBox& bounds = mesh.bounds();
 
     label prevMeshSize;
-    // Mesh adaptation works only for time > 0
-    runTime++;
+    label timeIndex = 1;
+
+    if (isA<dynamicRefineFvMesh>(mesh))
+    {
+        dictionary refineDict
+        (
+            IOdictionary
+            (
+                IOobject
+                (
+                    "dynamicMeshDict",
+                    runTime.constant(),
+                    mesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE,
+                    false
+                )
+            ).optionalSubDict(mesh.typeName + "Coeffs")
+        );
+        timeIndex = refineDict.get<label>("refineInterval");
+    }
+
+    // NB: mesh.update() works only for timeIndex > 0 && timeIndex % refineInterval == 0
+    runTime.setTime(0, timeIndex);
 
     do
     {

@@ -6,12 +6,33 @@ cd ${0%/*} || exit 1    # run from this directory
 
 application=$(getApplication)
 
+for arg; do case $arg in
+    -parallel)          parallel=1;;
+    -ZND)               ZND=1;;
+    *)                  echo "Unknown option '$arg'."; exit 1;;
+esac; done
+
 runApplication blockMesh
 restore0Dir
-runApplication setFields
 
-if [[ "$1" == "-parallel" ]]; then
+if [[ "$ZND" ]]; then
+    runApplication setZNDsolution
+else
+    runApplication setFields
+fi
+
+if [[ "$parallel" ]]; then
     runApplication decomposePar
+
+    if [[ "$ZND" ]]; then
+        # Paraview failed to read the decomposed case without constant directory
+        for dir in $(ls | grep ^processor); do (
+            mkdir $dir/constant
+            cd $dir/constant
+            ln -sf ../0/polyMesh .
+        ) done
+    fi
+
     runParallel $application
 
     if [[ -z "$DISPLAY" ]]; then

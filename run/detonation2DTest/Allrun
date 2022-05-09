@@ -6,11 +6,22 @@ cd ${0%/*} || exit 1    # run from this directory
 
 application=$(getApplication)
 
+for arg; do case $arg in
+    -parallel)          parallel=1;;
+    -ZND)               ZND=1;;
+    *)                  echo "Unknown option '$arg'."; exit 1;;
+esac; done
+
 runApplication blockMesh
 restore0Dir
-runApplication setFields
 
-if [[ "$1" == "-parallel" ]]; then
+if [[ "$ZND" ]]; then
+    runApplication setZNDsolution
+else
+    runApplication setFields
+fi
+
+if [[ "$parallel" ]]; then
     runApplication decomposePar
     runParallel $application
     runApplication reconstructPar

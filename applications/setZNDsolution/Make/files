@@ -1,0 +1,5 @@
+ZNDsystem/ZNDsystem.C
+
+setZNDsolution.C
+
+EXE = $(FOAM_USER_APPBIN)/setZNDsolution

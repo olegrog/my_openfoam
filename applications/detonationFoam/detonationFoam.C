@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
     {
         #include "readTimeControls.H"
 
-        // Indicator for mesh refinement
         if (mesh.dynamic())
         {
             meshStartTime = runTime.elapsedCpuTime();
