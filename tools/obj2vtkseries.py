@@ -17,6 +17,7 @@ if not len(times):
     print('Empty list of times!', file=sys.stderr)
 
 files = [ f[:-3] + 'vtk' for f in os.listdir(args.dir) if re.match(r'.*\.obj', f) ]
+files.sort()
 
 data = {
     "file-series-version": "1.0",

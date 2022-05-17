@@ -200,9 +200,6 @@ void Foam::rayTracingHeatSource::calcSource()
         // Fraction of the energy source transmitted by the ray
         const scalar dQ = Idr/nTheta/(1 - cutFraction);
 
-        totalPower += dQ*laserPower;
-        totalArea += dA;
-
         for (label thetai = 0; thetai < nTheta; thetai++)
         {
             const scalar theta1 = dTheta*thetai;
@@ -222,6 +219,16 @@ void Foam::rayTracingHeatSource::calcSource()
 
             if (cellI != -1)
             {
+                if (mixture_.alpha1()[cellI] > SMALL)
+                {
+                    Warning
+                        << "Particle is created in cell #" << cellI << " with alphaM = "
+                        << mixture_.alpha1()[cellI] << endl;
+                }
+
+                totalPower += dQ*laserPower;
+                totalArea += dA;
+
                 // Create a new particle
                 auto pPtr = autoPtr<rayTracingParticle>::New(mesh_, p0, p1, dQ, cellI, false);
 
@@ -233,7 +240,7 @@ void Foam::rayTracingHeatSource::calcSource()
             {
                 if (++nMissed <= 10)
                 {
-                    WarningInFunction
+                    Warning
                         << "Cannot find owner cell for point at " << p0 << endl;
                 }
             }
@@ -246,8 +253,8 @@ void Foam::rayTracingHeatSource::calcSource()
     }
 
     DebugInfo
-        << "Total power of the laser = " << totalPower << nl
-        << "Total area of the laser = " << totalArea << endl;
+        << "Total emitted laser power = " << totalPower << " of " << laserPower << nl
+        << "Total emission area = " << totalArea << " of " << pi*sqr(Rcut) << endl;
 
     // 3. Prepare the tracking data
 
