@@ -4,4 +4,6 @@ laboratoryFrame/laboratoryFrame.C
 givenFrame/givenFrame.C
 adaptiveFrame/adaptiveFrame.C
 
+BCs/uniformFixedValueSlip/uniformFixedValueSlipFvPatchFields.C
+
 LIB = $(FOAM_USER_LIBBIN)/libmovingReferenceFrame
