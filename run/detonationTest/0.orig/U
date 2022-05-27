@@ -22,21 +22,10 @@ boundaryField
 {
     left
     {
-        type            uniformFixedValue;
-        value           $internalField;
-
-        uniformValue
-        {
-            type scale;
-
-            value constant (3.0151 0 0);
-
-            scale
-            {
-                type        linearRamp;
-                duration    2;
-            }
-        }
+        type            waveTransmissive;
+        gamma           1.2;
+        fieldInf        (3.0151 0 0);
+        lInf            1;
     }
 
     right

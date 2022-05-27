@@ -36,5 +36,5 @@ if args.verbose:
 
 names = [ 'x', 'lambda', 'p', 'rho', 'U' ]
 np.savetxt(args.output, np.transpose((X, Y, _p(Y), _rho(Y), _U(Y))), fmt='%.5g',
-    header='%6s'*(len(names)) % tuple(names))
+    header='%7s'*(len(names)) % tuple(names))
 

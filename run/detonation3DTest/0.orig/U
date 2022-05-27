@@ -22,21 +22,10 @@ boundaryField
 {
     left
     {
-        type            uniformFixedValue;
-        value           $internalField;
-
-        uniformValue
-        {
-            type scale;
-
-            value constant (3.0151 0 0);
-
-            scale
-            {
-                type        linearRamp;
-                duration    8;
-            }
-        }
+        type            waveTransmissive;
+        gamma           1.2;
+        fieldInf        (3.0151 0 0);
+        lInf            1;
     }
 
     right
@@ -47,12 +36,14 @@ boundaryField
 
     topAndBottom
     {
+        // Use slip for the inviscid case
         type            fixedValue;
         value           $internalField;
     }
 
     frontAndBack
     {
+        // Use slip for the inviscid case
         type            fixedValue;
         value           $internalField;
     }

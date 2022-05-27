@@ -27,7 +27,7 @@ Application
     detonationFoam
 
 Description
-    Density-based compressible flow solver based on
+    Density-based compressible reactive flow solver based on
     central-upwind schemes of Kurganov and Tadmor with
     support for mesh-motion and topology changes.
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 {
     argList::addNote
     (
-        "Density-based compressible flow solver based on"
+        "Density-based compressible reactive flow solver based on"
         " central-upwind schemes of Kurganov and Tadmor with"
         " support for mesh-motion and topology changes."
     );
