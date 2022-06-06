@@ -27,6 +27,8 @@ License
 
 #include "laserProperties.H"
 
+#include "Constant.H"
+
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -51,15 +53,64 @@ Foam::laserProperties::laserProperties(const fvMesh& mesh)
     ),
     time_(mesh.time()),
     powerPtr_(Function1<scalar>::New("power", *this)),
-    radius_("radius", dimLength, *this),
-    velocity_("velocity", dimVelocity, *this),
+    radiusPtr_(Function1<scalar>::New("radius", *this)),
+    velocityPtr_(Function1<vector>::New("velocity", *this)),
     coordStart_("coordStart", dimLength, *this),
     timeStop_("timeStop", dimTime, *this),
-    beamPtr_(laserBeam::New(subDict("beam"), mesh, *this))
+    beamPtr_(laserBeam::New(subDict("beam"), mesh, *this)),
+    laserDict_
+    (
+        IOobject
+        (
+            "laser",
+            mesh.time().timeName(),
+            "uniform",
+            mesh,
+            IOobject::READ_IF_PRESENT,
+            IOobject::AUTO_WRITE
+        )
+    ),
+    position_("position", dimLength, coordStart_.value(), laserDict_),
+    MRF_(mesh.lookupClass<movingReferenceFrame>().begin().val())
 {
-    const boundBox& bounds = mesh.bounds();
-    Info<< " -- Dimensions of the computational domain = " << bounds.max() - bounds.min() << endl
-        << " -- Length of the printed track = " << (velocity_*timeStop_).value() << endl;
+    if (isA<Function1Types::Constant<vector>>(velocityPtr_()))
+    {
+        const boundBox& bounds = mesh.bounds();
+        Info<< " -- Dimensions of the computational domain = "
+            << bounds.max() - bounds.min() << endl
+            << " -- Length of the printed track = "
+            << velocityPtr_->value(time_.value())*timeStop_.value() << endl;
+    }
+
+    if (!MRF_)
+    {
+        WarningInFunction << "MRF has not found" << endl;
+    }
+}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::dimensionedVector Foam::laserProperties::velocity() const
+{
+    vector value = velocityPtr_->value(time_.value());
+    if (MRF_)
+    {
+        value -= MRF_->Urel().value();
+    }
+    return dimensionedVector("velocity", dimVelocity, value);
+}
+
+
+void Foam::laserProperties::update()
+{
+    const dimensionedVector vel = velocity();
+    position_ += vel*time_.deltaT();
+
+    laserDict_.set(power().name(), power().value());
+    laserDict_.set(radius().name(), radius().value());
+    laserDict_.set(vel.name(), vel.value());
+    laserDict_.set(position_.name(), position_.value());
 }
 
 

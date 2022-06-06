@@ -109,7 +109,7 @@ Foam::movingReferenceFrame::movingReferenceFrame(const fvMesh& mesh)
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::movingReferenceFrame::correct()
+void Foam::movingReferenceFrame::correct(bool oriented)
 {
     evaluate();
 
@@ -120,7 +120,7 @@ void Foam::movingReferenceFrame::correct()
     }
 
     phiRel_ = Urel_ & mesh_.Sf();
-    phiRel_.setOriented(false);
+    phiRel_.setOriented(oriented);
 }
 
 

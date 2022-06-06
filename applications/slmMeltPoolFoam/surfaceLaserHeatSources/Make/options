@@ -3,6 +3,7 @@ EXE_INC = \
     -I../../../libraries/laserHeatSource/lnInclude \
     -I../../../libraries/gasMetalThermalProperties/lnInclude \
     -I../../../libraries/sigmoidFunction/lnInclude \
+    -I../../../libraries/movingReferenceFrame/lnInclude \
     -I../incompressibleGasMetalMixture/lnInclude \
     -I$(LIB_SRC)/transportModels \
     -I$(LIB_SRC)/transportModels/geometricVoF/lnInclude \

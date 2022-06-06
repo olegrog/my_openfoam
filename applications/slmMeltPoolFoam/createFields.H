@@ -273,6 +273,9 @@ mesh.setFluxRequired(mixture.phase1Name());
 
 isoAdvection advector(mixture.alpha1(), phi, U);
 
+// NB: MRF should be registered before creating laserHeatSource
+autoPtr<movingReferenceFrame> MRF(movingReferenceFrame::New(mesh));
+
 Info<< "Reading laser properties\n" << endl;
 autoPtr<surfaceLaserHeatSource> laserHeatSource
 (

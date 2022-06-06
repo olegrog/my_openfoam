@@ -111,6 +111,12 @@ public:
 
         //- Access
 
+            //- Return the relative velocity
+            const dimensionedVector& Urel() const
+            {
+                return Urel_;
+            }
+
             //- Return the relative fluxes
             const surfaceScalarField& phiRel() const
             {
@@ -126,7 +132,7 @@ public:
         //- Evaluation
 
             //- Correct the relative fluxes and others
-            void correct();
+            void correct(bool oriented = true);
 
 };
 

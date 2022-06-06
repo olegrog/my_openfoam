@@ -39,9 +39,11 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "dimensionedTypes.H"
+#include "Time.H"
 #include "Function1.H"
 
 #include "laserBeam.H"
+#include "movingReferenceFrame.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -62,16 +64,16 @@ private:
     // Private data
 
         //- Reference to the time
-        const dimensionedScalar& time_;
+        const Time& time_;
 
         //- Laser power as a function of time
         autoPtr<Function1<scalar>> powerPtr_;
 
-        //- Laser radius
-        const dimensionedScalar radius_;
+        //- Laser radius as a function of time
+        autoPtr<Function1<scalar>> radiusPtr_;
 
-        //- Laser scanning velocity
-        const dimensionedVector velocity_;
+        //- Laser scanning velocity as a function of time
+        autoPtr<Function1<vector>> velocityPtr_;
 
         //- Laser position at zero time
         const dimensionedVector coordStart_;
@@ -81,6 +83,15 @@ private:
 
         //- Direction of the laser beam
         autoPtr<laserBeam> beamPtr_;
+
+        //- Dictionary for serialization
+        IOdictionary laserDict_;
+
+        //- Current laser position
+        dimensionedVector position_;
+
+        //- Pointer to moving reference frame
+        const movingReferenceFrame* MRF_;
 
 
     // Private Member Functions
@@ -105,41 +116,46 @@ public:
 
     // Member Functions
 
-        //- Return the laser power
-        dimensionedScalar power() const
-        {
-            return dimensionedScalar("power", dimPower, powerPtr_->value(time_.value()));
-        }
+        //- Access
 
-        //- Return the laser radius
-        const dimensionedScalar& radius() const
-        {
-            return radius_;
-        }
+            //- Return the laser power
+            dimensionedScalar power() const
+            {
+                return dimensionedScalar("power", dimPower, powerPtr_->value(time_.value()));
+            }
 
-        //- Return the laser scanning speed
-        dimensionedScalar speed() const
-        {
-            return mag(velocity_);
-        }
+            //- Return the laser radius
+            dimensionedScalar radius() const
+            {
+                return dimensionedScalar("radius", dimLength, radiusPtr_->value(time_.value()));
+            }
 
-        //- Return the laser coordinates
-        dimensionedVector position() const
-        {
-            return coordStart_ + velocity_*time_;
-        }
+            //- Return the laser velocity
+            dimensionedVector velocity() const;
 
-        //- Return true when laser source is swithed on
-        bool switchedOn() const
-        {
-            return time_ < timeStop_;
-        }
+            //- Return the laser coordinates
+            dimensionedVector position() const
+            {
+                return position_;
+            }
 
-        //- Return reference to laser beam
-        const laserBeam& beam() const
-        {
-            return *beamPtr_;
-        }
+            //- Return true when laser source is swithed on
+            bool switchedOn() const
+            {
+                return time_ < timeStop_;
+            }
+
+            //- Return reference to laser beam
+            const laserBeam& beam() const
+            {
+                return *beamPtr_;
+            }
+
+
+        //- Evaluation
+
+            //- Update the laser coordinates
+            void update();
 };
 
 

@@ -49,6 +49,7 @@ Description
 
 #include "incompressibleGasMetalMixture.H"
 #include "surfaceLaserHeatSource.H"
+#include "movingReferenceFrame.H"
 
 // For debug
 auto pp = [](const volScalarField& f)
@@ -148,6 +149,16 @@ int main(int argc, char *argv[])
                         #include "meshCourantNo.H"
                     }
                 }
+
+                // Moving reference frame
+                if (MRF->moving())
+                {
+                    MRF->correct();
+                    phi -= MRF->phiRel();
+                }
+
+                // Update position of the laser beam
+                laserHeatSource->update();
             }
 
             // --- Advect alpha field

@@ -4,6 +4,7 @@ EXE_INC = \
     -I./incompressibleGasMetalMixture/lnInclude \
     -I../../libraries/sigmoidFunction/lnInclude \
     -I../../libraries/laserHeatSource/lnInclude \
+    -I../../libraries/movingReferenceFrame/lnInclude \
     -I./surfaceLaserHeatSources/lnInclude \
     -I$(FOAM_SOLVERS)/multiphase/interIsoFoam \
     -I$(FOAM_SOLVERS)/multiphase/interFoam \
@@ -37,4 +38,5 @@ EXE_LIBS = \
     -lsigmoidFunction \
     -llaserHeatSource \
     -lsurfaceLaserHeatSources \
-    -ltrueArrhenius
+    -ltrueArrhenius \
+    -lmovingReferenceFrame

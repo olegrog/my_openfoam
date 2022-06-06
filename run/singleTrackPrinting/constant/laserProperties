@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-power           113; // 113 W for Trumpf TruPrint 1000
+power           113;
 power_
 {
     type        sine;
@@ -25,16 +25,16 @@ power_
     scale       1;
 }
 
-radius      [ m ]   2.75e-5; // 2.75e-5 for Trumpf TruPrint 1000
-velocity    [ m/s ] ( 0.7 0 0 ); // 0.7 for Trumpf TruPrint 1000
-coordStart  [ m ]   ( 0 0 1e-4 );
-timeStop    [ s ]   0.0005;
+radius          2.75e-5;
+velocity        ( 0.7 0 0 );
+coordStart      ( 0 0 1e-4 );
+timeStop        0.0005;
 
 beam
 {
-    type    Gaussian; // topHat
-    direction           ( 0 0 -1 );
-    waveLength  [ m ]   1e-6;
+    type        Gaussian; // topHat
+    direction   ( 0 0 -1 );
+    waveLength  1e-6;
 }
 
 source

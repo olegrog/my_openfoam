@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
         // Moving reference frame
         if (MRF->moving())
         {
-            MRF->correct();
+            MRF->correct(false);
             phiv_pos -= MRF->phiRel();
             phiv_neg -= MRF->phiRel();
         }
