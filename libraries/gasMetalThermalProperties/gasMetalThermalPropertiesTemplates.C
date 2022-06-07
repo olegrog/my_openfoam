@@ -317,9 +317,10 @@ void Foam::gasMetalThermalProperties<Mixture>::correctPassiveFields()
                 {
                     FatalErrorInFunction
                         << " coolingRate = " << coolingRate
-                        << ", phi = " << phiOld << " -> " << phiOld
+                        << ", phi = " << phiOld << " -> " << phi
                         << ", alphaM = " << alphaM_.oldTime()[cellI] << " -> " << alphaM_[cellI]
                         << ", T = " << T_.oldTime()[cellI] << " -> " << T_[cellI]
+                        << ", h = " << h_.oldTime()[cellI] << " -> " << h_[cellI]
                         << exit(FatalError);
                 }
 

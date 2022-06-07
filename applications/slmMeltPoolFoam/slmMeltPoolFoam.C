@@ -128,6 +128,14 @@ int main(int argc, char *argv[])
                         rho.correctBoundaryConditions();
                         rho.oldTime() = rho;
                         alpha2.oldTime() = alpha2;
+
+                        // We have to update the alpha-dependent fields
+                        mixture.correct();
+                        mixture.correctThermo();
+
+                        // Used in correctPassiveFields()
+                        const_cast<volScalarField&>(liquidFraction).oldTime() = liquidFraction;
+                        const_cast<volScalarField&>(T).oldTime() = T;
                     }
 
                     if (correctPhi)
@@ -141,7 +149,8 @@ int main(int argc, char *argv[])
                         // Make the flux relative to the mesh motion
                         fvc::makeRelative(phi, U);
 
-                        mixture.correct();
+                        // NB: the following line is uncommented in interIsoFoam
+                        // mixture.correct();
                     }
 
                     if (checkMeshCourantNo)
