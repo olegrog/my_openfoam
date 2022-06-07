@@ -199,7 +199,7 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
                 << residual << " < " << tolerance << endl;
         }
 
-        Info<< "Updating the BC for " << h_.name() << endl;
+        Info<< "Updating the BC for " << h_.name() << nl << endl;
         // operator== is used to force the assignment of the boundary field
         h_ == thermo_.h(T_, liquidFraction_, alphaG_);
     }

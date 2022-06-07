@@ -83,7 +83,7 @@ volScalarField radiativeCooling
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimArea
+    dimensionedScalar(dimPower/dimArea, Zero)
 );
 
 volScalarField evaporativeCooling
@@ -97,7 +97,7 @@ volScalarField evaporativeCooling
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimArea
+    dimensionedScalar(dimPower/dimArea, Zero)
 );
 
 volScalarField heatConvection
@@ -111,7 +111,7 @@ volScalarField heatConvection
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimensionedScalar(dimPower/dimVolume, Zero)
 );
 
 volScalarField heatConduction
@@ -125,7 +125,7 @@ volScalarField heatConduction
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimensionedScalar(dimPower/dimVolume, Zero)
 );
 
 volScalarField heatConduction2
@@ -139,7 +139,7 @@ volScalarField heatConduction2
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimVolume
+    dimensionedScalar(dimPower/dimVolume, Zero)
 );
 
 volScalarField energySource
@@ -149,11 +149,11 @@ volScalarField energySource
         "energySource",
         runTime.timeName(),
         mesh,
-        IOobject::NO_READ,
+        IOobject::READ_IF_PRESENT,
         writeAllFields ? IOobject::AUTO_WRITE : IOobject::NO_WRITE
     ),
     mesh,
-    dimPower/dimMass
+    dimensionedScalar(dimPower/dimMass, Zero)
 );
 
 

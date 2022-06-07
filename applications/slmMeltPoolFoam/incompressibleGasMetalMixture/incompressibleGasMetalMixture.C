@@ -63,8 +63,7 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
 {
     const scalar Tmelting = thermo().Tmelting().value();
 
-    Info<< endl
-        << " -- Surface tension at Tmelting = " << sigmaPtr_->value(Tmelting) << endl
+    Info<< " -- Surface tension at Tmelting = " << sigmaPtr_->value(Tmelting) << endl
         << " -- Marangoni coefficient at Tmelting = " << dSigmaDT(Tmelting) << endl
         << endl;
 
