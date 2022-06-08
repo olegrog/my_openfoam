@@ -9,7 +9,7 @@ Options:
   -min=<value>          Set a minimum A value
   -max=<value>          Set a maximum A value
   -eps                  Create a EPS file instead of graphical terminal
-  --help                Print this help
+  -help                 Print this help
 EOF
     exit 1
 }

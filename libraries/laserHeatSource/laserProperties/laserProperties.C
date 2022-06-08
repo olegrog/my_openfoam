@@ -33,7 +33,7 @@ License
 
 namespace Foam
 {
-    defineTypeName(laserProperties);
+    defineTypeNameAndDebug(laserProperties, 0);
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -107,10 +107,15 @@ void Foam::laserProperties::update()
     const dimensionedVector vel = velocity();
     position_ += vel*time_.deltaT();
 
+    DebugInfo
+        << "Laser: power = " << power().value()*switchedOn() << " radius = " << radius().value()
+        << " velocity = " << vel.value() << " position = " << position_.value() << endl;
+
     laserDict_.set(power().name(), power().value());
     laserDict_.set(radius().name(), radius().value());
     laserDict_.set(vel.name(), vel.value());
     laserDict_.set(position_.name(), position_.value());
+    laserDict_.set("switchedOn", switchedOn());
 }
 
 

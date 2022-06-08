@@ -63,6 +63,7 @@ DebugSwitches
     rayTracing 0;
     rayTracingParticle 0;
     Fresnel 0;
+    laserProperties 0;
 }
 
 // ************************************************************************* //
