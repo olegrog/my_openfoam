@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      polymerProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Polymerization properties
+
+aConst              0.66;
+bConst              -1.35;
+pGel                0.2;
+
+criticalExposure    [J/m^2] 67.9;
+penetrationDepth    [m]     61e-6;
+
+// Mechanical properties
+
+nu                  0.32;
+epsilonChemicalMax  -0.025;
+
+Emax                [Pa]    0.9e9;
+E0ByEmax            1e-3;
+
+// ************************************************************************* //

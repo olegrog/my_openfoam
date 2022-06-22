@@ -56,11 +56,12 @@ IOdictionary polymerProperties
 const dimensionedScalar Emax("Emax", dimPressure, polymerProperties);
 const dimensionedScalar pGel("pGel", dimless, polymerProperties);
 const dimensionedScalar epsilonChemicalMax("epsilonChemicalMax", dimless, polymerProperties);
-const dimensionedScalar interlayerCohesion("interlayerCohesion", dimless, polymerProperties);
+const dimensionedScalar E0 = Emax*polymerProperties.get<scalar>("E0ByEmax");
 
 Info<< "Calculating mechanical properties\n" << endl;
 
 volScalarField E("E", Emax*(polymerization - pGel)/(1 - pGel));
+const volScalarField Efull("Efull", E);
 
 if (gMin(E) < SMALL)
 {
@@ -76,16 +77,26 @@ volScalarField nu = volScalarField::New
     dimensionedScalar("nu", dimless, polymerProperties)
 );
 
-Info<< "Calculating Lame's coefficients\n" << endl;
-
 volScalarField mu("mu", E/(2.0*(1.0 + nu)));
 volScalarField lambda("lambda", nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK("threeK", E/(1.0 - 2.0*nu));
+volScalarField activeCells("activeCells", pos(nLayer));
 
 volTensorField gradD("gradD", fvc::grad(D));
 volSymmTensorField epsilon("epsilon", symm(gradD));
 
-symmTensor Ixy = symmTensor::I; Ixy.zz() = 0;
+volSymmTensorField epsilonRes
+(
+    IOobject
+    (
+        "epsilonRes",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+    ),
+    0*epsilon
+);
 
 volSymmTensorField sigma
 (
@@ -94,14 +105,14 @@ volSymmTensorField sigma
         "sigma",
         runTime.timeName(),
         mesh,
-        IOobject::READ_IF_PRESENT,
+        IOobject::NO_READ,
         IOobject::NO_WRITE
     ),
-    mu*twoSymm(gradD) + lambda*I*tr(gradD)
-  - threeK*epsilonChemicalMax*(polymerization*I + interlayerCohesion*(nLayer - 1)*Ixy)
+    mu*(twoSymm(gradD) + 2*epsilonRes)
+  + lambda*(tr(gradD) + tr(epsilonRes))*I
+  - threeK*epsilonChemicalMax*polymerization*activeCells*I
 );
 
-Info<< "Calculating explicit part of div(sigma) divSigmaExp\n" << endl;
 volVectorField divSigmaExp
 (
     "divSigmaExp",
@@ -122,8 +133,6 @@ volScalarField sigmaEq
     sigma.dimensions()
 );
 
-mesh.setFluxRequired(D.name());
-
 // Flag to write auxiliary fields
 bool writeAllFields(runTime.controlDict().get<bool>("writeAllFields"));
 
@@ -132,6 +141,7 @@ if (writeAllFields)
     polymerization.writeOpt() = IOobject::AUTO_WRITE;
     nLayer.writeOpt() = IOobject::AUTO_WRITE;
     E.writeOpt() = IOobject::AUTO_WRITE;
+    activeCells.writeOpt() = IOobject::AUTO_WRITE;
     sigma.writeOpt() = IOobject::AUTO_WRITE;
     epsilon.writeOpt() = IOobject::AUTO_WRITE;
 }

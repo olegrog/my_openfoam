@@ -99,20 +99,13 @@ void Foam::zeroTractionFvPatchVectorField::updateCoeffs()
         return;
     }
 
-    const fvPatchField<scalar>& E = patch().lookupPatchField<volScalarField, scalar>("E");
-    const fvPatchField<scalar>& nu = patch().lookupPatchField<volScalarField, scalar>("nu");
-
-    scalarField mu(E/(2.0*(1.0 + nu)));
-    scalarField lambda(nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
-
-    scalarField twoMuLambda(2*mu + lambda);
-
-    vectorField n(patch().nf());
-
+    const fvPatchField<scalar>& mu = patch().lookupPatchField<volScalarField, scalar>("mu");
+    const fvPatchField<scalar>& lambda = patch().lookupPatchField<volScalarField, scalar>("lambda");
     const fvPatchField<symmTensor>& sigma =
         patch().lookupPatchField<volSymmTensorField, symmTensor>("sigma");
+    const vectorField n(patch().nf());
 
-    gradient() = snGrad() - (n & sigma)/twoMuLambda;
+    gradient() = snGrad() - (n & sigma)/(2*mu + lambda);
 
     fixedGradientFvPatchVectorField::updateCoeffs();
 }

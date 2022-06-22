@@ -1,0 +1,22 @@
+#!/bin/bash -e
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+runApplication stereolithography
+cp 0.orig/D 0/
+
+if [[ "$1" == "-parallel" ]]; then
+    runApplication decomposePar
+    runParallel -np 4 `getApplication`
+    runApplication reconstructPar -newTimes
+else
+    if [[ "$1" == "-bi" ]]; then
+        runApplication setFields
+    fi
+    runApplication `getApplication`
+fi
+
+# ----------------------------------------------------------------- end-of-file
