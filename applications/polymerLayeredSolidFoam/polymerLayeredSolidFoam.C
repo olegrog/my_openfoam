@@ -34,6 +34,8 @@ Description
 
 #include "fvCFD.H"
 
+#include "laserScanner.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -49,21 +51,26 @@ int main(int argc, char *argv[])
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-
-    const label nLayers = round(gMax(nLayer));
-    runTime.setEndTime(2*nLayers*runTime.deltaT());
-
     while (runTime.loop())
     {
-        activeCells = pos(runTime.timeIndex() + 2 - 2*nLayer);
-        E = activeCells*Efull + (1 - activeCells)*E0;
+        // Update fields at the odd iterations only
+        if (runTime.timeIndex() % 2 == 1)
+        {
+            const label iLayer = (runTime.timeIndex() + 1)/2;
+            const volScalarField Zlocal = Z - laser.height(iLayer) - small;
+            active = neg0(Zlocal);
+            const volScalarField exposure = active*laser.E()*exp(Zlocal/Dp);
+            totalSqrtExposure += sqrt(exposure);
+            p = 1 - exp(-pow025(2*pi)*PConst*totalSqrtExposure*sqrt(radius/laser.V(L)));
+            E = active*Emax*(p - pGel)/(1 - pGel) + (1 - active)*E0;
 
-        mu = E/(2.0*(1.0 + nu));
-        lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
-        threeK = E/(1.0 - 2.0*nu);
+            mu = E/(2.0*(1.0 + nu));
+            lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
+            threeK = E/(1.0 - 2.0*nu);
+        }
 
         // Set free BC at all the pathes before the final stage
-        if (runTime.timeIndex() == 2*nLayers)
+        if (runTime.timeIndex() == 2*nLayer)
         {
             auto& DBf = D.boundaryFieldRef();
             forAll(DBf, patchi)
@@ -90,9 +97,9 @@ int main(int argc, char *argv[])
                 }
             }
             D = 0*D;
-            sigma = 2*mu*epsilonRes + lambda*tr(epsilonRes)*I
-                - threeK*epsilonChemicalMax*polymerization*I;
+            sigma = 2*mu*epsilonRes + lambda*tr(epsilonRes)*I - threeK*epsilonChemicalMax*p*I;
             divSigmaExp = fvc::div(sigma, "div(sigma)");
+            runTime.setEndTime(runTime);
         }
 
         Info<< "Iteration: " << runTime.value() << endl;
@@ -112,7 +119,7 @@ int main(int argc, char *argv[])
 
             gradD = fvc::grad(D);
             sigma = mu*(twoSymm(gradD) + 2*epsilonRes) + lambda*(tr(gradD) + tr(epsilonRes))*I
-                - threeK*epsilonChemicalMax*polymerization*activeCells*I;
+                - threeK*epsilonChemicalMax*p*I;
             divSigmaExp = fvc::div(sigma - (2*mu + lambda)*gradD, "div(sigma)");
 
         } while (initialResidual > convergenceTolerance && ++iCorr < nCorr);
@@ -123,7 +130,9 @@ int main(int argc, char *argv[])
 
         if (runTime.timeIndex() % 2 == 1)
         {
-            epsilonRes += epsilon*(1 - activeCells);
+            const volSymmTensorField dEpsilonRes = epsilon*(1 - active);
+            epsilonRes += dEpsilonRes;
+            divSigmaExp += fvc::div(2*mu*dEpsilonRes + lambda*tr(dEpsilonRes)*I, "div(sigma)");
         }
 
         runTime.write();

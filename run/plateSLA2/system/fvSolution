@@ -20,7 +20,7 @@ solvers
     D
     {
         solver          GAMG;
-        tolerance       1e-10;
+        tolerance       1e-11;
         relTol          0.9;
         smoother        GaussSeidel;
         nCellsInCoarsestLevel 20;
@@ -29,7 +29,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-10;
+        tolerance       1e-11;
         relTol          0.9;
     }
 }
@@ -37,7 +37,7 @@ solvers
 stressAnalysis
 {
     nCorrectors     1000;
-    D               1e-9;
+    D               2e-10;
 }
 
 // ************************************************************************* //

@@ -12,34 +12,6 @@ volVectorField D
     mesh
 );
 
-Info<< "Reading field polymerization\n" << endl;
-volScalarField polymerization
-(
-    IOobject
-    (
-        "polymerization",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-    ),
-    mesh
-);
-
-Info<< "Reading field nLayer\n" << endl;
-volScalarField nLayer
-(
-    IOobject
-    (
-        "nLayer",
-        runTime.timeName(),
-        mesh,
-        IOobject::MUST_READ,
-        IOobject::NO_WRITE
-    ),
-    mesh
-);
-
 Info<< "Reading polymer properties\n" << endl;
 IOdictionary polymerProperties
 (
@@ -53,24 +25,91 @@ IOdictionary polymerProperties
     )
 );
 
+// Polymerization properties
+const scalar aConst(polymerProperties.get<scalar>("aConst"));
+const scalar bConst(polymerProperties.get<scalar>("bConst"));
+const scalar pGel(polymerProperties.get<scalar>("pGel"));
+const dimensionedScalar Ec("criticalExposure", dimEnergy/dimArea, polymerProperties);
+const dimensionedScalar Dp("penetrationDepth", dimLength, polymerProperties);
+
+// Mechanical properties
 const dimensionedScalar Emax("Emax", dimPressure, polymerProperties);
-const dimensionedScalar pGel("pGel", dimless, polymerProperties);
 const dimensionedScalar epsilonChemicalMax("epsilonChemicalMax", dimless, polymerProperties);
 const dimensionedScalar E0 = Emax*polymerProperties.get<scalar>("E0ByEmax");
 
-Info<< "Calculating mechanical properties\n" << endl;
+Info<< "Calculating polymerization properties" << endl;
 
-volScalarField E("E", Emax*(polymerization - pGel)/(1 - pGel));
-const volScalarField Efull("Efull", E);
+const volVectorField& coord = mesh.C();
+const volScalarField Z = coord.component(2);
 
-if (gMin(E) < SMALL)
+const boundBox& bounds = mesh.bounds();
+const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
+const dimensionedScalar ymax("ymax", dimLength, bounds.max().y());
+const dimensionedScalar zmin("zmin", dimLength, bounds.min().z());
+const dimensionedScalar zmax("zmax", dimLength, bounds.max().z());
+const dimensionedScalar L = ymax - ymin;
+const dimensionedScalar small = SMALL*L;
+
+if (mag(zmin) > small)
 {
     FatalError
-        << "Somewhere the Young's modulus is equal to zero."
+        << "Coordinate zmin is not equal to zero."
         << exit(FatalError);
 }
 
-volScalarField nu = volScalarField::New
+using constant::mathematical::pi;
+const laserScanner laser(mesh);
+const scalar Fscatt = aConst*log(laser.E()/Ec).value() + bConst;
+const dimensionedScalar PConst = -pow025(2*pi)*Foam::log(1 - pGel)/sqrt(Ec*laser.R()/laser.V(L));
+const dimensionedScalar radius = laser.R()*Fscatt;
+
+label nLayer = 0;
+for (; laser.height(nLayer + 1) < zmax + small; nLayer++);
+
+if (mag(zmax - laser.height(nLayer)) > small)
+{
+    FatalError
+        << "Coordinate zmax does not correspond to integer number of layers:" << nl
+        << "  zmax = " << zmax.value() << nl
+        << "  laser.height(" << nLayer << ") = " << laser.height(nLayer).value() << nl
+        << exit(FatalError);
+}
+
+Info<< " -- Scattering factor = " << Fscatt << endl
+    << " -- Polymerization constant = " << PConst.value() << endl
+    << " -- Number of layers = " << nLayer << nl << endl;
+
+volScalarField totalSqrtExposure
+(
+    IOobject
+    (
+        "totalSqrtExposure",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::NO_WRITE
+    ),
+    mesh,
+    dimensionedScalar(sqrt(dimEnergy/dimArea))
+);
+
+volScalarField p
+(
+    IOobject
+    (
+        "p",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+    ),
+    neg0(Z - laser.height(1) - small)
+);
+
+Info<< "Calculating mechanical properties\n" << endl;
+
+volScalarField E("E", Emax*p);
+const volScalarField nu = volScalarField::New
 (
     "nu",
     mesh,
@@ -80,7 +119,7 @@ volScalarField nu = volScalarField::New
 volScalarField mu("mu", E/(2.0*(1.0 + nu)));
 volScalarField lambda("lambda", nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK("threeK", E/(1.0 - 2.0*nu));
-volScalarField activeCells("activeCells", pos(nLayer));
+volScalarField active("active", p);
 
 volTensorField gradD("gradD", fvc::grad(D));
 volSymmTensorField epsilon("epsilon", symm(gradD));
@@ -110,7 +149,7 @@ volSymmTensorField sigma
     ),
     mu*(twoSymm(gradD) + 2*epsilonRes)
   + lambda*(tr(gradD) + tr(epsilonRes))*I
-  - threeK*epsilonChemicalMax*polymerization*activeCells*I
+  - threeK*epsilonChemicalMax*p*I
 );
 
 volVectorField divSigmaExp
@@ -138,10 +177,8 @@ bool writeAllFields(runTime.controlDict().get<bool>("writeAllFields"));
 
 if (writeAllFields)
 {
-    polymerization.writeOpt() = IOobject::AUTO_WRITE;
-    nLayer.writeOpt() = IOobject::AUTO_WRITE;
     E.writeOpt() = IOobject::AUTO_WRITE;
-    activeCells.writeOpt() = IOobject::AUTO_WRITE;
+    active.writeOpt() = IOobject::AUTO_WRITE;
     sigma.writeOpt() = IOobject::AUTO_WRITE;
     epsilon.writeOpt() = IOobject::AUTO_WRITE;
 }
