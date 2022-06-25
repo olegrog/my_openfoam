@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        // Update fields at the odd iterations only
-        if (runTime.timeIndex() % 2 == 1)
+        // Update fields after laser exposition only
+        if (runTime.timeIndex() % nResidualCorr == 1)
         {
-            const label iLayer = (runTime.timeIndex() + 1)/2;
+            const label iLayer = 1 + (runTime.timeIndex() - 1)/nResidualCorr;
             const volScalarField Zlocal = Z - laser.height(iLayer) - small;
             active = neg0(Zlocal);
             const volScalarField exposure = active*laser.E()*exp(Zlocal/Dp);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         }
 
         // Set free BC at all the pathes before the final stage
-        if (runTime.timeIndex() == 2*nLayer)
+        if (runTime.timeIndex() == totalIter)
         {
             auto& DBf = D.boundaryFieldRef();
             forAll(DBf, patchi)
@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
         }
 
         Info<< "Iteration: " << runTime.value() << endl;
-        Info<< "Calculating displacement field" << endl;
 
         label iCorr = 0;
         scalar initialResidual = 0;
@@ -128,7 +127,7 @@ int main(int argc, char *argv[])
         sigmaEq = sqrt(1.5*magSqr(dev(sigma)));
         Info<< "Max sigmaEq = " << gMax(sigmaEq) << endl;
 
-        if (runTime.timeIndex() % 2 == 1)
+        // Accumulate residual deformations in the free subdomain
         {
             const volSymmTensorField dEpsilonRes = epsilon*(1 - active);
             epsilonRes += dEpsilonRes;
