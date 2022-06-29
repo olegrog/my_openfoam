@@ -54,8 +54,15 @@ int main(int argc, char *argv[])
     while (runTime.loop())
     {
         // Update fields after laser exposition only
-        if (runTime.timeIndex() % nResidualCorr == 1)
+        if (runTime.timeIndex() % nResidualCorr == 1 || nResidualCorr == 1)
         {
+            if (accumulateInterlayer)
+            {
+                // NB: factor 2 is due to smoothing grad(active) over 2 cells
+                interlayerForce -= 2*sigma & fvc::grad(active);
+                interlayerForce.replace(vector::Z, 0);
+            }
+
             const label iLayer = 1 + (runTime.timeIndex() - 1)/nResidualCorr;
             const volScalarField Zlocal = Z - laser.height(iLayer) - small;
             active = neg0(Zlocal);
@@ -99,7 +106,6 @@ int main(int argc, char *argv[])
             D = 0*D;
             sigma = 2*mu*epsilonRes + lambda*tr(epsilonRes)*I - threeK*epsilonChemicalMax*p*I;
             divSigmaExp = fvc::div(sigma, "div(sigma)");
-            runTime.setEndTime(runTime);
         }
 
         Info<< "Iteration: " << runTime.value() << endl;
@@ -112,7 +118,9 @@ int main(int argc, char *argv[])
             Info<< nl << "Correction: " << iCorr << endl;
             fvVectorMatrix DEqn
             (
-                fvm::laplacian(2*mu + lambda, D, "laplacian(DD,D)") + divSigmaExp
+                fvm::laplacian(2*mu + lambda, D, "laplacian(DD,D)")
+              + divSigmaExp
+             == interlayerForce
             );
             initialResidual = DEqn.solve().max().initialResidual();
 
@@ -128,6 +136,7 @@ int main(int argc, char *argv[])
         Info<< "Max sigmaEq = " << gMax(sigmaEq) << endl;
 
         // Accumulate residual deformations in the free subdomain
+        if (accumulateResidual)
         {
             const volSymmTensorField dEpsilonRes = epsilon*(1 - active);
             epsilonRes += dEpsilonRes;

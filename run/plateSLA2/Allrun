@@ -11,9 +11,6 @@ if [[ "$1" == "-parallel" ]]; then
     runParallel -np 4 `getApplication`
     runApplication reconstructPar -newTimes
 else
-    if [[ "$1" == "-bi" ]]; then
-        runApplication setFields
-    fi
     runApplication `getApplication`
 fi
 

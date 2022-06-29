@@ -18,7 +18,7 @@ FoamFile
 radius                  [m]     23e-6;
 power                   [W]     135e-3;
 hatchingSpeed           [m^2/s] 9.829e-5;
-layerThickness          [m]     100e-6;
-firstLayerThickness     [m]     100e-6;
+layerThickness          [m]     50e-6;
+firstLayerThickness     [m]     250e-6;
 
 // ************************************************************************* //

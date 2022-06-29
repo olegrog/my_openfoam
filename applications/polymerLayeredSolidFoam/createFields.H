@@ -134,7 +134,22 @@ volSymmTensorField epsilonRes
         IOobject::READ_IF_PRESENT,
         IOobject::AUTO_WRITE
     ),
-    0*epsilon
+    mesh,
+    dimensionedSymmTensor(dimless)
+);
+
+volVectorField interlayerForce
+(
+    IOobject
+    (
+        "interlayerForce",
+        runTime.timeName(),
+        mesh,
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
+    ),
+    mesh,
+    dimensionedVector(dimForce/dimVolume)
 );
 
 volSymmTensorField sigma

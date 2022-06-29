@@ -17,6 +17,7 @@ FoamFile
 
 gradSchemes
 {
+    default         Gauss linear;
     grad(D)         leastSquares;
 }
 
