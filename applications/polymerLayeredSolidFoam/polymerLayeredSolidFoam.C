@@ -53,28 +53,28 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        // Update fields after laser exposition only
-        if (runTime.timeIndex() % nResidualCorr == 1 || nResidualCorr == 1)
+        if (accumulateInterlayer)
         {
-            if (accumulateInterlayer)
-            {
-                // NB: factor 2 is due to smoothing grad(active) over 2 cells
-                interlayerForce -= 2*sigma & fvc::grad(active);
-                interlayerForce.replace(vector::Z, 0);
-            }
+            // NB: factor 2 is due to smoothing grad(active) over 2 cells
+            interlayerForce -= 2*sigma & fvc::grad(active);
+            interlayerForce.replace(vector::Z, 0);
+        }
 
-            const label iLayer = 1 + (runTime.timeIndex() - 1)/nResidualCorr;
+        for (label iLayer = runTime.timeIndex(); iLayer <= nLayer; iLayer++)
+        {
             const volScalarField Zlocal = Z - laser.height(iLayer) - small;
             active = neg0(Zlocal);
             const volScalarField exposure = active*laser.E()*exp(Zlocal/Dp);
             totalSqrtExposure += sqrt(exposure);
-            p = 1 - exp(-pow025(2*pi)*PConst*totalSqrtExposure*sqrt(radius/laser.V(L)));
-            E = active*Emax*(p - pGel)/(1 - pGel) + (1 - active)*E0;
 
-            mu = E/(2.0*(1.0 + nu));
-            lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
-            threeK = E/(1.0 - 2.0*nu);
+            if (accumulateInterlayer) break;
         }
+
+        p = 1 - exp(-pow025(2*pi)*PConst*totalSqrtExposure*sqrt(radius/laser.V(L)));
+        E = active*Emax*(p - pGel)/(1 - pGel) + (1 - active)*E0;
+        mu = E/(2.0*(1.0 + nu));
+        lambda = nu*E/((1.0 + nu)*(1.0 - 2.0*nu));
+        threeK = E/(1.0 - 2.0*nu);
 
         // Set free BC at all the pathes before the final stage
         if (runTime.timeIndex() == totalIter)
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
                 }
             }
             D = 0*D;
-            sigma = 2*mu*epsilonRes + lambda*tr(epsilonRes)*I - threeK*epsilonChemicalMax*p*I;
+            sigma -= mu*(twoSymm(gradD)) + lambda*(tr(gradD))*I;
             divSigmaExp = fvc::div(sigma, "div(sigma)");
         }
 
@@ -125,8 +125,7 @@ int main(int argc, char *argv[])
             initialResidual = DEqn.solve().max().initialResidual();
 
             gradD = fvc::grad(D);
-            sigma = mu*(twoSymm(gradD) + 2*epsilonRes) + lambda*(tr(gradD) + tr(epsilonRes))*I
-                - threeK*epsilonChemicalMax*p*I;
+            sigma = mu*twoSymm(gradD) + lambda*tr(gradD)*I - threeK*epsilonChemicalMax*p*I;
             divSigmaExp = fvc::div(sigma - (2*mu + lambda)*gradD, "div(sigma)");
 
         } while (initialResidual > convergenceTolerance && ++iCorr < nCorr);
@@ -134,14 +133,6 @@ int main(int argc, char *argv[])
         epsilon = symm(gradD);
         sigmaEq = sqrt(1.5*magSqr(dev(sigma)));
         Info<< "Max sigmaEq = " << gMax(sigmaEq) << endl;
-
-        // Accumulate residual deformations in the free subdomain
-        if (accumulateResidual)
-        {
-            const volSymmTensorField dEpsilonRes = epsilon*(1 - active);
-            epsilonRes += dEpsilonRes;
-            divSigmaExp += fvc::div(2*mu*dEpsilonRes + lambda*tr(dEpsilonRes)*I, "div(sigma)");
-        }
 
         runTime.write();
         runTime.printExecutionTime(Info);

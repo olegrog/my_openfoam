@@ -124,20 +124,6 @@ volScalarField active("active", p);
 volTensorField gradD("gradD", fvc::grad(D));
 volSymmTensorField epsilon("epsilon", symm(gradD));
 
-volSymmTensorField epsilonRes
-(
-    IOobject
-    (
-        "epsilonRes",
-        runTime.timeName(),
-        mesh,
-        IOobject::READ_IF_PRESENT,
-        IOobject::AUTO_WRITE
-    ),
-    mesh,
-    dimensionedSymmTensor(dimless)
-);
-
 volVectorField interlayerForce
 (
     IOobject
@@ -162,9 +148,7 @@ volSymmTensorField sigma
         IOobject::NO_READ,
         IOobject::NO_WRITE
     ),
-    mu*(twoSymm(gradD) + 2*epsilonRes)
-  + lambda*(tr(gradD) + tr(epsilonRes))*I
-  - threeK*epsilonChemicalMax*p*I
+    mu*(twoSymm(gradD)) + lambda*(tr(gradD))*I - threeK*epsilonChemicalMax*p*I
 );
 
 volVectorField divSigmaExp
