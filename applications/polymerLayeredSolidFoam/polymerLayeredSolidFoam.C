@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
             (
                 fvm::laplacian(2*mu + lambda, D, "laplacian(DD,D)")
               + divSigmaExp
-             == interlayerForce
+              + interlayerForce
             );
             initialResidual = DEqn.solve().max().initialResidual();
 
