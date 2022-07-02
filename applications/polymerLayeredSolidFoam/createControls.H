@@ -1,7 +1,10 @@
 const dictionary& stressControl = mesh.solutionDict().subDict("stressAnalysis");
 const label nCorr = stressControl.getOrDefault<label>("nCorrectors", 1000);
 const scalar convergenceTolerance = stressControl.get<scalar>("D");
-const bool accumulateInterlayer = stressControl.getOrDefault<bool>("accumulateInterlayer", true);
+const Switch accumulateInterlayer =
+    stressControl.getOrDefault<Switch>("accumulateInterlayer", true);
+const Switch aitkenRelax =
+    stressControl.getOrDefault<Switch>("aitkenRelaxation", false);
 
 const label totalIter = accumulateInterlayer ? nLayer : 1;
 

@@ -86,12 +86,13 @@ volScalarField totalSqrtExposure
         "totalSqrtExposure",
         runTime.timeName(),
         mesh,
-        IOobject::NO_READ,
-        IOobject::NO_WRITE
+        IOobject::READ_IF_PRESENT,
+        IOobject::AUTO_WRITE
     ),
     mesh,
-    dimensionedScalar(sqrt(dimEnergy/dimArea))
+    dimensionedScalar()
 );
+totalSqrtExposure.dimensions().reset(sqrt(dimEnergy/dimArea));
 
 volScalarField p
 (
@@ -119,7 +120,7 @@ const volScalarField nu = volScalarField::New
 volScalarField mu("mu", E/(2.0*(1.0 + nu)));
 volScalarField lambda("lambda", nu*E/((1.0 + nu)*(1.0 - 2.0*nu)));
 volScalarField threeK("threeK", E/(1.0 - 2.0*nu));
-volScalarField active("active", p);
+volScalarField active("active", pos(p));
 
 volTensorField gradD("gradD", fvc::grad(D));
 volSymmTensorField epsilon("epsilon", symm(gradD));
@@ -169,6 +170,21 @@ volScalarField sigmaEq
     ),
     mesh,
     sigma.dimensions()
+);
+
+// for Aitken relaxation (see foam-extend/elasticSolidFoam)
+volVectorField aitkenDelta
+(
+   IOobject
+   (
+       "aitkenDelta",
+       runTime.timeName(),
+       mesh,
+       IOobject::NO_READ,
+       IOobject::NO_WRITE
+   ),
+   mesh,
+   dimensionedVector("zero", dimLength, vector::zero)
 );
 
 // Flag to write auxiliary fields

@@ -6,6 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
       solidDisplacementFoam | Copyright (C) 2011-2016 OpenFOAM Foundation
+           elasticSolidFoam | Copyright (C) 2011 Philip Cardiff (aitken relaxation)
            polymerSolidFoam | Copyright (C) 2020 Oleg Rogozin
     polymerLayeredSolidFoam | Copyright (C) 2022 Oleg Rogozin
 -------------------------------------------------------------------------------
@@ -53,13 +54,6 @@ int main(int argc, char *argv[])
 
     while (runTime.loop())
     {
-        if (accumulateInterlayer)
-        {
-            // NB: factor 2 is due to smoothing grad(active) over 2 cells
-            interlayerForce -= 2*sigma & fvc::grad(active);
-            interlayerForce.replace(vector::Z, 0);
-        }
-
         for (label iLayer = runTime.timeIndex(); iLayer <= nLayer; iLayer++)
         {
             const volScalarField Zlocal = Z - laser.height(iLayer) - small;
@@ -113,8 +107,14 @@ int main(int argc, char *argv[])
         label iCorr = 0;
         scalar initialResidual = 0;
 
+        // Aitken relaxation factor
+        scalar aitkenInitialRes = 0;
+        scalar aitkenTheta = 0.1;
+
         do
         {
+            if (aitkenRelax) D.storePrevIter();
+
             Info<< nl << "Correction: " << iCorr << endl;
             fvVectorMatrix DEqn
             (
@@ -123,6 +123,15 @@ int main(int argc, char *argv[])
               + interlayerForce
             );
             initialResidual = DEqn.solve().max().initialResidual();
+
+            if (aitkenRelax)
+            {
+                #include "aitkenRelaxation.H"
+            }
+            else
+            {
+                D.relax();
+            }
 
             gradD = fvc::grad(D);
             sigma = mu*twoSymm(gradD) + lambda*tr(gradD)*I - threeK*epsilonChemicalMax*p*I;
@@ -134,7 +143,16 @@ int main(int argc, char *argv[])
         sigmaEq = sqrt(1.5*magSqr(dev(sigma)));
         Info<< "Max sigmaEq = " << gMax(sigmaEq) << endl;
 
+        if (accumulateInterlayer)
+        {
+            // NB: factor 2 is due to smoothing grad(active) over 2 cells
+            interlayerForce -= 2*sigma & fvc::grad(active);
+            interlayerForce.replace(vector::Z, 0);
+        }
+
+        totalSqrtExposure.dimensions().clear(); // ParaView cannot read fractional dimensions
         runTime.write();
+        totalSqrtExposure.dimensions().reset(sqrt(dimEnergy/dimArea));
         runTime.printExecutionTime(Info);
     }
 
