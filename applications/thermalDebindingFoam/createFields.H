@@ -1,3 +1,6 @@
+const Switch conservativeForm =
+    runTime.controlDict().getOrDefault<Switch>("conservativeForm", true);
+
 Info<< "Reading field T\n" << endl;
 volScalarField T
 (
@@ -55,7 +58,9 @@ volScalarField D2
     ),
     mesh,
     dimViscosity,
-    zeroGradientFvPatchField<scalar>::typeName
+    conservativeForm
+  ? zeroGradientFvPatchField<scalar>::typeName
+  : fixedValueFvPatchField<scalar>::typeName
 );
 
 volScalarField p

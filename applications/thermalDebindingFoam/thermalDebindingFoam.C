@@ -84,14 +84,23 @@ int main(int argc, char *argv[])
             permeability = permeability0
                 *pow(polymer.poresFraction()/polymer.totalVolumeFraction(), particleSizeExponent)
                 *pow(polymer.poresFraction(), 3)/sqr(1 - polymer.poresFraction());
-            D2 = permeability/mu/polymer.poresFraction()*p;
-            D2.correctBoundaryConditions();
-            D2.boundaryFieldRef() /= 2; // rho = 0 is assumed at the boundary
+            D2 == permeability/mu/polymer.poresFraction()*p;
 
             fvScalarMatrix rhoEqn
             (
-                fvm::ddt(rho) == fvm::laplacian(D1 + D2, rho)
+                fvm::ddt(rho) == fvm::laplacian(D1, rho)
             );
+
+            if (conservativeForm)
+            {
+                D2.correctBoundaryConditions();
+                D2.boundaryFieldRef() /= 2; // rho = 0 is assumed at the boundary
+                rhoEqn -= fvm::laplacian(D2, rho);
+            }
+            else
+            {
+                rhoEqn -= D2*fvm::laplacian(rho) + (fvc::grad(D2) & fvc::grad(rho));
+            }
 
             forAllIters(polymer.components(), iter)
             {

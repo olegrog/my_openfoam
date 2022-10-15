@@ -89,7 +89,7 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::pressure
 {
     using constant::physicoChemical::R;
 
-    dimensionedScalar small(inv(dimless), SMALL);
+    dimensionedScalar small(dimless, SMALL);
     return rho*R*T/monomerW_/(poresFraction() + small);
 }
 
@@ -102,7 +102,7 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::diffusion
 {
     // Fractions in the polymer--monomer system
     const volScalarField monomerVolumeFraction = 1 - volumeFraction()/totalVolumeFraction_;
-    const volScalarField monomerMassFraction = rho/(rho + volumeFraction()*polymerRho_);
+    const volScalarField monomerMassFraction = max(rho/(rho + volumeFraction()*polymerRho_), 0.);
 
     return diffusionModelPtr_->D(T, monomerVolumeFraction, monomerMassFraction)
         *Foam::pow(totalVolumeFraction_, 1.5);

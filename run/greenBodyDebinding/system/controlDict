@@ -36,6 +36,7 @@ adjustTimeStep      yes;
 maxDeltaT           1e5;
 maxCo               50;
 maxDeltaY           0.01;   // maximum change of polymer fraction within a time step
+conservativeForm    true;
 
 functions
 {
