@@ -45,7 +45,7 @@ functions
         type            fieldMinMax;
         libs            (fieldFunctionObjects);
         writeControl    timeStep;
-        fields          (T rho p "D[12]");
+        fields          (T rho p "D[12]" porosity);
         location        false;
         log             false;
         enabled         true;

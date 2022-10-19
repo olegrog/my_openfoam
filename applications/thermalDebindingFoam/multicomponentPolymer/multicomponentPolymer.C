@@ -77,7 +77,7 @@ Foam::tmp<Foam::volScalarField> Foam::multicomponentPolymer::volumeFraction() co
         result = result() + iter();
     }
 
-    return result()*(totalVolumeFraction_ - initialPorosity_);
+    return result()*initialVolumeFraction();
 }
 
 

@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
             rhoEqn.solve();
         }
 
+        porosity = polymer.poresFraction();
         Info<< "max(D1) = " << gMax(D1) << ", max(D2) = " << gMax(D2) << endl;
 
         runTime.write();

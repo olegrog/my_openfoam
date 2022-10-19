@@ -25,7 +25,8 @@ unset label; set label "a)" at graph -0.11 - label_shift, 1
 set ylabel "Mass fraction of a polymer component"
 set yrange [0:1]
 plot file2 u (KtoC($4)):6 w l title "Polymer1" lw 2, \
-    file2 u (KtoC($4)):3 w l title "Polymer2" lw 2
+    file2 u (KtoC($4)):3 w l title "Polymer2" lw 2, \
+    file1 u (KtoC($11)):13 w l title "Porosity" lw 2
 
 unset label; set label "b)" at graph -0.15 - label_shift, 1
 set ylabel "Mass diffusivity (m^2/s)"

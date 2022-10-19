@@ -77,6 +77,19 @@ volScalarField p
     dimPressure
 );
 
+volScalarField porosity
+(
+    IOobject
+    (
+        "porosity",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    polymer.poresFraction()
+);
+
 Info<< "Reading transport properties\n" << endl;
 IOdictionary transportProperties
 (
