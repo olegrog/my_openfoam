@@ -90,6 +90,19 @@ volScalarField porosity
     polymer.poresFraction()
 );
 
+volScalarField organicRelativeMass
+(
+    IOobject
+    (
+        "organicRelativeMass",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    polymer.volumeFraction()/polymer.initialVolumeFraction()
+);
+
 Info<< "Reading transport properties\n" << endl;
 IOdictionary transportProperties
 (

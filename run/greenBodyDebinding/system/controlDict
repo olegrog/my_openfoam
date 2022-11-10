@@ -61,6 +61,17 @@ functions
         log             false;
         enabled         true;
     }
+
+    organicMass
+    {
+        type            volFieldValue;
+        libs            (fieldFunctionObjects);
+
+        fields          (T organicRelativeMass);
+        writeFields     true;
+        operation       volAverage;
+        regionType      all;
+    }
 }
 
 // ************************************************************************* //

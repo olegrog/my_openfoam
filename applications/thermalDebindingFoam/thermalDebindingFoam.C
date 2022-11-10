@@ -111,6 +111,9 @@ int main(int argc, char *argv[])
         }
 
         porosity = polymer.poresFraction();
+        organicRelativeMass =
+            (rho/polymer.rho() + polymer.volumeFraction())/polymer.initialVolumeFraction();
+
         Info<< "max(D1) = " << gMax(D1) << ", max(D2) = " << gMax(D2) << endl;
 
         runTime.write();
