@@ -19,5 +19,15 @@ if (adjustTimeStep)
     );
 
     Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
+
+    scalar minDeltaT(runTime.controlDict().getOrDefault("minDeltaT", 1e-20));
+
+    if (runTime.deltaTValue() < minDeltaT)
+    {
+        runTime.writeNow();
+        FatalError
+            << "The time step becomes too low!"
+            << exit(FatalError);
+    }
 }
 

@@ -41,7 +41,10 @@ pp(h);
 
 if (gMin(h) < 0)
 {
-    runTime.writeAndEnd();
+    runTime.writeNow();
+    FatalError
+        << "Enthalpy becomes negative!"
+        << exit(FatalError);
 }
 
 mixture.correctThermo();
