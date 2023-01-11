@@ -9,6 +9,7 @@ apps='..'
 
 wmake $targetType "$libs/sigmoidFunction"
 wmake $targetType "$libs/gasMetalThermalProperties"
+wmake $targetType "$libs/movingReferenceFrame"
 wmake $targetType "$libs/laserHeatSource"
 wmake $targetType "$libs/trueArrhenius"
 wmake $targetType "$libs/movingReferenceFrame"

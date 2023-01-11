@@ -54,7 +54,7 @@ Foam::autoPtr<Foam::surfaceLaserHeatSource> Foam::surfaceLaserHeatSource::New
             mixture.U().db(),
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
-            false // Do not register
+            IOobject::NO_REGISTER
         )
     );
 

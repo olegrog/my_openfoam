@@ -51,7 +51,7 @@ Foam::autoPtr<Foam::movingReferenceFrame> Foam::movingReferenceFrame::New
             mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
-            false // Do not register
+            IOobject::NO_REGISTER
         )
     );
 

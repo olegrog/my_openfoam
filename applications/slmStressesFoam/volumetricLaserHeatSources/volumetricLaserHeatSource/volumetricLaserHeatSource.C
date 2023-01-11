@@ -53,7 +53,7 @@ Foam::autoPtr<Foam::volumetricLaserHeatSource> Foam::volumetricLaserHeatSource::
             mesh,
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
-            false // Do not register
+            IOobject::NO_REGISTER
         )
     );
 

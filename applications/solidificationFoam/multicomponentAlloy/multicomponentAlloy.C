@@ -84,8 +84,8 @@ Foam::multicomponentAlloy::multicomponentAlloy(const fvMesh& mesh)
     }
 
     PtrList<Tuple2<word, const dimensionedScalar&>> pairs;
-    pairs.emplace_append("solidus", solidus_);
-    pairs.emplace_append("liquidus", liquidus_);
+    pairs.emplace_back("solidus", solidus_);
+    pairs.emplace_back("liquidus", liquidus_);
 
     for (auto pair : pairs)
     {
