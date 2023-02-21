@@ -137,7 +137,7 @@ for i, c in enumerate(columns):
             slope = 1/spl.derivative()(args.T0)
             slopes[phase][elem] = slope
             C[phase][elem] = spl(args.T0)
-            print(f'{elem:2s} {phase}: C(T0) = {spl(args.T0):.4g}, slope = {slope:.4g}')
+            print(f'{elem:2s} {phase}: C(T0) = {spl(args.T0):.4g}, path slope = {slope:.4g}')
 
             n = elements.index(elem) + (1 if plot_phases else 0)
             axis(n).plot(X, Y, label=f'{phase} ({slope:.4g} K)')
@@ -176,7 +176,9 @@ for phase in phases:
         dT1, dT2 = (CS - CL)**2/sumS, CL*(CS - CL)*(1/sumL - 1/sumS)
         DeltaT1 += dT1; DeltaT2 += dT2
         if args.verbose:
-            print(f' -- {elem:2s}: dT1={dT1:.3g}, dT2={dT2:.3g}')
+            print(f' -- {elem:2s}: slopeS = {(CS - CL)/sumS:.4g}, slopeL = {(CS - CL)/sumL:.4g}, ' +
+                f'dT1 = {dT1:.3g}, dT2 = {dT2:.3g}, K = {CS/CL:.4g}, ' +
+                f'mL/mS = {mL/mS:.4g}, mL*(K-1)*C0 = {(CS-CL)*mL:.4g}')
     print(f'{phase}: K={sumL/sumS:.2f}, DeltaT1 = {DeltaT1:.3g}, DeltaT2 = {DeltaT2:.3g}')
 
 
