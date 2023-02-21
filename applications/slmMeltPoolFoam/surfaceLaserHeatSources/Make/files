@@ -3,6 +3,7 @@ surfaceLaserHeatSource/surfaceLaserHeatSource.C
 gradAlphaHeatSource/gradAlphaHeatSource.C
 gradAlphaHeatSource/absorptionModel/absorptionModel/absorptionModel.C
 gradAlphaHeatSource/absorptionModel/constant/constant.C
+gradAlphaHeatSource/absorptionModel/biconstant/biconstant.C
 gradAlphaHeatSource/absorptionModel/coordinateBased/coordinateBased.C
 
 rayTracingHeatSource/rayTracingHeatSource.C
