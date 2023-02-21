@@ -43,6 +43,3 @@ processor*
 
 # Simulation directories
 _*
-
-# Specific files
-run/singleTrackPrinting/0/alpha.metal
