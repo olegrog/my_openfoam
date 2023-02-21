@@ -41,11 +41,11 @@ using constant::mathematical::pi;
 scalarField generateBall
 (
     const vectorField& points,
-    const vector center,
+    const vector centre,
     const scalar radius
 )
 {
-    return mag(points - center) - radius;
+    return mag(points - centre) - radius;
 }
 
 

@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
         "specific radius of cylinder or sphere"
     );
     argList::addOption(
-        "center",
+        "centre",
         "vector",
-        "specific center (for elliptic)"
+        "specific centre (for elliptic)"
     );
     argList::addOption(
         "major",

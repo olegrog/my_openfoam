@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     const dimensionedScalar ymin("ymin", dimLength, bounds.min().y());
     const dimensionedScalar height("height", ymax - ymin);
     const dimensionedScalar width("width", xmax - xmin);
-    const dimensionedVector center("center", dimLength, (bounds.max() + bounds.min())/2);
+    const dimensionedVector centre("centre", dimLength, (bounds.max() + bounds.min())/2);
     const dimensionedScalar frontPosition = ymin + frontPositionRel*height;
     const dimensionedScalar initialWidth = interfaceWidth/interfaceNarrowing;
     dimensionedScalar tipSpeed = pullingSpeed;

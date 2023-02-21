@@ -1,13 +1,13 @@
 tmp<volScalarField> generateSeed
 (
     const volVectorField& coord,
-    const dimensionedVector& center,
+    const dimensionedVector& centre,
     const dimensionedScalar& radius
 )
 {
     return min
     (
-        2*Foam::exp(-magSqr((coord - center)/radius)),
+        2*Foam::exp(-magSqr((coord - centre)/radius)),
         scalar(1)
     );
 }

@@ -4,7 +4,7 @@
     const dimensionedScalar radius = width/nSeeds/seedNarrowing;
     for (int i = 0; i < nSeeds; i++)
     {
-        dimensionedVector position = center;
+        dimensionedVector position = centre;
         position.replace(vector::X, xmin + (i+.5)/nSeeds*width);
         position.replace(vector::Y, frontPosition);
         phase = max(phase, generateSeed(coord, position, radius));
@@ -13,12 +13,12 @@
 
     const volScalarField grainNumber
     (
-        sign((coord.component(vector::X) - center.component(vector::X))/width)
+        sign((coord.component(vector::X) - centre.component(vector::X))/width)
     );
     addGrain(grain, phase*grainNumber, 1, nGrains);
 
     if (addRandomSeeds) {
-        dimensionedVector position = center;
+        dimensionedVector position = centre;
         position.replace(vector::Y, ymin/3 + 2*ymax/3);
         volScalarField seed = generateSeed(coord, position, radius/2);
         phase += seed;
