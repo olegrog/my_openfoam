@@ -45,8 +45,9 @@ source
     {
         absorption
         {
-            type    coordinateBased; // constant
+            type    biconstant; // coordinateBased | constant
             absorptivity    0.35;
+            absorptivityInSolid    0.7; // for biconstant model only
         }
     }
 
