@@ -48,13 +48,23 @@ solvers
     {
         $p_rgh;
         relTol          0;
-        tolerance       1e-8;
     }
 
     "pcorr.*"
     {
-        $p_rghFinal;
-        tolerance       1e-5;
+        solver          PCG;
+        preconditioner
+        {
+            preconditioner  GAMG;
+            tolerance       1e-6;
+            relTol          0;
+            smoother        DICGaussSeidel;
+            cacheAgglomeration no;
+        }
+
+        tolerance       1e-6;
+        relTol          1e-3;
+        maxIter         50;
     }
 
     "U.*"
@@ -89,11 +99,11 @@ solvers
 
 PIMPLE
 {
-    momentumPredictor   yes;
+    momentumPredictor   no;
     nOuterCorrectors    5; // for all variables
-    nCorrectors         3; // for pressure
+    nCorrectors         2; // for pressure
     nEnthalpyCorrectors 3;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     correctPhi          yes;
 
 
