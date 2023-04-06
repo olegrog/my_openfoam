@@ -14,6 +14,9 @@ const dimensionedScalar& Hvap = thermo.Hvapour();
 const scalar emissivity(problemProperties.get<scalar>("emissivity"));
 const scalar evaporationCoeff(problemProperties.get<scalar>("evaporationCoeff"));
 
+// Variables
+scalar meshUpdateTime = 0;
+
 // These variables should be defined to use interIsoFoam code
 const bool porosityEnabled = false;
 const tmp<volScalarField> tporosity;

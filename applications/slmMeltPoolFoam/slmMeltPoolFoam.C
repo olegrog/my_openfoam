@@ -46,6 +46,7 @@ Description
 #include "pimpleControl.H"
 #include "CorrectPhi.H"
 #include "dynamicRefineFvMesh.H"
+#include "IOmanip.H"
 
 #include "incompressibleGasMetalMixture.H"
 #include "surfaceLaserHeatSource.H"
@@ -112,6 +113,7 @@ int main(int argc, char *argv[])
                     advector.surf().reconstruct();
                 }
 
+                const scalar meshUpdateStartTime = runTime.elapsedCpuTime();
                 mesh.update();
 
                 if (mesh.changing())
@@ -158,6 +160,8 @@ int main(int argc, char *argv[])
                         #include "meshCourantNo.H"
                     }
                 }
+
+                meshUpdateTime = runTime.elapsedCpuTime() - meshUpdateStartTime;
 
                 // Moving reference frame
                 if (MRF->moving())
