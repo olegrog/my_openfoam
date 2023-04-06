@@ -112,21 +112,39 @@ public:
             //- Heat source term [W/m3]
             volScalarField& Q_;
 
+            //- List of cells marked with some bits
+            Map<bitSet> markedCells_;
+
+
+    // Private Member Functions
+
+        //- No copy construct
+        trackingData(const trackingData&) = delete;
+
+        //- No copy assignment
+        void operator=(const trackingData&) = delete;
 
     public:
 
-        // Constructors
+        enum cellProperty
+        {
+            ABSORBING, SCATTERING, NO_INTERFACE
+        };
 
-            inline trackingData
-            (
-                Cloud<rayTracingParticle>& cloud,
-                bool useSubCellData,
-                const reconstructionSchemes& surf,
-                const scatteringModel& scattering,
-                const volScalarField& alphaM,
-                const volVectorField& gradAlphaM,
-                volScalarField& Q
-            );
+        //- Constructor
+        inline trackingData
+        (
+            Cloud<rayTracingParticle>& cloud,
+            bool useSubCellData,
+            const reconstructionSchemes& surf,
+            const scatteringModel& scattering,
+            const volScalarField& alphaM,
+            const volVectorField& gradAlphaM,
+            volScalarField& Q
+        );
+
+        //- Destructor
+        ~trackingData();
 
 
         // Member functions
@@ -134,9 +152,10 @@ public:
             inline bool useSubCellData() const;
             inline const reconstructionSchemes& surf() const;
             inline const scatteringModel& scattering() const;
-            inline scalar alphaM(label celli) const;
-            inline vector gradAlphaM(label celli) const;
-            inline scalar& Q(label celli);
+            inline scalar alphaM(label cellI) const;
+            inline vector gradAlphaM(label cellI) const;
+            inline scalar& Q(label cellI);
+            inline void markCell(label cellI, cellProperty property);
     };
 
 

@@ -132,6 +132,8 @@ bool Foam::rayTracingParticle::move
         td.Q(cellI) += deltaQ;
         dQ_ -= deltaQ;
 
+        td.markCell(cellI, trackingData::ABSORBING);
+
         DebugPout
             << " --- absorbed energy = " << deltaQ
             << ", absorptionFraction = " << absorptionFraction
@@ -413,9 +415,7 @@ bool Foam::rayTracingParticle::move
                 const scalar alphaTol2 = min(1e-2, 1e3*alphaTol);
                 if (alphaTol2 < td.alphaM(cellI) && td.alphaM(cellI) < 1 - alphaTol2)
                 {
-                    Warning
-                        << "There is no reconstructed interface in cell #" << cellI
-                        << ", where alphaM = " << td.alphaM(cellI) << endl;
+                    td.markCell(cellI, trackingData::NO_INTERFACE);
                 }
             }
 
@@ -468,6 +468,7 @@ bool Foam::rayTracingParticle::move
             addParticle(cellI, R, intersectionP, incidentDir, nHat, false);
             addParticle(cellI, A, intersectionP, incidentDir, nHat, true);
             dQ_ *= transmissivity;
+            td.markCell(cellI, trackingData::SCATTERING);
 
             // 4. Transmit if the energy is not exhausted
             if (dQ_ > SMALL)
@@ -505,6 +506,34 @@ void Foam::rayTracingParticle::hitWallPatch(Cloud<rayTracingParticle>&, tracking
 
     DebugPout
         << " +++ particle hit a wall patch with " << dQ_ << " of energy" << endl;
+}
+
+
+// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+
+Foam::rayTracingParticle::trackingData::~trackingData()
+{
+    label nAbsorbing = 0;
+    label nScattering = 0;
+
+    forAllConstIters(markedCells_, iter)
+    {
+        const label cellI = iter.key();
+        const bitSet& bits = iter.val();
+
+        bits.test(ABSORBING) && nAbsorbing++;
+        bits.test(SCATTERING) && nScattering++;
+
+        if (bits.test(NO_INTERFACE))
+        {
+            Warning
+                << "There is no reconstructed interface in cell #" << cellI
+                << ", where alphaM = " << alphaM(cellI) << endl;
+        }
+    }
+
+    DebugPout
+        << "Cells: " << nAbsorbing << " is absorbing, " << nScattering << " is scattering" << endl;
 }
 
 

@@ -45,7 +45,8 @@ inline Foam::rayTracingParticle::trackingData::trackingData
     scatteringModel_(scattering),
     alphaM_(alphaM),
     gradAlphaM_(gradAlphaM),
-    Q_(Q)
+    Q_(Q),
+    markedCells_()
 {}
 
 
@@ -72,21 +73,27 @@ Foam::rayTracingParticle::trackingData::scattering() const
 }
 
 
-inline Foam::scalar Foam::rayTracingParticle::trackingData::alphaM(label celli) const
+inline Foam::scalar Foam::rayTracingParticle::trackingData::alphaM(label cellI) const
 {
-    return alphaM_[celli];
+    return alphaM_[cellI];
 }
 
 
-inline Foam::vector Foam::rayTracingParticle::trackingData::gradAlphaM(label celli) const
+inline Foam::vector Foam::rayTracingParticle::trackingData::gradAlphaM(label cellI) const
 {
-    return gradAlphaM_[celli];
+    return gradAlphaM_[cellI];
 }
 
 
-inline Foam::scalar& Foam::rayTracingParticle::trackingData::Q(label celli)
+inline Foam::scalar& Foam::rayTracingParticle::trackingData::Q(label cellI)
 {
-    return Q_[celli];
+    return Q_[cellI];
+}
+
+
+inline void Foam::rayTracingParticle::trackingData::markCell(label cellI, cellProperty property)
+{
+    markedCells_(cellI).set(property);
 }
 
 
