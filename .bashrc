@@ -37,7 +37,7 @@ _find_openfoam_files() {
     res1="$(locate "/$1" | grep "$WM_PROJECT_DIR" | grep -v lnInclude)"
     res2="$(find ~/{src,libraries,applications} -wholename "*/$1*" | grep -vE 'lnInclude|Make')"
     if [[ -z "$res1$res2" ]]; then
-        echo -e "${RED}Missing filename!${NC}" >&2
+        echo -e "${RED}Missing filename"\!"${NC}" >&2
     else
         echo -e "$res1\n$res2"
     fi

@@ -13,10 +13,14 @@ runApplication generatePowderBed alpha.metal
 
 if [[ "$1" == "-parallel" ]]; then
     runApplication decomposePar
+    meshType="$(foamDictionary -entry dynamicFvMesh -value constant/dynamicMeshDict)"
+    if [[ "$meshType" != staticFvMesh ]]; then
+        # In "Decomposed Case" Paraview expect `constant` directories
+        find . -maxdepth 1 -type d -regex '\./processor[0-9][0-9]*' -exec ln -s ../constant {} \;
+    fi
     runParallel $application
     # Mesh reconstruction is not needed when a dynamic mesh is used
     # Use "Decomposed Case" in Paraview instead
-    meshType="$(foamDictionary -entry dynamicFvMesh -value constant/dynamicMeshDict)"
     if [[ "$meshType" == staticFvMesh ]]; then
         runApplication reconstructPar
     fi
