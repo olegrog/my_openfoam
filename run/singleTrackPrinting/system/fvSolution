@@ -19,20 +19,20 @@ solvers
 {
     "alpha.metal.*"
     {
-        isoFaceTol      1e-10;
-        surfCellTol     1e-6;
-        nAlphaBounds    3;
-        snapTol         1e-12;
-        clip            true;
         reconstructionScheme plicRDF;
-        writeFields     false;
 
+        isoFaceTol      1e-6;   // tolerance for the cut-cell algorithm
+        surfCellTol     1e-6;   // tolerance to determine an interface cell
+        nAlphaBounds    3;      // number of conservative corrections before clipping and snapping
+        snapTol         1e-6;   // for snapping: alpha < snapTol --> 0, 1 - alpha < snapTol --> 1
+        clip            true;
+
+        writeFields     false;
         writeSurfCells  false;
         writeIsoFaces   false;
 
-        nAlphaCorr      1;
         nAlphaSubCycles 1;
-        cAlpha          1;  // Note: cAlpha is not used by isoAdvector
+        cAlpha          1;      // NB: cAlpha is not used by isoAdvector but must be present
     }
 
     p_rgh
@@ -62,9 +62,9 @@ solvers
             cacheAgglomeration no;
         }
 
-        tolerance       1e-6;
+        tolerance       1e-12;   // NB: should be quite small for some rare events
         relTol          1e-3;
-        maxIter         50;
+        maxIter         20;
     }
 
     "U.*"
