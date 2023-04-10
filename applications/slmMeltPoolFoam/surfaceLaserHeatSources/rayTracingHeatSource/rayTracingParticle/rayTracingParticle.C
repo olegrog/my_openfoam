@@ -404,7 +404,6 @@ bool Foam::rayTracingParticle::move
                     DebugPout
                         << " +++ (9) particle penetrates into the metal at the face" << nl
                         << " --- alphaM = " << td.alphaM(cellI) << endl;
-
                     pathToInterface = 0;
                     // Recalculate the normal since the VoF normal cannot be used directly
                     nHat = getGradAlphaNormal(cellI);
@@ -415,23 +414,13 @@ bool Foam::rayTracingParticle::move
                 // Recalculate the normal since the VoF normal is absent
                 nHat = getGradAlphaNormal(cellI);
 
-                // Scatter rays that enter the absorbing medium at the face
-                if (td.alphaM(cellI) > 1 - alphaTol)
-                {
-                    type_ = 10;
-                    DebugPout << " +++ (10) particle is inside a fully metal cell" << endl;
-                }
                 // Partially scatter rays that enter a cell that contains metal and no interface
-                else
-                {
-                    type_ = 11;
-                    DebugPout
-                        << " +++ (11) particle is inside the cell that contains metal" << nl
-                        << " --- alphaM = " << td.alphaM(cellI) << endl;
-                    transmissivity = 1 - td.alphaM(cellI);
-                    // Assume that the scattering occurs at the middle of the cell path
-                    pathToInterface = 0.5;
-                }
+                type_ = 10;
+                DebugPout
+                    << " +++ (10) particle scatters inside the cell without interface" << nl
+                    << " --- alphaM = " << td.alphaM(cellI) << endl;
+                transmissivity = 1 - td.alphaM(cellI);
+                pathToInterface = 1 - td.alphaM(cellI);
 
                 // Warn if the required subcell information is absent
                 const scalar alphaTol2 = min(1e-2, 1e3*alphaTol);
@@ -485,11 +474,6 @@ bool Foam::rayTracingParticle::move
                 << " --- intersectionP = " << intersectionP << nl
                 << " --- p1 = " << position() << endl;
 
-            if (transmissivity > SMALL)
-            {
-                DebugPout << " --- transmissivity = " << transmissivity << endl;
-            }
-
             // 2. Compute the reflectivity and absorptivity coefficients
             const scalar R = (1 - transmissivity)*td.scattering().R(cosTheta);
             const scalar A = (1 - transmissivity)*(1 - R);
@@ -501,16 +485,17 @@ bool Foam::rayTracingParticle::move
             dQ_ *= transmissivity;
             td.markCell(cellI, trackingData::SCATTERING);
 
-            // 4. Transmit if the energy is not exhausted
-            if (dQ_ > SMALL)
+            // 4. Transmit if the energy is not exhausted otherwise terminate
+            if (transmissivity > SMALL)
             {
                 DebugPout
+                    << " --- transmissivity = " << transmissivity << nl
                     << " +++ particle transmits " << dQ_ << " of energy further" << endl;
                 hitFace(s, cloud, td);
             }
-            // 5. Return particle to the intersection point and terminate it
             else
             {
+                // Return particle to the intersection point before
                 trackToFace(intersectionP - position(), 1);
                 terminate();
                 break;
