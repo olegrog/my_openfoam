@@ -236,10 +236,11 @@ bool Foam::rayTracingParticle::move
         scalar pathToInterface
     )
     {
+        // NB: SMALL is too small to capture grazing incidence
         return
             (cosTheta < -SMALL && pathToInterface <= 0) // outcoming && in the previous cell
          || (cosTheta > SMALL && pathToInterface >= 1) // incoming && in the next cell
-         || (mag(cosTheta) < SMALL && distanceToInterface > 0); // parallel && out of metal
+         || (mag(cosTheta) < ROOTSMALL && distanceToInterface > 0); // parallel && out of metal
     };
 
     // Function returning true if the entire traversed path goes inside the absorbing medium
@@ -253,7 +254,7 @@ bool Foam::rayTracingParticle::move
         return
             (cosTheta < -SMALL && pathToInterface >= 1) // outcoming && in the next cell
          || (cosTheta > SMALL && pathToInterface <= 0) // incoming && in the previous cell
-         || (mag(cosTheta) < SMALL && distanceToInterface <= 0); // parallel && out of gas
+         || (mag(cosTheta) < ROOTSMALL && distanceToInterface <= 0); // parallel && out of gas
     };
 
     // --- Particle tracking loop
@@ -458,6 +459,16 @@ bool Foam::rayTracingParticle::move
                 DebugPout
                     << " --- cosTheta = " << cosTheta << nl
                     << " +++ particle is outcoming" << endl;
+                hitFace(s, cloud, td);
+                continue;
+            }
+
+            // Do not scatter grazing incidence
+            if (mag(cosTheta) < ROOTSMALL)
+            {
+                DebugPout
+                    << " --- cosTheta = " << cosTheta << nl
+                    << " +++ particle is grazing along the interface" << endl;
                 hitFace(s, cloud, td);
                 continue;
             }
