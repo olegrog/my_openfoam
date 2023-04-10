@@ -423,8 +423,8 @@ bool Foam::rayTracingParticle::move
             if (mag(nHat) < SMALL)
             {
                 FatalError
-                    << "Particle #" << origId() << " in cell #" << cellI << nl
-                    << "mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI)
+                    << "Particle #" << origId() << " in cell #" << cellI
+                    << ": mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI)
                     << exit(FatalError);
             }
 

@@ -274,7 +274,19 @@ void Foam::rayTracingHeatSource::calcSource()
     DebugInfo
         << "Initial number of particles = " << returnReduce(cloud.size(), sumOp<label>()) << endl;
 
-    cloud.move(cloud, td, 0);
+    const bool oldThrowingErr = FatalError.throwing(true);
+    try
+    {
+        cloud.move(cloud, td, 0);
+    }
+    catch (const error& err)
+    {
+        // Dump fields and particles in case of crash
+        const_cast<Time&>(cloud.time()).writeNow();
+        writeOBJ(cloud);
+        const_cast<error&>(err).abort();
+    }
+    FatalError.throwing(oldThrowingErr);
 
     DebugInfo
         << "Final number of particles = " << returnReduce(cloud.size(), sumOp<label>()) << endl;
