@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
             #include "alphaControls.H"
             #include "alphaEqnSubCycle.H"
 
-            mixture.correct();
+            mixture.correct();  // update mixture.gradAlpha needed for laserHeatSource
             laserHeatSource->correct();
 
             // --- Enthalpy corrector loop

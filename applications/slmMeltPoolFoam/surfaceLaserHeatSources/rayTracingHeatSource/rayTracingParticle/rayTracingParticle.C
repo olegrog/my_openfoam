@@ -56,7 +56,8 @@ Foam::rayTracingParticle::rayTracingParticle
     p1_(targetPosition),
     dQ0_(dQ),
     dQ_(dQ),
-    isBeingAbsorbed_(isBeingAbsorbed)
+    isBeingAbsorbed_(isBeingAbsorbed),
+    type_(0)
 {}
 
 
@@ -67,7 +68,8 @@ Foam::rayTracingParticle::rayTracingParticle(const rayTracingParticle& p)
     p1_(p.p1_),
     dQ0_(p.dQ0_),
     dQ_(p.dQ_),
-    isBeingAbsorbed_(p.isBeingAbsorbed_)
+    isBeingAbsorbed_(p.isBeingAbsorbed_),
+    type_(0)
 {}
 
 
@@ -188,11 +190,19 @@ bool Foam::rayTracingParticle::move
     };
 
     // Function returning nHat directed toward the metal using gradAlphaM
-    auto getGradAlphaNormal = [&td](scalar cellI)
+    auto getGradAlphaNormal = [this, &td](scalar cellI)
     {
         vector nHat = td.gradAlphaM(cellI);
         nHat.normalise();
         DebugPout << " --- nHat (gradAlphaM) = " << nHat << endl;
+
+        if (mag(nHat) < SMALL)
+        {
+            Warning
+                << "Particle #" << origId() << " in cell #" << cellI
+                << ": mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI)
+                << ", dQ = " << dQ_ << ", previous interaction type = " << type_ << endl;
+        }
         return nHat;
     };
 
@@ -272,6 +282,7 @@ bool Foam::rayTracingParticle::move
         {
             if (isBeingAbsorbed_)
             {
+                type_ = 1;
                 DebugPout
                     << " +++ (1) particle to be absorbed enters the gas cell #" << cellI << endl;
                 isBeingAbsorbed_ = false;
@@ -282,6 +293,7 @@ bool Foam::rayTracingParticle::move
         // B. Replace scattering by full absorption for low-energy particles
         else if (dQ_ < td.scattering().threshold())
         {
+            type_ = 2;
             DebugPout << " +++ (2) low-energy particle" << endl;
             absorb(cellI, ds, 1);
 
@@ -300,6 +312,7 @@ bool Foam::rayTracingParticle::move
             // and penetrates the absorbing medium; therefore, absorb energy as much as possible.
             if (stepFraction()*mag(s) - ds < smallLength)
             {
+                type_ = 3;
                 DebugPout << " +++ (3) the first absorbing cell" << endl;
                 absorb(cellI, ds, 1);
             }
@@ -317,6 +330,7 @@ bool Foam::rayTracingParticle::move
                     // Unmark the particle as being absorbed if it moves through the gas only
                     if (pathGoesInsideGas(cosTheta, distanceToInterface, pathToInterface))
                     {
+                        type_ = 4;
                         DebugPout << " +++ (4) particle is no longer absorbed" << endl;
                         isBeingAbsorbed_ = false;
                     }
@@ -329,6 +343,7 @@ bool Foam::rayTracingParticle::move
                             pathInMetal = 1;
                         }
 
+                        type_ = 5;
                         DebugPout
                             << " +++ (5) absorbing cell with interface" << nl
                             << " --- pathInMetal = " << pathInMetal << endl;
@@ -338,6 +353,7 @@ bool Foam::rayTracingParticle::move
                 // Absorb proportionally to the metal fraction in the absence of subcell data
                 else
                 {
+                    type_ = 6;
                     DebugPout << " +++ (6) absorbing cell without interface" << endl;
                     absorb(cellI, ds, 1);
                 }
@@ -369,6 +385,7 @@ bool Foam::rayTracingParticle::move
                 // Do not scatter rays that has not reached the absorbing medium
                 if (pathGoesInsideGas(cosTheta, distanceToInterface, pathToInterface))
                 {
+                    type_ = 7;
                     DebugPout << " +++ (7) particle does not hit the interface" << endl;
                     hitFace(s, cloud, td);
                     continue;
@@ -376,11 +393,13 @@ bool Foam::rayTracingParticle::move
                 // Scatter rays that enter the absorbing medium inside the cell
                 else if (cosTheta > SMALL && pathToInterface > SMALL)
                 {
+                    type_ = 8;
                     DebugPout << " +++ (8) particle hit the interface inside the cell" << endl;
                 }
                 // Scatter rays that enter the absorbing medium at the face
                 else
                 {
+                    type_ = 9;
                     DebugPout
                         << " +++ (9) particle penetrates into the metal at the face" << nl
                         << " --- alphaM = " << td.alphaM(cellI) << endl;
@@ -398,11 +417,13 @@ bool Foam::rayTracingParticle::move
                 // Scatter rays that enter the absorbing medium at the face
                 if (td.alphaM(cellI) > 1 - alphaTol)
                 {
+                    type_ = 10;
                     DebugPout << " +++ (10) particle is inside a fully metal cell" << endl;
                 }
                 // Partially scatter rays that enter a cell that contains metal and no interface
                 else
                 {
+                    type_ = 11;
                     DebugPout
                         << " +++ (11) particle is inside the cell that contains metal" << nl
                         << " --- alphaM = " << td.alphaM(cellI) << endl;
@@ -419,17 +440,17 @@ bool Foam::rayTracingParticle::move
                 }
             }
 
-            // Crash if the interface normal failed to be determined
             if (mag(nHat) < SMALL)
             {
-                FatalError
-                    << "Particle #" << origId() << " in cell #" << cellI
-                    << ": mag(nHat) = " << mag(nHat) << ", alphaM = " << td.alphaM(cellI)
-                    << exit(FatalError);
+                // Use normal incidence in case of extraordinary situations
+                cosTheta = 1;
+                FatalError << "Extraordinary event! Please report about it!" << exit(FatalError);
             }
-
-            // Update the nHat-dependent quantities
-            cosTheta = incidentDir & nHat;
+            else
+            {
+                // Update the nHat-dependent quantities
+                cosTheta = incidentDir & nHat;
+            }
 
             // Do not scatter outcoming rays
             if (cosTheta < SMALL)
@@ -455,8 +476,7 @@ bool Foam::rayTracingParticle::move
 
             if (transmissivity > SMALL)
             {
-                DebugPout
-                    << " --- transmissivity = " << transmissivity << endl;
+                DebugPout << " --- transmissivity = " << transmissivity << endl;
             }
 
             // 2. Compute the reflectivity and absorptivity coefficients

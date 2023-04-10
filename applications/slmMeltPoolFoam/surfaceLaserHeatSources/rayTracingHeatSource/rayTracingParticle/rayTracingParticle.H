@@ -82,6 +82,9 @@ class rayTracingParticle
         //- Is the particle being absorbed?
         bool isBeingAbsorbed_;
 
+        //- Interaction type
+        unsigned type_;
+
 
 public:
 
