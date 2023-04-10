@@ -284,6 +284,7 @@ void Foam::rayTracingHeatSource::calcSource()
         // Dump fields and particles in case of crash
         const_cast<Time&>(cloud.time()).writeNow();
         writeOBJ(cloud);
+        returnReduceOr(true);   // MPI barrier
         const_cast<error&>(err).abort();
     }
     FatalError.throwing(oldThrowingErr);

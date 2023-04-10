@@ -42,6 +42,7 @@ pp(h);
 if (gMin(h) < 0)
 {
     runTime.writeNow();
+    returnReduceOr(true);   // MPI barrier
     FatalError
         << "Enthalpy becomes negative!"
         << exit(FatalError);

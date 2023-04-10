@@ -25,6 +25,7 @@ if (adjustTimeStep)
     if (runTime.deltaTValue() < minDeltaT)
     {
         runTime.writeNow();
+        returnReduceOr(true);   // MPI barrier
         FatalError
             << "The time step becomes too low!"
             << exit(FatalError);
