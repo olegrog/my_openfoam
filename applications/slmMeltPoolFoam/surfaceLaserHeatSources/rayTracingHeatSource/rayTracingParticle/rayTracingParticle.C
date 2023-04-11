@@ -178,6 +178,23 @@ bool Foam::rayTracingParticle::move
             << "ed into direction " << direction << endl;
 
         cloud.addParticle(pPtr.release());
+
+        // In some rare cases (e.g., grazing incidence), the reflection of the rays is looped
+        if (cloud.size() > 1e5)
+        {
+            static bool alerted = false;
+            const auto msg = "Too many particles have been spawn!";
+            if (!alerted)
+            {
+                Warning << msg << endl;
+                alerted = true;
+                debug = true;
+            }
+            if (cloud.size() > 1e5 + 100)
+            {
+                FatalError << msg << exit(FatalError);
+            }
+        }
     };
 
     // Function returning nHat directed toward the metal using VoF subcell information
