@@ -5,7 +5,7 @@ surfaceScalarField recoilPressure
 (
     (3 - evaporationCoeff)/4
    *fvc::interpolate(mixture.vapourPressure(ambientPressure), "interpolate(vapourPressure)")
-   *fvc::snGrad(alpha2)
+   *fvc::snGrad(alpha1)
 );
 
 fvVectorMatrix UEqn
@@ -31,7 +31,7 @@ if (pimple.momentumPredictor())
             (
                 (
                     mixture.surfaceTensionForce()
-                  - recoilPressure
+                  + recoilPressure
                 )*2*fvc::interpolate(rho)/(rho1 + rho2)
               - ghf*fvc::snGrad(rhok)
               - fvc::snGrad(p_rgh)

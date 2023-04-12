@@ -28,7 +28,7 @@ surfaceScalarField phig
     (
         (
             mixture.surfaceTensionForce()
-          - recoilPressure
+          + recoilPressure
         )*2*fvc::interpolate(rho)/(rho1 + rho2)*rAUf
       - ghf*fvc::snGrad(rhok)*rAUf
     )*mesh.magSf()

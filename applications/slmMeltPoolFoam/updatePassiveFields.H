@@ -14,7 +14,7 @@ if (writeAllFields)
     heatConduction2 =
         fvc::laplacian(kappaByCp, h)
       - fvc::laplacian(Hfus*kappaByCp, liquidFraction)
-      - fvc::laplacian(kappaByCp*mixture.HsPrimeAlphaGf(), alpha2);
+      + fvc::laplacian(kappaByCp*mixture.HsPrimeAlphaGf(), alpha1);
 }
 
 

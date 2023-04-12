@@ -16,7 +16,7 @@ const volScalarField evaporativeCoolingPrime = evaporativeCooling*molarMass*Hvap
 energySource =
 (
   - fvc::laplacian(Hfus*kappaByCp, liquidFraction)
-  - fvc::laplacian(kappaByCp*mixture.HsPrimeAlphaGf(), alpha2)
+  + fvc::laplacian(kappaByCp*mixture.HsPrimeAlphaGf(), alpha1)
   + (*laserHeatSource)()
   - redistribution*magGradAlphaM*(radiativeCooling + evaporativeCooling)
 )/rho;
