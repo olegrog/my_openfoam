@@ -29,6 +29,7 @@ metal
 
     Tmelting        1700; // Kim: 1700; Pichler: solidus=1675, liquidus=1708
     Tboiling        3090; // Kim
+    Tcritical       4500; // maximum temperature in Clausius-Clapeyron equation
 
     Hfusion         2.9e5; // Pichler
     Hvapour         7.41e6;

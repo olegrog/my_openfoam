@@ -59,7 +59,8 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
     immiscibleIncompressibleTwoPhaseMixture(U, phi),
     gasMetalThermalProperties(U.mesh(), *this),
     sigmaPtr_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
-    mushyCoeff_("mushyCoeff", *this)
+    mushyCoeff_("mushyCoeff", dimDensity/dimTime, *this),
+    Tcritical_("Tcritical", dimTemperature, thermo().subDict("metal"))
 {
     const scalar Tmelting = thermo().Tmelting().value();
 
@@ -135,7 +136,9 @@ Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::vapourPress
 ) const
 {
     using constant::physicoChemical::R;
-    return p0*exp(thermo_.metalM()*thermo_.Hvapour()/R*(1/thermo_.Tboiling() - 1/T()));
+    return
+        p0*exp(thermo_.metalM()*thermo_.Hvapour()/R
+       *(1/thermo_.Tboiling() - 1/min(T(), Tcritical_)));
 }
 
 
