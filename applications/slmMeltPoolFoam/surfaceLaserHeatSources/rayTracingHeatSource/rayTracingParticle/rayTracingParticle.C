@@ -97,6 +97,9 @@ bool Foam::rayTracingParticle::move
     const scalar maxTrackLength = mesh().bounds().mag();
     const scalar smallLength = SMALL*maxTrackLength;
     const vector s = p1_ - p0_;
+    const label maxCloudSize = 1e5;
+    const label maxIter = 1e5;
+    label iter = 0;
 
     const word procId = Pstream::parRun() ? word::printf("<%d>", origProc()) : "";
     DebugPout
@@ -180,20 +183,14 @@ bool Foam::rayTracingParticle::move
         cloud.addParticle(pPtr.release());
 
         // In some rare cases (e.g., grazing incidence), the reflection of the rays is looped
-        if (cloud.size() > 1e5)
+        if (cloud.size() == maxCloudSize - 100)
         {
-            static bool alerted = false;
-            const auto msg = "Too many particles have been spawn!";
-            if (!alerted)
-            {
-                Warning << msg << endl;
-                alerted = true;
-                debug = true;
-            }
-            if (cloud.size() > 1e5 + 100)
-            {
-                FatalError << msg << exit(FatalError);
-            }
+            SeriousError << "Too many particles have been spawn!" << endl;
+            debug = 1;
+        }
+        if (cloud.size() > maxCloudSize)
+        {
+            FatalError << "Too many particles have been spawn!" << exit(FatalError);
         }
     };
 
@@ -285,6 +282,12 @@ bool Foam::rayTracingParticle::move
 
         const vector dsv = position() - p0;
         const scalar ds = mag(dsv);
+
+        if (iter == maxIter - 100)
+        {
+            SeriousError << "Too many iterations for particle #" << origId() << endl;
+            debug = 1;
+        }
 
         if (ds < smallLength)
         {
@@ -519,7 +522,12 @@ bool Foam::rayTracingParticle::move
             }
         }
 
-    } while (!td.switchProcessor && stepFraction() < 1);
+    } while (!td.switchProcessor && stepFraction() < 1 && ++iter < maxIter);
+
+    if (iter == maxIter)
+    {
+        FatalError << "Too many iterations for particle #" << origId() << exit(FatalError);
+    }
 
     return td.keepParticle;
 }
