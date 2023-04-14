@@ -22,6 +22,7 @@ FoamFile
 // SS316L -- C. S. Kim. Thermophysical properties of stainless steels. Tech. rep. Argonne National Lab., Ill.(USA), 1975.
 // SS316L -- P. Pichler et al. Measurements of thermophysical properties of solid and liquid NIST SRM 316L stainless steel.
 //      Journal of Material Science 55, 4081--4093 (2020).
+// SS316L -- K. C. Mills, Recommended Values of Thermophysical Properties for Selected Commercial Alloys, 2002
 
 metal
 {
@@ -34,16 +35,16 @@ metal
     Hfusion         2.9e5; // Pichler
     Hvapour         7.41e6;
 
-    // From Kim
+    // From Mills, 2002
     solid
     {
-        kappaCoeffs (9.248 1.571e-2);
+        kappaCoeffs (10.865 1.4e-2);
         CpCoeffs    (459.0 0.1328);
     }
 
     liquid
     {
-        kappaCoeffs (12.41 3.279e-3);
+        kappaCoeffs (5.54 1.31e-2);
         CpCoeffs    (769.9 0);
     }
 }
