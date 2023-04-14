@@ -26,6 +26,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "fvcGrad.H"
+#include "fixedGradientFvPatchFields.H"
+#include "mixedFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -202,6 +204,20 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
         Info<< "Updating the BC for " << h_.name() << nl << endl;
         // operator== is used to force the assignment of the boundary field
         h_ == thermo_.h(T_, liquidFraction_, alphaG_);
+
+        auto& hBf = h_.boundaryFieldRef();
+        forAll(hBf, patchi)
+        {
+            if (isA<fixedGradientFvPatchScalarField>(hBf[patchi]))
+            {
+                refCast<fixedGradientFvPatchScalarField>(hBf[patchi]).gradient() =
+                    hBf[patchi].fvPatchField::snGrad();
+            }
+            else if (isA<mixedFvPatchScalarField>(hBf[patchi]))
+            {
+                refCast<mixedFvPatchScalarField>(hBf[patchi]).refValue() = hBf[patchi];
+            }
+        }
     }
 
     correctThermo();
