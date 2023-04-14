@@ -21,19 +21,10 @@ internalField   uniform 293;
 
 boundaryField
 {
-    bottom
+    ".*"
     {
-        type            fixedValue;
-        value           $internalField;
-    }
-    top
-    {
-        type            zeroGradient;
-    }
-    side
-    {
-        type            fixedValue;
-        value           $internalField;
+        type            inletOutlet;
+        inletValue      $internalField;
     }
 }
 

@@ -23,12 +23,8 @@ boundaryField
 {
     ".*"
     {
-        type            fixedFluxPressure;
-    }
-    top
-    {
-        type            fixedValue;
-        value           $internalField;
+        type            totalPressure;
+        p0              $internalField;
     }
 }
 
