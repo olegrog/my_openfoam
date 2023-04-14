@@ -25,11 +25,11 @@ refineInterval  1;
 field           alpha.metal;
 
 // Refine field in between lower..upper
-lowerRefineLevel 0.01;
-upperRefineLevel 0.99;
+lowerRefineLevel 0.001;
+upperRefineLevel 0.999;
 
 // If value < unrefineLevel unrefine
-unrefineLevel   0.01;
+unrefineLevel   1e-8;   // should be small enough to prevent spurious particle injection
 
 // Have slower than 2:1 refinement
 nBufferLayers   1;

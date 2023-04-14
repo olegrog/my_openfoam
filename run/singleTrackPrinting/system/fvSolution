@@ -21,10 +21,10 @@ solvers
     {
         reconstructionScheme plicRDF;
 
-        isoFaceTol      1e-6;   // tolerance for the cut-cell algorithm
+        isoFaceTol      1e-10;  // tolerance for the cut-cell algorithm (influence on mass conservation)
         surfCellTol     1e-6;   // tolerance to determine an interface cell
         nAlphaBounds    3;      // number of conservative corrections before clipping and snapping
-        snapTol         1e-6;   // for snapping: alpha < snapTol --> 0, 1 - alpha < snapTol --> 1
+        snapTol         1e-10;  // for snapping: alpha < snapTol --> 0, 1 - alpha < snapTol --> 1
         clip            true;
 
         writeFields     false;
