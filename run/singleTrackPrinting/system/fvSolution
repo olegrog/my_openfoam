@@ -106,7 +106,6 @@ PIMPLE
     nNonOrthogonalCorrectors 2;
     correctPhi          yes;
 
-
     residualControl
     {
         "(h|p_rgh)"

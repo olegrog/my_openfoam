@@ -39,6 +39,7 @@ SourceFiles
 
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "Function1.H"
+#include "Polynomial.H"
 
 #include "gasMetalThermalProperties.H"
 
@@ -69,6 +70,26 @@ class incompressibleGasMetalMixture
             //- Critical temperature for metal vapour [K]
             const dimensionedScalar Tcritical_;
 
+            //- Metal dictionary
+            const dictionary metalDict_;
+
+            //- Flag to evaluate divergence of the velocity field
+            const bool quasiIncompressible_;
+
+            //- Melting density change [kg/m^3]
+            const scalar rhoJump_;
+
+            //- Derivative of density w.r.t. temperature [kg/m^3/K]
+            const Polynomial<2> dRhoMDTSolid_, dRhoMDTLiquid_;
+
+        // Fields
+
+            //- Metal density [kg/m^3]
+            volScalarField rhoM_;
+
+            //- Divergence of the velocity field [1/s]
+            volScalarField divPhi_;
+
 
     // Private Member Functions
 
@@ -77,6 +98,15 @@ class incompressibleGasMetalMixture
 
         //- Returns the Marangoni coefficient [J/m^2/K]
         tmp<volScalarField> dSigmaDT() const;
+
+        //- Returns the derivative of density w.r.t. temperature [kg/m^3/K]
+        tmp<volScalarField> dRhoMDT() const;
+
+        //- Calculates the metal density
+        scalar rhoM(scalar Tmelting, scalar T, scalar liquidFraction) const;
+
+        //- Update the metal density
+        void updateRhoM();
 
         //- No copy construct
         incompressibleGasMetalMixture(const incompressibleGasMetalMixture&) = delete;
@@ -112,6 +142,18 @@ public:
 
             //- Return the vapour pressure [Pa]
             tmp<volScalarField> vapourPressure(const dimensionedScalar& p0) const;
+
+            //- Return the metal density [kg/m^3]
+            const volScalarField& rhoM() const
+            {
+                return rhoM_;
+            }
+
+            //- Return the divergence of the velocity field [1/s]
+            const volScalarField& divPhi() const
+            {
+                return divPhi_;
+            }
 
             //- Correct alpha-dependent fields
             void correct() override;

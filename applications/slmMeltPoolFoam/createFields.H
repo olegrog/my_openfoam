@@ -37,7 +37,7 @@ volScalarField& alpha1(mixture.alpha1());
 volScalarField& alpha2(mixture.alpha2());
 const volScalarField& T = mixture.T();
 
-const dimensionedScalar& rho1 = mixture.rho1();
+const volScalarField& rho1 = mixture.rhoM();
 const dimensionedScalar& rho2 = mixture.rho2();
 
 // Uncomment this to analyze the difference in implementations of |\grad\alpha|

@@ -241,7 +241,7 @@ void Foam::gasMetalThermalProperties<Mixture>::calcRedistribution() const
 {
     const volScalarField CpM = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(0));
     const volScalarField CpG = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(1));
-    const dimensionedScalar rhoM = mixture_.rho1();
+    const volScalarField& rhoM = mixture_.rhoM();
     const dimensionedScalar rhoG = mixture_.rho2();
     const volScalarField rho = alphaM_*rhoM + alphaG_*rhoG;
 
