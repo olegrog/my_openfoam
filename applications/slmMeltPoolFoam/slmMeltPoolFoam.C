@@ -106,6 +106,11 @@ int main(int argc, char *argv[])
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
+            if (pimple.corr() + 1 == pimple.nCorrPIMPLE())
+            {
+                reduceTimeStep = true;
+            }
+
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
                 if (isA<dynamicRefineFvMesh>(mesh))
@@ -188,6 +193,11 @@ int main(int argc, char *argv[])
                 #include "hEqn.H"
             }
 
+            if (pimple.frozenFlow())
+            {
+                continue;
+            }
+
             // --- Momentum predictor
             #include "UEqn.H"
 
@@ -201,8 +211,6 @@ int main(int argc, char *argv[])
             {
                 turbulence->correct();
             }
-
-            if (pimple.corr() + 1 == pimple.nCorrPIMPLE()) reduceTimeStep = true;
         }
 
         #include "updatePassiveFields.H"
