@@ -186,6 +186,9 @@ int main(int argc, char *argv[])
             mixture.correct();  // update mixture.gradAlpha needed for laserHeatSource
             laserHeatSource->correct();
 
+            // --- Momentum predictor
+            #include "UEqn.H"
+
             // --- Enthalpy corrector loop
             label nCorrEnthalpy(readLabel(pimple.dict().lookup("nEnthalpyCorrectors")));
             for (label corrEnthalpy = 1; corrEnthalpy <= nCorrEnthalpy; ++corrEnthalpy)
@@ -197,9 +200,6 @@ int main(int argc, char *argv[])
             {
                 continue;
             }
-
-            // --- Momentum predictor
-            #include "UEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
