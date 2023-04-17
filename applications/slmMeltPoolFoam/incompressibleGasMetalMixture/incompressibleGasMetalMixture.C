@@ -27,11 +27,11 @@ License
 
 #include "incompressibleGasMetalMixture.H"
 
-#include "fvcGrad.H"
-#include "fvcReconstruct.H"
+#include "fvc.H"
 #include "constants.H"
 
 #include "generateGeometricField.H"
+#include "updateGeometricField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -60,19 +60,43 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
     gasMetalThermalProperties(U.mesh(), *this),
     sigmaPtr_(Function1<scalar>::New("sigma", this->subDict("sigma"))),
     mushyCoeff_("mushyCoeff", dimDensity/dimTime, *this),
-    Tcritical_("Tcritical", dimTemperature, thermo().subDict("metal"))
+    Tcritical_("Tcritical", dimTemperature, thermo().subDict("metal")),
+    metalDict_(subDict("metal")),
+    quasiIncompressible_(metalDict_.getOrDefault("quasiIncompressible", false)),
+    rhoJump_(rho1_.value() - metalDict_.get<scalar>("rhoSolid")),
+    dRhoMDTSolid_(metalDict_.lookup(IOobject::groupName("dRhoDT", "solid"))),
+    dRhoMDTLiquid_(metalDict_.lookup(IOobject::groupName("dRhoDT", "liquid"))),
+    rhoM_(volScalarField::New("rhoM", U.mesh(), rho1_)),
+    divPhi_(volScalarField::New("divPhi", U.mesh(), dimensionedScalar(inv(dimTime))))
 {
     const scalar Tmelting = thermo().Tmelting().value();
 
-    Info<< " -- Surface tension at Tmelting = " << sigmaPtr_->value(Tmelting) << endl
+    Info<< "Transport properties:" << endl
+        << " -- Surface tension at Tmelting = " << sigmaPtr_->value(Tmelting) << endl
         << " -- Marangoni coefficient at Tmelting = " << dSigmaDT(Tmelting) << endl
-        << endl;
+        << " -- Gas density = " << rho2_.value() << endl;
+
+    if (quasiIncompressible_)
+    {
+        Info<< " -- Liquid metal density at " << Tmelting + 1000 << " = "
+            << rhoM(Tmelting, Tmelting + 1000, 1) << endl
+            << " -- Liquid metal density at Tmelting = " << rhoM(Tmelting, Tmelting, 1) << endl
+            << " -- Solid metal density at Tmelting = " << rhoM(Tmelting, Tmelting, 0) << endl
+            << " -- Solid metal density at " << Tmelting - 1000 << " = "
+            << rhoM(Tmelting, Tmelting - 1000, 0) << endl;
+    }
+    else
+    {
+        Info<< " -- Metal density = " << rho1_.value() << endl;
+    }
+    Info<< endl;
 
     // Activate auto-writing of additional fields
     if (writeAllFields_)
     {
         // nu_ is defined in incompressibleTwoPhaseMixture
         nu_.writeOpt() = IOobject::AUTO_WRITE;
+        divPhi_.writeOpt() = IOobject::AUTO_WRITE;
     }
 }
 
@@ -100,6 +124,46 @@ Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::dSigmaDT() 
             return dSigmaDT(T);
         },
         T()
+    );
+}
+
+
+Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::dRhoMDT() const
+{
+    const scalar Tm = thermo().Tmelting().value();
+
+    return generateGeometricField<volScalarField>
+    (
+        "dRhoMDT",
+        T().mesh(),
+        dimDensity/dimTemperature,
+        [this, Tm](scalar T, scalar phi)
+        {
+            return T <= Tm ? dRhoMDTSolid_.value(T) : dRhoMDTLiquid_.value(T);
+        },
+        T(), liquidFraction()
+    );
+}
+
+
+Foam::scalar Foam::incompressibleGasMetalMixture::rhoM(scalar Tm, scalar T, scalar phi) const
+{
+    scalar piecewise = T <= Tm ? dRhoMDTSolid_.integral(Tm, T) : dRhoMDTLiquid_.integral(Tm, T);
+    return rho1_.value() + piecewise - (1 - phi)*rhoJump_;
+}
+
+
+void Foam::incompressibleGasMetalMixture::updateRhoM()
+{
+    const scalar Tm = thermo().Tmelting().value();
+
+    updateGeometricField<volScalarField>
+    (
+        rhoM_, [this, Tm](scalar& f, scalar T, scalar phi)
+        {
+            f = rhoM(Tm, T, phi);
+        },
+        T(), liquidFraction()
     );
 }
 
@@ -144,8 +208,23 @@ Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::vapourPress
 
 void Foam::incompressibleGasMetalMixture::correct()
 {
+    // incompressibleTwoPhaseMixture -> nu
+    // interfaceProperties -> K = curvature, nHatf
     immiscibleIncompressibleTwoPhaseMixture::correct();
+    // gasMetalThermalProperties -> hAtMelting, gradAlphaM
     gasMetalThermalProperties::correct();
+
+    if (quasiIncompressible_)
+    {
+        updateRhoM();
+        dimensionedScalar rhoJump("rhoJump", dimDensity, rhoJump_);
+
+        divPhi_ =
+        (
+          - rhoJump*fvc::DDt(phi_, liquidFraction())
+          - dRhoMDT()*fvc::DDt(phi_, T())
+        )*alphaM_/(alphaM_*rhoM_ + alpha2_*rho2_);
+    }
 }
 
 

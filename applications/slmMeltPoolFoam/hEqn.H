@@ -27,6 +27,7 @@ fvScalarMatrix hEqn
 (
     fvm::ddt(rho, h)
   + fvm::div(rhoPhi, h)
+  - fvm::Sp(contErr, h)
  ==
     fvm::laplacian(kappaByCp, h)
 //  - fvm::laplacian(Hfus*kappaByCp*liquidFractionPrimeEnthalpyf, h)

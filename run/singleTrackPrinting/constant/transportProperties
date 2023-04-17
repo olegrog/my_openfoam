@@ -26,17 +26,27 @@ metal
         alpha       5490;
         Talpha      1700;
     };
-    nu              8.56e-07; // Kim: nu = 8.56e-07, mu = 6.42e-3
-    rho             7500; // Kim
+    nu              8.56e-07;   // Kim: nu = 8.56e-07, mu = 6.42e-3
+    rho             6979;       // Kim: at T = 1700
+
+    quasiIncompressible true;
+
+    rhoSolid        7256;
+    dRhoDT.solid    (-4.2086e-1 -7.788e-5);
+    dRhoDT.liquid   (3.9338e-2  -3.6014e-4);
 }
 
 gas
 {
     transportModel  Newtonian;
-    nu              2.76e-4; // Argon: nu = 2.76e-4, mu = 7.9e-5
+
+    // Argon: nu = 2.76e-4, mu = 7.9e-5
     // Air: 1.516e-5 for 293K, 4.270e-4 for 2000K
-    rho             2.9; // Argon: 0.29
+    nu              2.76e-4;
+
+    // Argon: 0.29
     // Air: 1.204 for 293 K, 0.1553 for 2000K
+    rho             2.9;
 }
 
 sigma

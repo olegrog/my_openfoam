@@ -29,7 +29,7 @@ surfaceScalarField phig
         (
             mixture.surfaceTensionForce()
           + recoilPressure
-        )*2*fvc::interpolate(rho)/(rho1 + rho2)*rAUf
+        )*2*fvc::interpolate(rho/(rho1 + rho2), "interpolate(rho)")*rAUf
       - ghf*fvc::snGrad(rhok)*rAUf
     )*mesh.magSf()
 );
@@ -43,7 +43,7 @@ while (pimple.correctNonOrthogonal())
 {
     fvScalarMatrix p_rghEqn
     (
-        fvm::laplacian(rAUf, p_rgh) == fvc::div(phiHbyA)
+        fvm::laplacian(rAUf, p_rgh) + mixture.divPhi() == fvc::div(phiHbyA)
     );
 
     p_rghEqn.setReference(pRefCell, getRefCellValue(p_rgh, pRefCell));
