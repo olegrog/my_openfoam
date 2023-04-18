@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
                 }
 
                 const scalar meshUpdateStartTime = runTime.elapsedCpuTime();
+
                 mesh.update();
 
                 if (mesh.changing())
@@ -140,9 +141,16 @@ int main(int argc, char *argv[])
                         mixture.correct();
                         mixture.correctThermo();
 
-                        // Used in correctPassiveFields()
-                        const_cast<volScalarField&>(liquidFraction).oldTime() = liquidFraction;
-                        const_cast<volScalarField&>(T).oldTime() = T;
+                        // Need for ddt in correctPassiveFields() and mixture.divPhi()
+                        const std::vector<std::reference_wrapper<const volScalarField>> fields
+                        {
+                            std::cref(liquidFraction),
+                            std::cref(T)
+                        };
+                        for (auto& field : fields)
+                        {
+                            const_cast<volScalarField&>(field.get()).oldTime() = field;
+                        }
                     }
 
                     if (correctPhi)

@@ -149,14 +149,14 @@ public:
                 return rhoM_;
             }
 
-            //- Return the divergence of the velocity field [1/s]
-            const volScalarField& divPhi() const
-            {
-                return divPhi_;
-            }
+            //- Calculate and return the divergence of the velocity field [1/s]
+            const volScalarField& divPhi();
 
             //- Correct alpha-dependent fields
             void correct() override;
+
+            //- Correct enthalpy-dependent fields
+            void correctThermo() override;
 };
 
 

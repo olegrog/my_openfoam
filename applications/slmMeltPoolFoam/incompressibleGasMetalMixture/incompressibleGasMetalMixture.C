@@ -187,7 +187,7 @@ Foam::tmp<Foam::volVectorField> Foam::incompressibleGasMetalMixture::marangoniFo
 
 Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::solidPhaseDamping() const
 {
-    volScalarField liquidFractionInMetal =
+    const volScalarField liquidFractionInMetal =
         thermo_.sigmoid().value((h() - hAtMelting())/thermo_.Hfusion()/(alphaM_ + SMALL));
     return mushyCoeff_*alphaM_
         *sqr(1 - liquidFractionInMetal)/(sqr(liquidFractionInMetal) + SMALL);
@@ -206,6 +206,22 @@ Foam::tmp<Foam::volScalarField> Foam::incompressibleGasMetalMixture::vapourPress
 }
 
 
+const Foam::volScalarField& Foam::incompressibleGasMetalMixture::divPhi()
+{
+    if (quasiIncompressible_)
+    {
+        const dimensionedScalar rhoJump("rhoJump", dimDensity, rhoJump_);
+        divPhi_ =
+        (
+          - rhoJump*fvc::DDt(phi_, liquidFraction())
+          - dRhoMDT()*fvc::DDt(phi_, T())
+        )*alphaM_/rhoM_;
+    }
+
+    return divPhi_;
+}
+
+
 void Foam::incompressibleGasMetalMixture::correct()
 {
     // incompressibleTwoPhaseMixture -> nu
@@ -213,17 +229,16 @@ void Foam::incompressibleGasMetalMixture::correct()
     immiscibleIncompressibleTwoPhaseMixture::correct();
     // gasMetalThermalProperties -> hAtMelting, gradAlphaM
     gasMetalThermalProperties::correct();
+}
+
+
+void Foam::incompressibleGasMetalMixture::correctThermo()
+{
+    gasMetalThermalProperties::correctThermo();
 
     if (quasiIncompressible_)
     {
         updateRhoM();
-        dimensionedScalar rhoJump("rhoJump", dimDensity, rhoJump_);
-
-        divPhi_ =
-        (
-          - rhoJump*fvc::DDt(phi_, liquidFraction())
-          - dRhoMDT()*fvc::DDt(phi_, T())
-        )*alphaM_/(alphaM_*rhoM_ + alpha2_*rho2_);
     }
 }
 
