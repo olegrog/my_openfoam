@@ -40,14 +40,14 @@ solvers
         solver          GAMG;
         smoother        DIC;
         cacheAgglomeration no;
-        tolerance       1e-8;
+        tolerance       1e-12;
         relTol          0.01;
     }
 
     p_rghFinal
     {
         $p_rgh;
-        relTol          0;
+        relTol          1e-3;
     }
 
     "pcorr.*"
