@@ -102,6 +102,9 @@ private:
             //- Liquid fraction in the gas-metal mixture [-]
             volScalarField liquidFraction_;
 
+            //- Liquid fraction in the metal [-]
+            volScalarField liquidFractionInMetal_;
+
             //- Derivative of the liquid fraction w.r.t. enthalpy [kg/J]
             volScalarField liquidFractionPrimeEnthalpy_;
 
@@ -211,9 +214,16 @@ public:
                 return liquidFraction_;
             }
 
+            //- Return liquid fraction in metal [-]
+            const volScalarField& liquidFractionInMetal() const
+            {
+                return liquidFractionInMetal_;
+            }
+
             //- Return derivative of the liquid fraction w.r.t. enthalpy [kg/J]
             const volScalarField& liquidFractionPrimeEnthalpy() const
             {
+                NotImplemented;
                 return liquidFractionPrimeEnthalpy_;
             }
 

@@ -87,6 +87,10 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
         mesh,
         dimensionedScalar()
     ),
+    liquidFractionInMetal_
+    (
+        volScalarField::New("liquidFractionInMetal", mesh, dimless)
+    ),
     liquidFractionPrimeEnthalpy_
     (
         volScalarField::New("liquidFractionPrimeEnthalpy", mesh, dimMass/dimEnergy)
@@ -231,8 +235,9 @@ void Foam::gasMetalThermalProperties<Mixture>::calcMetalFractions()
 {
     const volScalarField x = (h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL);
 
-    liquidFraction_ = alphaM_*thermo_.sigmoid().value(x);
-    liquidFractionPrimeEnthalpy_ = thermo_.sigmoid().derivative(x)/thermo_.Hfusion();
+    liquidFractionInMetal_ = thermo_.sigmoid().value(x);
+    liquidFraction_ = alphaM_*liquidFractionInMetal_;
+    //liquidFractionPrimeEnthalpy_ = thermo_.sigmoid().derivative(x)/thermo_.Hfusion();
 }
 
 

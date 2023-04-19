@@ -31,12 +31,12 @@ divSchemes
     div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
     // limitedLinear <0..1> -- Koren limiter (more bounded)
     // linearUpwind grad(...) -- 2-order (less bounded)
-    div(rhoPhi,U)               Gauss limitedLinearV 1;
-    div(rhoPhi,h)               Gauss limitedLinear 1;
-    div(phi,epsilon)            Gauss upwind;
-    div(phi,k)                  Gauss upwind;
-    div(phi,T)                  Gauss upwind;
-    div(phi,liquidFraction)     Gauss upwind;
+    div(rhoPhi,U)                       Gauss limitedLinearV 1;
+    div(rhoPhi,h)                       Gauss limitedLinear 1;
+    div(phi,epsilon)                    Gauss upwind;
+    div(phi,k)                          Gauss upwind;
+    div(phi,T)                          Gauss upwind;
+    div(phi,liquidFractionInMetal)      Gauss upwind;
 }
 
 laplacianSchemes

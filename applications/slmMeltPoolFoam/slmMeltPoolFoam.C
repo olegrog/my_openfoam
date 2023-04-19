@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
                         // Need for ddt in correctPassiveFields() and mixture.divPhi()
                         const std::vector<std::reference_wrapper<const volScalarField>> fields
                         {
+                            std::cref(mixture.liquidFractionInMetal()),
                             std::cref(liquidFraction),
                             std::cref(T)
                         };
