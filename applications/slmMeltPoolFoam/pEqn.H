@@ -61,6 +61,7 @@ while (pimple.correctNonOrthogonal())
     }
 }
 
+const volScalarField& divU = mixture.divPhi();
 #include "continuityErrs.H"
 
 // Correct Uf if the mesh is moving

@@ -29,6 +29,7 @@ volVectorField U
 );
 
 #include "createPhi.H"
+volScalarField divU("divU", fvc::div(phi)); // Used in correctPhi.H
 
 Info<< "Reading transport and thermal properties\n" << endl;
 incompressibleGasMetalMixture mixture(U, phi);

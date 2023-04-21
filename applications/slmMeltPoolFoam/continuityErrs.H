@@ -1,5 +1,5 @@
 {
-    volScalarField contErr(fvc::div(phi) - mixture.divPhi());
+    volScalarField contErr(fvc::div(phi) - divU);
 
     scalar sumLocalContErr = runTime.deltaTValue()*
         mag(contErr)().weightedAverage(mesh.V()).value();
