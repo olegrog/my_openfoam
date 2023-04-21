@@ -78,6 +78,10 @@ Foam::incompressibleGasMetalMixture::incompressibleGasMetalMixture
 
     if (quasiIncompressible_)
     {
+        // Need for DDt in divPhi()
+        T().oldTime();
+        liquidFractionInMetal().oldTime();
+
         Info<< " -- Liquid metal density at " << Tmelting + 1000 << " = "
             << rhoM(Tmelting, Tmelting + 1000, 1) << endl
             << " -- Liquid metal density at Tmelting = " << rhoM(Tmelting, Tmelting, 1) << endl

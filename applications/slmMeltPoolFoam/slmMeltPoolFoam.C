@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
 
         // --- Calculate time-dependent quantities
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
+        // NB: SMALL is too small to be used in the denominator
+        const volScalarField divUInMetal("divUInMetal", fvc::div(phi)/(alpha1 + ROOTSMALL));
 
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
@@ -159,6 +161,9 @@ int main(int argc, char *argv[])
                         // Calculate absolute flux
                         // from the mapped surface velocity
                         phi = mesh.Sf() & Uf();
+
+                        // Use velocity divergence from the old mesh
+                        divU = alpha1*divUInMetal;
 
                         #include "correctPhi.H"
 

@@ -1,6 +1,6 @@
 // Update alpha1
 #include "alphaSuSp.H"
-advector.advect(Sp, mixture.divPhi());
+advector.advect(Sp, fvc::div(phi)());
 
 #include "rhofs.H"
 rhoPhi = (rho1f - rho2f)*advector.alphaPhi() + rho2f*phi;
