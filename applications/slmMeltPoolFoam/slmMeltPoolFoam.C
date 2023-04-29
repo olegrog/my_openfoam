@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            if (pimple.corr() + 1 == pimple.nCorrPIMPLE())
+            if (pimple.corr() == pimple.nCorrPIMPLE())
             {
                 reduceTimeStep = true;
             }
