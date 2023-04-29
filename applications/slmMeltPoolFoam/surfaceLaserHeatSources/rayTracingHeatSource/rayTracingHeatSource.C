@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
                   laserDTRM | Copyright (C) 2017-2019 OpenCFD Ltd.
-       rayTracingHeatSource | Copyright (C) 2021-2022 Oleg Rogozin
+       rayTracingHeatSource | Copyright (C) 2021-2023 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.

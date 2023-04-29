@@ -6,7 +6,7 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
                DTRMParticle | Copyright (C) 2017-2019 OpenCFD Ltd
-         rayTracingParticle | Copyright (C) 2021 Oleg Rogozin
+         rayTracingParticle | Copyright (C) 2021-2023 Oleg Rogozin
 -------------------------------------------------------------------------------
 License
     This file is part of slmMeltPoolFoam.
