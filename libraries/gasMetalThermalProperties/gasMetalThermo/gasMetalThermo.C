@@ -63,7 +63,7 @@ Foam::gasMetalThermo::gasMetalThermo(const fvMesh& mesh)
     scalar hGasAtMelting = gas_.Cp.integral(0, Tmelting_);
     scalar hPreBoiling = hLiquidus + liquid_.Cp.integral(Tmelting_, Tboiling_);
 
-    Info<< endl
+    Info<< "\nThermal properties:" << endl
         << " -- Solidus enthalpy = " << hSolidus << endl
         << " -- Liquidus enthalpy = " << hLiquidus << endl
         << " -- Gas enthalpy at Tmelting = " << hGasAtMelting << endl

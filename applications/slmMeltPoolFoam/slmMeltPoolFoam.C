@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
 
         // --- Calculate time-dependent quantities
         const dimensionedScalar totalEnthalpy = fvc::domainIntegrate(rho*h);
+        // NB: SMALL is too small to be used in the denominator
+        const volScalarField divUInMetal("divUInMetal", fvc::div(phi)/(alpha1 + ROOTSMALL));
 
         // --- Alpha-enthalpy-pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
@@ -119,6 +121,7 @@ int main(int argc, char *argv[])
                 }
 
                 const scalar meshUpdateStartTime = runTime.elapsedCpuTime();
+
                 mesh.update();
 
                 if (mesh.changing())
@@ -140,9 +143,17 @@ int main(int argc, char *argv[])
                         mixture.correct();
                         mixture.correctThermo();
 
-                        // Used in correctPassiveFields()
-                        const_cast<volScalarField&>(liquidFraction).oldTime() = liquidFraction;
-                        const_cast<volScalarField&>(T).oldTime() = T;
+                        // Need for ddt in correctPassiveFields() and mixture.divPhi()
+                        const std::vector<std::reference_wrapper<const volScalarField>> fields
+                        {
+                            std::cref(mixture.liquidFractionInMetal()),
+                            std::cref(liquidFraction),
+                            std::cref(T)
+                        };
+                        for (auto& field : fields)
+                        {
+                            const_cast<volScalarField&>(field.get()).oldTime() = field;
+                        }
                     }
 
                     if (correctPhi)
@@ -150,6 +161,9 @@ int main(int argc, char *argv[])
                         // Calculate absolute flux
                         // from the mapped surface velocity
                         phi = mesh.Sf() & Uf();
+
+                        // Use velocity divergence from the old mesh
+                        divU = alpha1*divUInMetal;
 
                         #include "correctPhi.H"
 
