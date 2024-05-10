@@ -47,11 +47,14 @@ ofp() {
     local dir="my_openfoam"
     local image_name="my_openfoam-plus"
     local user="openfoam"
+    local timezone
+    timezone="$(readlink /etc/localtime | sed 's_.*zoneinfo/__')"
     [ -d "$HOME/$dir/run" ] || sudo openfoam-macos-file-system -v $dir mount
-    docker run -it --rm                             \
-        --user="$(id -u):$(id -g)"                  \
-        --volume="$HOME/$dir:/home/$user"           \
-        --volume="/etc/localtime:/etc/localtime:ro" \
+    docker run -it --rm                   \
+        --user="$(id -u):$(id -g)"        \
+        --env USER=$USER                  \
+        --env TZ="$timezone"              \
+        --volume="$HOME/$dir:/home/$user" \
         $image_name
 }
 
