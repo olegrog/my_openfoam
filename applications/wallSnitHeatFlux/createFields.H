@@ -23,8 +23,5 @@ IOdictionary transportProperties
     )
 );
 
-dimensionedScalar g2
-(
-    transportProperties.lookup("gamma2")
-);
+dimensionedScalar g2("gamma2", transportProperties);
 

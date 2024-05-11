@@ -84,7 +84,7 @@ void snitPressureFvPatchField::updateCoeffs()
     const dictionary& transportProperties =
         db().lookupObject<IOdictionary>("transportProperties");
     const scalar gamma7 =
-        dimensionedScalar(transportProperties.lookup("gamma7")).value();
+        dimensionedScalar("gamma7", transportProperties).value();
     const fvPatchField<scalar>& T =
         patch().lookupPatchField<volScalarField, scalar>("T");
 

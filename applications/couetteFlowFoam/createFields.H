@@ -109,52 +109,28 @@
     );
 
     Info<< "Reading s\n" << endl;
-    dimensionedScalar s
-    (
-        transportProperties.lookup("s")
-    );
+    dimensionedScalar s("s", transportProperties);
 
     Info<< "Reading gamma1\n" << endl;
-    dimensionedScalar gamma1
-    (
-        transportProperties.lookup("gamma1")
-    );
+    dimensionedScalar gamma1("gamma1", transportProperties);
 
     Info<< "Reading gamma2\n" << endl;
-    dimensionedScalar gamma2
-    (
-        transportProperties.lookup("gamma2")
-    );
+    dimensionedScalar gamma2("gamma2", transportProperties);
 
     Info<< "Reading gamma3\n" << endl;
-    dimensionedScalar gamma3
-    (
-        transportProperties.lookup("gamma3")
-    );
+    dimensionedScalar gamma3("gamma3", transportProperties);
 
     Info<< "Reading gamma7\n" << endl;
-    dimensionedScalar gamma7
-    (
-        transportProperties.lookup("gamma7")
-    );
+    dimensionedScalar gamma7("gamma7", transportProperties);
 
     Info<< "Reading gamma8\n" << endl;
-    dimensionedScalar gamma8
-    (
-        transportProperties.lookup("gamma8")
-    );
+    dimensionedScalar gamma8("gamma8", transportProperties);
 
     Info<< "Reading gamma9\n" << endl;
-    dimensionedScalar gamma9
-    (
-        transportProperties.lookup("gamma9")
-    );
+    dimensionedScalar gamma9("gamma9", transportProperties);
 
     Info<< "Reading gamma10\n" << endl;
-    dimensionedScalar gamma10
-    (
-        transportProperties.lookup("gamma10")
-    );
+    dimensionedScalar gamma10("gamma10", transportProperties);
 
     Info<< "Reading kn\n" << endl;
     scalar kn;

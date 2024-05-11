@@ -19,9 +19,9 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void checkOption(Foam::argList args, word option)
+void checkOption(const Foam::argList& args, word option)
 {
-    if (!args.optionFound(option)) {
+    if (!args.found(option)) {
         FatalErrorIn("int main()")
             << "The " << option << " has not been specified."
             << abort(FatalError);
@@ -108,19 +108,19 @@ int main(int argc, char *argv[])
         Info<< "Updating patch: " << args["patch"] << endl;
     }
 
-    if (args.optionFound("cylinder")) {
+    if (args.found("cylinder")) {
         checkOption(args, "radius");
         scalar value = 1./strtod(args["radius"].c_str(), NULL);
         Info<< "Preset cylindrical curvature = " << value << endl;
         curvature.boundaryFieldRef()[patch] = value;
     }
-    if (args.optionFound("sphere")) {
+    if (args.found("sphere")) {
         checkOption(args, "radius");
         scalar value = 2./strtod(args["radius"].c_str(), NULL);
         Info<< "Preset spherical curvature = " << value << endl;
         curvature.boundaryFieldRef()[patch] = value;
     }
-    if (args.optionFound("elliptic")) {
+    if (args.found("elliptic")) {
         checkOption(args, "major");
         checkOption(args, "minor");
         checkOption(args, "phi");

@@ -4,6 +4,7 @@ EXE_INC = \
     -I../../libraries/sigmoidFunction/lnInclude \
     -I./quiescentGasMetalMixture/lnInclude \
     -I../../libraries/laserHeatSource/lnInclude \
+    -I../../libraries/movingReferenceFrame/lnInclude \
     -I./volumetricLaserHeatSources/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/finiteVolume/lnInclude \

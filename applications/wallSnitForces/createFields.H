@@ -62,25 +62,10 @@ IOdictionary transportProperties
     )
 );
 
-dimensionedScalar g1
-(
-    transportProperties.lookup("gamma1")
-);
-
-dimensionedScalar g2
-(
-    transportProperties.lookup("gamma2")
-);
-
-dimensionedScalar g3
-(
-    transportProperties.lookup("gamma3")
-);
-
-dimensionedScalar g7
-(
-    transportProperties.lookup("gamma7")
-);
+dimensionedScalar g1("gamma1", transportProperties);
+dimensionedScalar g2("gamma2", transportProperties);
+dimensionedScalar g3("gamma3", transportProperties);
+dimensionedScalar g7("gamma7", transportProperties);
 
 IOdictionary nondimensionalProperties
 (

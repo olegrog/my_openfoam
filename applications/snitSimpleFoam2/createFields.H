@@ -157,19 +157,10 @@
     Info<< "Reading transportProperties\n" << endl;
 
     Info<< "Reading gamma1\n" << endl;
-    dimensionedScalar gamma1
-    (
-        transportProperties.lookup("gamma1")
-    );
+    dimensionedScalar gamma1("gamma1", transportProperties);
 
     Info<< "Reading gamma2\n" << endl;
-    dimensionedScalar gamma2
-    (
-        transportProperties.lookup("gamma2")
-    );
+    dimensionedScalar gamma2("gamma2", transportProperties);
 
     Info<< "Reading gamma7\n" << endl;
-    dimensionedScalar gamma7
-    (
-        transportProperties.lookup("gamma7")
-    );
+    dimensionedScalar gamma7("gamma7", transportProperties);

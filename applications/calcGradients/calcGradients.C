@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     #include "createNamedMesh.H"
 
     HashSet<word> selectedFields;
-    args.optionReadIfPresent("fields", selectedFields);
+    args.readIfPresent("fields", selectedFields);
 
     instantList timeDirs = timeSelector::select0(runTime, args);
     forAll(timeDirs, timeI)

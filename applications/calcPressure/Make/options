@@ -6,5 +6,5 @@ EXE_LIBS = \
     -lfiniteVolume \
     -L$(FOAM_USER_LIBBIN) \
     -lextrapolatedSlipGradientFvPatchVectorField \
-    -lextrapolatedGradientFvPatchScalarField
+    -lextrapolatedGradientFvPatchField
 

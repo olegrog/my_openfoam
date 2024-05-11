@@ -74,7 +74,7 @@ Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::value
     const volScalarField& field
 ) const
 {
-    Foam::pow(dimensionedScalar(), field.dimensions()); // Check dimensions
+    trans(field.dimensions()); // Check dimensions
 
     return (b_ - a_)/2*value0(2*field/(b_ - a_)) + (a_ + b_)/2;
 }
@@ -85,7 +85,7 @@ Foam::tmp<Foam::volScalarField> Foam::sigmoidFunction::derivative
     const volScalarField& field
 ) const
 {
-    Foam::pow(dimensionedScalar(), field.dimensions()); // Check dimensions
+    trans(field.dimensions()); // Check dimensions
 
     return value1(2*field/(b_ - a_));
 }

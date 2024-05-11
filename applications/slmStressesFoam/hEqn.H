@@ -1,6 +1,6 @@
 pp(T);
 
-const surfaceScalarField kByCp = mixture.kf()/mixture.Cpf();
+const surfaceScalarField kByCp = mixture.kappaf()/mixture.Cpf();
 
 // const surfaceScalarField liquidFractionPrimeEnthalpyf =
 //     fvc::interpolate(mixture.liquidFractionPrimeEnthalpy());
