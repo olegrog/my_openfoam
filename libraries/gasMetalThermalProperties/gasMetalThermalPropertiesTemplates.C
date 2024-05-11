@@ -87,6 +87,10 @@ Foam::gasMetalThermalProperties<Mixture>::gasMetalThermalProperties
         mesh,
         dimensionedScalar()
     ),
+    liquidFractionInMetal_
+    (
+        volScalarField::New("liquidFractionInMetal", mesh, dimless)
+    ),
     liquidFractionPrimeEnthalpy_
     (
         volScalarField::New("liquidFractionPrimeEnthalpy", mesh, dimMass/dimEnergy)
@@ -231,8 +235,9 @@ void Foam::gasMetalThermalProperties<Mixture>::calcMetalFractions()
 {
     const volScalarField x = (h_ - hAtMelting_)/thermo_.Hfusion()/(alphaM_ + SMALL);
 
-    liquidFraction_ = alphaM_*thermo_.sigmoid().value(x);
-    liquidFractionPrimeEnthalpy_ = thermo_.sigmoid().derivative(x)/thermo_.Hfusion();
+    liquidFractionInMetal_ = thermo_.sigmoid().value(x);
+    liquidFraction_ = alphaM_*liquidFractionInMetal_;
+    //liquidFractionPrimeEnthalpy_ = thermo_.sigmoid().derivative(x)/thermo_.Hfusion();
 }
 
 
@@ -241,7 +246,7 @@ void Foam::gasMetalThermalProperties<Mixture>::calcRedistribution() const
 {
     const volScalarField CpM = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(0));
     const volScalarField CpG = thermo_.Cp(T_, liquidFraction_, geometricUniformField<scalar>(1));
-    const dimensionedScalar rhoM = mixture_.rho1();
+    const volScalarField& rhoM = mixture_.rhoM();
     const dimensionedScalar rhoG = mixture_.rho2();
     const volScalarField rho = alphaM_*rhoM + alphaG_*rhoG;
 
