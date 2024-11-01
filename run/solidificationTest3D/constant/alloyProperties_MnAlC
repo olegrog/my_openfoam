@@ -1,0 +1,56 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | foam-extend: Open Source CFD                    |
+|  \\    /   O peration     | Version:     4.0                                |
+|   \\  /    A nd           | Web:         http://www.foam-extend.org         |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      alloyProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+components (
+    Mn {
+        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  5950;
+        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  5.5e-2;
+        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.1462;
+        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.185;
+        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -1196;
+        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   -995;
+        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-14;
+        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  3.0e-9;
+    }
+    Al {
+        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  2375;
+        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  2.7e-2;
+        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0106;
+        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.01;
+        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   79000;
+        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   23500;
+        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  1.0e-14;
+        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  2.7e-9;
+    }
+    C {
+        densityMelting  densityMelting  [ 1 -3 0 0 0 0 0 ]  2000;
+        molarMass       molarMass       [ 1 0 0 0 -1 0 0 ]  1.2e-2;
+        equilibriumS    equilibriumS    [ 0 0 0 0 0 0 0 ]   0.0011;
+        equilibriumL    equilibriumL    [ 0 0 0 0 0 0 0 ]   0.0033;
+        slopeS          slopeS          [ 0 0 0 1 0 0 0 ]   -21300;
+        slopeL          slopeL          [ 0 0 0 1 0 0 0 ]   -8170;
+        diffusionS      diffusionS      [ 0 2 -1 0 0 0 0 ]  3.0e-12;
+        diffusionL      diffusionL      [ 0 2 -1 0 0 0 0 ]  6.2e-9;
+    }
+);
+
+entropyChange   entropyChange   [ 1 2 -2 -1 -1 0 0 ]    9.0;
+interfaceEnergy interfaceEnergy [ 1 0 -2 0 0 0 0 ]      0.27;
+solidus         solidus         [ 0 0 0 1 0 0 0 ]       1656.6;
+liquidus        liquidus        [ 0 0 0 1 0 0 0 ]       1703;
+
+// ************************************************************************* //

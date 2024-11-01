@@ -1,0 +1,377 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      alloyProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Solid diffusion is taken from Miettinen1997
+
+phases (liquid solid);
+
+components
+(
+    Cr
+    {
+        type piecewiseLinear;
+        molarMass       5.20e-2;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.17;
+                slope       6272;
+                diffusion   2.0e-9;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.1610;
+                        slope       -1461;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.1610;
+                        slope       -1461;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1567;
+                        slope       -1106;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.17;
+                        slope       6272;
+                    }
+                );
+            }
+
+            solid
+            {
+                equilibrium 0.1747;
+                slope       5765;
+                diffusion   1.0e-11; // 1.0e-14;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.182; //0.179;
+                        slope       -20000; //-6527;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.1685;
+                        slope       -1918;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1616;
+                        slope       -1148;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.1747;
+                        slope       5765;
+                    }
+                );
+            }
+        );
+    }
+
+    Ni
+    {
+        type piecewiseLinear;
+        molarMass       5.87e-2;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.12;
+                slope       -862.2;
+                diffusion   2.0e-9;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.13405; //0.1402;
+                        slope       -8000; //5378;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.13405; //0.1402;
+                        slope       -8000; //5378;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.1311;
+                        slope       -3642;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.12;
+                        slope       -862.2;
+                    }
+                );
+            }
+
+            solid
+            {
+                equilibrium 0.0914;
+                slope       -1226;
+                diffusion   6.8e-12; // 1.0e-14;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.1027; //0.1067;
+                        slope       -20000; //6214;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.10055; //0.1050;
+                        slope       -8000; //10020;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.0991;
+                        slope       -5032;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.09136;
+                        slope       -1226;
+                    }
+                );
+            }
+        );
+    }
+
+    Mo
+    {
+        type piecewiseLinear;
+        molarMass       9.60e-2;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.025;
+                slope       7877;
+                diffusion   2.0e-9;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.02023;
+                        slope       -3401;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.02023;
+                        slope       -3401;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.01881;
+                        slope       -2730;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.025;
+                        slope       7877;
+                    }
+                );
+            }
+
+            solid
+            {
+                equilibrium 0.0288;
+                slope       6990;
+                diffusion   1.3e-11; // 1.0e-14;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 0.0297;
+                        slope       -14790;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1707.15;
+                        equilibrium 0.02506;
+                        slope       -4320;
+                    }
+                    second
+                    {
+                        Tmin        1707.15;
+                        Tmax        1714.23;
+                        equilibrium 0.02243;
+                        slope       -2739;
+                    }
+                    third
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.02881;
+                        slope       6990;
+                    }
+                );
+            }
+        );
+    }
+
+    C
+    {
+        type piecewiseLinear;
+        molarMass       1.20e-2;
+
+        phases
+        (
+            liquid
+            {
+                equilibrium 0.0003;
+                slope       -63800;
+                diffusion   2.0e-9; // 2.0e-9;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium -0.00054;
+                        slope       -12100;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1714.23;
+                        equilibrium -0.00054;
+                        slope       -12100;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 0.0003;
+                        slope       -63800;
+                    }
+                );
+            }
+
+            solid
+            {
+                equilibrium 3.27e-5;
+                slope       -674700;
+                diffusion   1.0e-11; // 4.1e-9; // 1.0e-14;
+
+                intervals
+                (
+                    zero
+                    {
+                        Tmin        1000;
+                        Tmax        1698.25;
+                        equilibrium 1.96e-4;
+                        slope       1494000;
+                    }
+                    first
+                    {
+                        Tmin        1698.25;
+                        Tmax        1714.23;
+                        equilibrium -4.74e-5;
+                        slope       -127000;
+                    }
+                    second
+                    {
+                        Tmin        1714.23;
+                        Tmax        2000;
+                        equilibrium 3.27e-5;
+                        slope       -674700;
+                    }
+                );
+            }
+        );
+    }
+);
+
+baseMolarMass       5.58e-2;
+rhoSolid            7266;    // calculated for ferrite in ../data316L/diagrams.plt // Kim1975: 7256
+// Liquid phase: calculated: 6937, Kim1975: 6979
+interfaceEnergy     0.358;   // Pinomaa2020; Nomoto2019: 0.2
+
+solidus             1698.25; // Pichler2020: 1675+/-15
+liquidus            1726.78; // Pichler2020: 1708+/-30
+latentHeat          2.9e5;   // Pichler2020
+
+// entropyChange[J/mol/K] = latentHeat[J/kg]*molarMass[kg/mol]/liquidus[K]
+// entropyChange = 2.9e5*0.056/1710 = 9.50; // AISI 316L
+// entropyChange = 13810/1713 = 8.06; // pure iron
+// entropyChange = 1.25e9*0.056/6980/1710 = 5.86; // Pinomaa2020
+
+nAnisotropyModes    4;
+capillaryAnisotropy 0.06;   // Pinomaa2020: 0.018
+kineticAnisotropy   0;      // Pinomaa2020: 0.13
+
+// ************************************************************************* //
