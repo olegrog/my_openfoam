@@ -1,7 +1,7 @@
 My OpenFOAM solvers and problems
 ========
 
-Currently, the latest version of [OpenFOAM+](https://www.openfoam.com) is supported.
+Currently, the latest version of [OpenFOAM from OpenCFD Ltd.](https://www.openfoam.com) is supported.
 
 Installation
 -------
@@ -11,12 +11,12 @@ The repository can be cloned by
 ```
 To build an augmented Docker image, run
 ```shell
-    cd openfoam
-    docker build -f Dockerfile.ubuntu -t my_openfoam-plus .
+    cd my_openfoam
+    docker build -f Dockerfile.ubuntu -t my_openfoam-com .
 ```
 The new image can be used within an intermediate container as
 ```shell
-    docker run -it --rm -u="$(id -u):$(id -g)" -v="$(pwd):/home/openfoam" my_openfoam-plus
+    docker run -it --rm -u="$(id -u):$(id -g)" -v="$(pwd):/home/my_openfoam" my_openfoam-com
 ```
 
 MacOS pre-installation
@@ -41,11 +41,11 @@ In the latter case, it is worth to add these lines to `.bash_profile`:
 
 Shell commands
 -------
-It is convenient to add some functions to `.bash_profile` to run the Docker container (`ofp`) and open ParaView (`pf`):
+It is convenient to add some functions to `.bash_profile` to run the Docker container (`of`) and open ParaView (`pf`):
 ```shell
-ofp() {
+of() {
     local dir="my_openfoam"
-    local image_name="my_openfoam-plus"
+    local image_name="my_openfoam-com"
     local user="openfoam"
     local timezone
     timezone="$(readlink /etc/localtime | sed 's_.*zoneinfo/__')"
@@ -66,4 +66,3 @@ pf() {
     paraview "$dir" > /dev/null 2>&1 &
 }
 ```
-
