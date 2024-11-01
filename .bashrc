@@ -27,6 +27,11 @@ shopt -s histappend
 export HISTFILE=$HOME/.bash_history
 history -r
 
+# Bash completion
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+fi
+
 # Colorize less output
 export LESSOPEN="| $(which source-highlight) -i %s -f esc256 --style-file esc256.style"
 export LESS=" -R"
@@ -86,9 +91,6 @@ alias ls='ls --color=auto -G'
 alias ll='ls -lFh'
 alias diff='colordiff'
 alias g='git'
-alias solv='cd $FOAM_SOLVERS'
-alias src='cd $FOAM_SRC'
-alias tut='cd $FOAM_TUTORIALS'
 alias m='FOAM_EXTRA_CXXFLAGS=-fdiagnostics-color=always wmake -j 2>&1 | less -R'
 alias ma='FOAM_EXTRA_CXXFLAGS=-fdiagnostics-color=always wmake -a -j 2>&1 | less -R'
 alias md='FOAM_EXTRA_CXXFLAGS=-fdiagnostics-color=always wmake -debug -j 2>&1 | less -R'

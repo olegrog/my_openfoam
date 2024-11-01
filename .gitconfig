@@ -18,6 +18,7 @@
     st = status -suno
     br = branch
     hist = log --graph --format='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    rb = rebase --committer-date-is-author-date --rebase-merges -i
     d = diff
     dc = diff --cached
     s = show
